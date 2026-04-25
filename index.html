@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Google Fonts 预连接 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- 字体加载：主站正文、标题，以及开场数字候选字体 -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Germania+One&family=Inter:wght@300;400;500&family=MedievalSharp&family=New+Rocker&family=Noto+Serif+SC:wght@300;400;500&family=Pirata+One&family=UnifrakturCook:wght@700&display=swap"
+      rel="stylesheet"
+    />
+    <meta
+      name="description"
+      content="岩色重生：栖霞山石窟造像 AI 数字复彩交互档案馆。"
+    />
+    <title>岩色重生｜栖霞山石窟造像 AI 数字复彩交互档案馆</title>
+    <style>
+      /* JS 加载前保持深色展览背景，避免首帧闪白。 */
+      html, body {
+        height: 100%;
+        overflow: hidden;
+        background: #252525;
+        color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
