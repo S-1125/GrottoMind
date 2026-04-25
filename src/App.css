@@ -1,0 +1,905 @@
+/* ==========================================================================
+   合并版样式：入场动画 + 沉浸式滚动场景
+   ========================================================================== */
+
+/* ——— Google Fonts 在 index.html 已引入 ——— */
+
+:root {
+  --c-bg:        #252525;
+  --c-ink:       #151412;
+  --c-text:      rgba(246, 238, 224, 0.92);
+  --c-muted:     rgba(246, 238, 224, 0.52);
+  --c-faint:     rgba(246, 238, 224, 0.18);
+  --c-gold:      #f6cea0;
+  --c-gold-soft: rgba(246, 206, 160, 0.62);
+  --c-gold-faint:rgba(246, 206, 160, 0.16);
+
+  --font-serif:  'Noto Serif SC', 'Cormorant Garamond', serif;
+  --font-loader: 'New Rocker', serif;
+  --font-sans:   'Inter', sans-serif;
+
+  /* 参考站常见的慢速展览缓动曲线 */
+  --ease-expo:   cubic-bezier(0.2, 0, 0, 1);
+  --ease-natural:cubic-bezier(0.455, 0.03, 0.515, 0.955);
+  --ease-hover:  cubic-bezier(0.55, 0.085, 0.68, 0.53);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+button { cursor: pointer; background: transparent; border: none; color: inherit; font-family: inherit; }
+
+/* ==========================================================================
+   APP ROOT
+   ========================================================================== */
+.app-root {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app-root.is-entered {
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.app-root.is-entered::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+/* ==========================================================================
+   SITE BODY（入场后的主站区域）
+   ========================================================================== */
+.site-body {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(95, 68, 43, 0.22), transparent 34%),
+    #252525;
+  transition: opacity 0.45s var(--ease-expo), visibility 0.45s step-end;
+}
+
+.site-body.is-visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition: opacity 0.45s var(--ease-expo);
+}
+
+/* WebGL 背景 */
+.webgl-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   ★ INTRO ANIMATION STYLES
+   ========================================================================== */
+.intro-animation {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--c-bg);
+}
+
+/* 背景图层 */
+.intro-bg-layer {
+  position: absolute;
+  inset: 0;
+  filter: brightness(0.05);
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 120% 60% at 50% 80%, rgba(60,75,95,0.5) 0%, transparent 70%),
+    linear-gradient(180deg, #141820 0%, #1e2535 35%, #2a3348 55%, #1a2030 80%, #0d0e12 100%);
+}
+
+.intro-bg-layer svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* 深色遮罩 */
+.intro-dark-mask {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: var(--c-bg);
+  pointer-events: none;
+}
+
+/* Loading 容器（中央显示进度环） */
+.intro-loader-wrap {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.intro-loader-inner {
+  position: relative;
+  width: min(180px, 20vw);
+  height: min(180px, 20vw);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Mandala 图片纹样环 (使用 mask 技术染色) */
+.mandala-img {
+  position: absolute;
+  inset: -23%; /* 微调：缩小一点点（约2%） */
+  width: auto;
+  height: auto;
+  background-color: var(--c-gold);
+  -webkit-mask-image: url('/assets/ornament.png');
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-image: url('/assets/ornament.png');
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  animation: mandala-spin 40s linear infinite;
+  opacity: 0.8; /* 调整发光度/融合度 */
+}
+
+/* 外围细线进度圈 */
+.progress-ring-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+@keyframes mandala-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 进度数字 */
+.intro-progress-num {
+  position: relative;
+  z-index: 2;
+  font-family: var(--font-loader);
+  font-size: clamp(36px, 4.5vw, 56px);
+  font-weight: 400;
+  color: var(--c-gold);
+  letter-spacing: 0.015em;
+  line-height: 0.9;
+  transform: translateY(2px);
+  text-shadow: 0 0 16px rgba(246, 206, 160, 0.1);
+}
+
+/* 中央文案层 */
+.intro-text-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12vw;
+  text-align: center;
+  pointer-events: none;
+}
+
+.intro-text-layer p {
+  font-family: var(--font-serif);
+  font-weight: 300;
+  font-size: clamp(15px, 2vw, 26px);
+  color: var(--c-text);
+  line-height: 2.2;
+  letter-spacing: 0.18em;
+  text-shadow:
+    0 0 40px rgba(10,11,15,0.9),
+    0 2px 20px rgba(10,11,15,0.7);
+}
+
+/* 底部引导 */
+.intro-guide {
+  position: absolute;
+  bottom: clamp(28px, 5vh, 56px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.intro-arrow-wrap {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.intro-arrow-circle {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 0.8px solid var(--c-gold-soft);
+}
+
+.intro-arrow-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.intro-guide-label {
+  font-family: var(--font-serif);
+  font-size: 11px;
+  font-weight: 300;
+  color: var(--c-muted);
+  letter-spacing: 0.28em;
+}
+
+/* 左上角 Logo（入场时） */
+.intro-brand-logo {
+  position: absolute;
+  top: clamp(20px, 3vh, 32px);
+  left: clamp(20px, 3vw, 40px);
+  z-index: 20;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px;
+  font-weight: 400;
+  color: rgba(240,235,225,0.6);
+  text-decoration: none;
+  letter-spacing: 0.05em;
+}
+
+/* 右下角控制按钮（入场时） */
+.intro-ctrl-nav {
+  position: absolute;
+  right: clamp(16px, 2.5vw, 32px);
+  bottom: clamp(16px, 2.5vh, 28px);
+  z-index: 20;
+  display: flex;
+  gap: 10px;
+}
+
+.intro-ctrl-btn {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 0.8px solid var(--c-gold-faint);
+  color: var(--c-gold-soft);
+  transition: border-color 0.3s, color 0.3s;
+}
+
+.intro-ctrl-btn:hover {
+  border-color: var(--c-gold);
+  color: var(--c-gold);
+}
+
+/* ==========================================================================
+   ★ SITE NAV（主站导航）
+   ========================================================================== */
+.site-nav {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%;
+  height: 72px;
+  padding: 0 max(20px, 3vw);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 50;
+  pointer-events: none;
+}
+
+.site-nav > * { pointer-events: auto; }
+
+.brand-logo,
+.intro-brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 14px; /* 两个 Logo 之间的间距 */
+}
+
+.site-logo-img {
+  width: 59px; /* 再缩小 10%：66 * 0.9 = 59.4 */
+  height: 25px; /* 再缩小 10%：28 * 0.9 = 25.2 */
+  display: block;
+  opacity: 1; /* 取消透明度，实白显示 */
+  background-color: #f6eee0; /* 温润白色 */
+  -webkit-mask-image: url('/assets/logo.png');
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: left center;
+  mask-image: url('/assets/logo.png');
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: left center;
+}
+
+.site-logo-img-en {
+  width: 134px; /* 再缩小 10%：149 * 0.9 = 134.1 */
+  height: 18px; /* 再缩小 10%：20 * 0.9 = 18 */
+  display: block;
+  opacity: 1;
+  background-color: #f6eee0;
+  transform: translateY(2px); /* 视觉微调：向下移动2px */
+  -webkit-mask-image: url('/assets/logo-en.png');
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: left center;
+  mask-image: url('/assets/logo-en.png');
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: left center;
+}
+
+.menu-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  color: var(--c-muted);
+  transition: color 0.3s;
+}
+
+.menu-toggle:hover { color: var(--c-text); }
+
+.menu-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--c-gold);
+}
+
+/* ==========================================================================
+   ★ 右下角控制按钮（主站）
+   ========================================================================== */
+.secondary-nav {
+  position: fixed;
+  right: max(16px, calc(2.5px + 1.95313vw));
+  bottom: max(16px, calc(2.5px + 1.95313vw));
+  z-index: 50;
+  display: flex;
+  gap: 10px;
+}
+
+.ctrl-btn {
+  display: grid;
+  place-items: center;
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  border: 0.8px solid var(--c-gold-faint);
+  color: var(--c-gold-soft);
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.35s var(--ease-expo), color 0.35s var(--ease-expo);
+}
+
+.ctrl-btn::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 105%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #f6eee0;
+  transform: translate(-50%, 0) scale(0.65, 0.35);
+  transform-origin: 50% 0;
+  transition: transform 0.55s var(--ease-expo), top 0.55s var(--ease-expo);
+}
+
+.ctrl-btn svg {
+  position: relative;
+  z-index: 1;
+}
+
+.ctrl-btn:hover {
+  border-color: #f6eee0;
+  color: var(--c-bg);
+}
+
+.ctrl-btn:hover::before {
+  top: 0;
+  transform: translate(-50%, 0) scale(1);
+}
+
+/* ==========================================================================
+   ★ 右侧章节圆点
+   ========================================================================== */
+.film-side-nav {
+  position: fixed;
+  right: 2vw;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  z-index: 50;
+}
+
+.film-side-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--c-muted);
+  border: none;
+  transition: background 0.3s, transform 0.3s;
+}
+
+.film-side-dot.is-active,
+.film-side-dot:hover {
+  background: var(--c-gold);
+  transform: scale(1.5);
+}
+
+/* ==========================================================================
+   ★ 沉浸式滚动电影场景
+   ========================================================================== */
+.scroll-film {
+  --film-progress: 0;
+  --film-depth: 0;
+  position: relative;
+  z-index: 10;
+  height: 520vh;
+  color: var(--c-text);
+}
+
+.film-sticky {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  background: #252525;
+}
+
+.film-world {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #252525;
+}
+
+.film-video,
+.film-plate,
+.film-depth-layer,
+.film-grotto-outline,
+.film-light,
+.film-dust,
+.film-vignette {
+  position: absolute;
+  inset: 0;
+}
+
+.film-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  filter: saturate(0.72) contrast(1.06) brightness(0.82);
+  transform: scale(calc(1.02 + var(--film-progress) * 0.08));
+}
+
+.film-video.is-visible {
+  opacity: 0.82;
+}
+
+.film-plate {
+  background:
+    linear-gradient(90deg, rgba(12, 11, 10, 0.9), transparent 22%, transparent 78%, rgba(12, 11, 10, 0.88)),
+    radial-gradient(circle at 50% 45%, rgba(246, 206, 160, 0.2), transparent 24%),
+    url('/assets/bg-landscape.png') center / cover no-repeat;
+  opacity: calc(0.96 - var(--film-progress) * 0.26);
+  filter: saturate(0.62) contrast(1.12) brightness(0.7);
+  transform:
+    translate3d(calc((var(--film-progress) - 0.5) * -2vw), calc(var(--film-progress) * -2vh), 0)
+    scale(calc(1.08 + var(--film-progress) * 0.1));
+}
+
+.film-depth-back {
+  background:
+    radial-gradient(ellipse at 50% 55%, transparent 0 22%, rgba(16, 14, 12, 0.18) 36%, rgba(9, 8, 7, 0.72) 72%),
+    repeating-linear-gradient(100deg, rgba(246, 206, 160, 0.06) 0 1px, transparent 1px 22px);
+  mix-blend-mode: screen;
+  opacity: 0.32;
+  transform: translateX(calc(var(--film-progress) * -3vw));
+}
+
+.film-depth-mid {
+  background:
+    radial-gradient(ellipse at 52% 50%, rgba(246, 206, 160, 0.18), transparent 30%),
+    linear-gradient(180deg, transparent 0 48%, rgba(18, 15, 12, 0.72) 100%);
+  opacity: 0.58;
+  transform: translateY(calc(var(--film-progress) * -4vh));
+}
+
+.film-grotto-outline {
+  opacity: calc(0.28 + var(--film-progress) * 0.38);
+  transform: translateY(calc(var(--film-progress) * -2.2vh)) scale(calc(1 + var(--film-progress) * 0.045));
+}
+
+.outline-arch {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: block;
+  border: 1px solid rgba(246, 206, 160, 0.34);
+  border-bottom: 0;
+  border-radius: 50% 50% 0 0 / 55% 55% 0 0;
+  box-shadow:
+    0 0 34px rgba(246, 206, 160, 0.12),
+    inset 0 0 28px rgba(246, 206, 160, 0.08);
+}
+
+.outline-arch-large {
+  width: min(58vw, 720px);
+  height: min(66vh, 620px);
+  transform: translate(-50%, -42%);
+}
+
+.outline-arch-small {
+  width: min(18vw, 220px);
+  height: min(25vh, 250px);
+  opacity: 0.58;
+}
+
+.outline-one {
+  transform: translate(calc(-50% - 28vw), -28%);
+}
+
+.outline-two {
+  transform: translate(calc(-50% + 28vw), -28%);
+}
+
+.film-light {
+  background:
+    radial-gradient(circle at 50% 38%, rgba(246, 206, 160, 0.36), transparent 8%),
+    radial-gradient(ellipse at 50% 45%, rgba(176, 91, 58, 0.16), transparent 30%),
+    radial-gradient(ellipse at 50% 95%, rgba(246, 206, 160, 0.2), transparent 30%);
+  opacity: calc(0.48 + var(--film-progress) * 0.24);
+  mix-blend-mode: screen;
+}
+
+.film-dust {
+  background-image:
+    radial-gradient(circle, rgba(246, 206, 160, 0.48) 0 1px, transparent 1.5px),
+    radial-gradient(circle, rgba(246, 238, 224, 0.18) 0 1px, transparent 1.5px);
+  background-size: 140px 120px, 220px 180px;
+  background-position:
+    calc(var(--film-progress) * -120px) calc(var(--film-progress) * 180px),
+    calc(var(--film-progress) * 160px) calc(var(--film-progress) * -120px);
+  opacity: 0.22;
+  mix-blend-mode: screen;
+}
+
+.film-dust-b {
+  filter: blur(1px);
+  transform: scale(1.18);
+  opacity: 0.16;
+}
+
+.film-vignette {
+  background:
+    radial-gradient(ellipse at 50% 48%, transparent 0 26%, rgba(37, 37, 37, 0.36) 56%, rgba(13, 12, 11, 0.9) 100%),
+    linear-gradient(180deg, rgba(37, 37, 37, 0.22), transparent 20%, transparent 62%, rgba(17, 15, 13, 0.78));
+}
+
+.film-copy-stack {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.film-copy {
+  position: absolute;
+  top: 46%;
+  max-width: min(920px, 82vw);
+  opacity: 0;
+  transform: translate3d(0, 34px, 0);
+  transition:
+    opacity 0.72s var(--ease-expo),
+    transform 0.72s var(--ease-expo);
+}
+
+.film-copy.is-active {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.film-copy-center {
+  left: 50%;
+  text-align: center;
+  transform: translate3d(-50%, 34px, 0);
+}
+
+.film-copy-center.is-active {
+  transform: translate3d(-50%, 0, 0);
+}
+
+.film-copy-left {
+  left: clamp(24px, 9vw, 144px);
+  text-align: left;
+}
+
+.film-copy-right {
+  right: clamp(24px, 9vw, 144px);
+  text-align: right;
+}
+
+.film-eyebrow {
+  margin-bottom: clamp(18px, 2vw, 30px);
+  color: var(--c-gold);
+  font-size: 10px;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+}
+
+.film-copy h1 {
+  margin: 0;
+  color: #f6cea0;
+  font-family: var(--font-serif);
+  font-size: clamp(44px, 7.2vw, 116px);
+  font-weight: 400;
+  line-height: 0.88;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  text-shadow:
+    0 22px 60px rgba(0, 0, 0, 0.54),
+    0 0 24px rgba(246, 206, 160, 0.08);
+}
+
+.film-body {
+  width: min(520px, 100%);
+  margin-top: clamp(16px, 2vw, 28px);
+  color: rgba(246, 238, 224, 0.72);
+  font-family: var(--font-serif);
+  font-size: clamp(15px, 1.3vw, 19px);
+  line-height: 1.92;
+  letter-spacing: 0.08em;
+}
+
+.film-copy-center .film-body {
+  margin-inline: auto;
+}
+
+.film-copy-right .film-body {
+  margin-left: auto;
+}
+
+.film-chapter-index {
+  position: absolute;
+  left: clamp(22px, 3vw, 46px);
+  bottom: clamp(26px, 4vw, 58px);
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: rgba(246, 238, 224, 0.66);
+  font-family: var(--font-serif);
+  font-size: 13px;
+  letter-spacing: 0.18em;
+}
+
+.film-chapter-index i {
+  width: 52px;
+  height: 1px;
+  background: rgba(246, 206, 160, 0.42);
+  transform-origin: left center;
+}
+
+.film-lower-nav {
+  position: absolute;
+  right: clamp(108px, 9vw, 168px);
+  bottom: clamp(28px, 3.4vw, 54px);
+  z-index: 6;
+  display: grid;
+  grid-template-columns: auto minmax(120px, 220px);
+  align-items: center;
+  gap: 14px 18px;
+  color: rgba(246, 238, 224, 0.62);
+}
+
+.round-link {
+  position: relative;
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  width: 78px;
+  height: 78px;
+  border: 1px solid rgba(246, 206, 160, 0.28);
+  border-radius: 50%;
+  overflow: hidden;
+  color: #f6cea0;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.round-link::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 106%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #f6eee0;
+  transform: translate(-50%, 0) scale(0.64, 0.36);
+  transform-origin: 50% 0;
+  transition: transform 0.62s var(--ease-expo), top 0.62s var(--ease-expo);
+}
+
+.round-link span {
+  position: relative;
+  z-index: 1;
+}
+
+.round-link:hover {
+  color: #252525;
+}
+
+.round-link:hover::before {
+  top: 0;
+  transform: translate(-50%, 0) scale(1);
+}
+
+.film-progress-track {
+  width: 100%;
+  height: 1px;
+  background: rgba(246, 238, 224, 0.22);
+  overflow: hidden;
+}
+
+.film-progress-track span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #f6cea0;
+  transform-origin: left center;
+}
+
+.film-lower-nav p {
+  margin: 0;
+  font-size: 9px;
+  letter-spacing: 0.24em;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+/* ==========================================================================
+   响应式
+   ========================================================================== */
+@media (max-width: 768px) {
+  .site-nav {
+    height: 62px;
+    padding-inline: 18px;
+  }
+
+  .site-logo-img {
+    width: 48px;
+    height: 21px;
+  }
+
+  .site-logo-img-en {
+    width: 108px;
+    height: 15px;
+  }
+
+  .menu-toggle {
+    font-size: 11px;
+  }
+
+  .film-side-nav { display: none; }
+
+  .secondary-nav {
+    right: 16px;
+    bottom: 16px;
+  }
+
+  .ctrl-btn {
+    width: 34px;
+    height: 34px;
+  }
+
+  .scroll-film {
+    height: 500vh;
+  }
+
+  .film-copy {
+    top: 44%;
+    left: 22px;
+    right: 22px;
+    max-width: none;
+    text-align: left;
+  }
+
+  .film-copy-center,
+  .film-copy-center.is-active,
+  .film-copy-left,
+  .film-copy-right {
+    left: 22px;
+    right: 22px;
+    transform: translate3d(0, 34px, 0);
+    text-align: left;
+  }
+
+  .film-copy-center.is-active,
+  .film-copy-left.is-active,
+  .film-copy-right.is-active {
+    transform: translate3d(0, 0, 0);
+  }
+
+  .film-copy h1 {
+    font-size: clamp(44px, 15vw, 76px);
+  }
+
+  .film-body {
+    max-width: 92%;
+    margin-left: 0;
+    letter-spacing: 0.05em;
+    line-height: 1.82;
+  }
+
+  .film-copy-right .film-body,
+  .film-copy-center .film-body {
+    margin-inline: 0;
+  }
+
+  .outline-arch-large {
+    width: 86vw;
+    height: 54vh;
+  }
+
+  .outline-arch-small {
+    display: none;
+  }
+
+  .film-chapter-index {
+    left: 22px;
+    bottom: 28px;
+  }
+
+  .film-lower-nav {
+    right: 18px;
+    bottom: 74px;
+    grid-template-columns: auto;
+    justify-items: end;
+  }
+
+  .film-progress-track,
+  .film-lower-nav p {
+    display: none;
+  }
+
+  .round-link {
+    width: 62px;
+    height: 62px;
+    font-size: 8px;
+  }
+}

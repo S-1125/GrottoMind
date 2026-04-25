@@ -1,0 +1,21 @@
+- main [ref=e3]:
+  - generic "入场动画" [ref=e4]:
+    - img [ref=e6]
+    - img
+    - generic [ref=e25]:
+      - img [ref=e27]
+      - generic [ref=e30]: "100"
+    - generic:
+      - paragraph:
+        - text: 千年以前，山寺岩壁之间
+        - text: 有一束光沉入了石头。
+    - generic [ref=e31]:
+      - button "进入" [ref=e32] [cursor=pointer]:
+        - img [ref=e34]
+      - generic [ref=e36]: 滑动继续
+    - generic "GrottoMind" [ref=e37]
+    - navigation "辅助控制" [ref=e40]:
+      - button "设置" [ref=e41] [cursor=pointer]:
+        - img [ref=e42]
+      - button "声音" [ref=e45] [cursor=pointer]:
+        - img [ref=e46]
