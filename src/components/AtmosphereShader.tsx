@@ -177,10 +177,11 @@ export function AtmosphereShader({ currentStep = 0 }: { currentStep?: number }) 
     const mesh = new THREE.Mesh(geometry, material)
     scene.add(mesh)
 
-    const clock = new THREE.Clock()
+    const startTime = performance.now()
     const animate = () => {
       // 时间乘 0.5 让流动更缓慢、更有电影感
-      material.uniforms.uTime.value = clock.getElapsedTime() * 0.5
+      const elapsed = (performance.now() - startTime) / 1000
+      material.uniforms.uTime.value = elapsed * 0.5
       renderer.render(scene, camera)
       rafRef.current = requestAnimationFrame(animate)
     }

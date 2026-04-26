@@ -63,6 +63,7 @@ export function IntroAnimation() {
   const pageRef = useRef<HTMLElement>(null)
   const visualRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
+  const videoFilterRef = useRef<HTMLDivElement>(null)
   const loaderRef = useRef<HTMLDivElement>(null)
   const maskRef = useRef<HTMLDivElement>(null)
   const textRef = useRef<HTMLDivElement>(null)
@@ -171,7 +172,7 @@ export function IntroAnimation() {
           }
         }
 
-        gsap.killTweensOf(lines)
+        gsap.killTweensOf([currentLine, nextLine])
         const textTl = gsap.timeline()
         textTl
           .to(currentLine, {
@@ -182,7 +183,7 @@ export function IntroAnimation() {
           })
           // 明确留白：上一句彻底消失后，下一句才允许出现。
           .to({}, { duration: 0.22 })
-          .set(lines, { autoAlpha: 0 })
+          .set(currentLine, { autoAlpha: 0 })
           .fromTo(
             nextLine,
             { autoAlpha: 0, y: 20 },
@@ -315,7 +316,7 @@ export function IntroAnimation() {
     const maxStep = storyTexts.length - 1
     const progress = currentStep / maxStep // 0 到 1
 
-    // 暗角透明度：前几个阶段正常递减，最后一页保持微弱暗角避免闪白
+    // 暗角透明度：根据阶段调整
     let targetOpacity = 1 - progress
     if (currentStep === storyTexts.length - 1) {
       targetOpacity = 0.3 // 最后一页保留30%暗角，与新暗角叠加更自然
@@ -323,16 +324,6 @@ export function IntroAnimation() {
     gsap.to(maskRef.current, {
       autoAlpha: targetOpacity,
       duration: 2.5,
-      ease: 'power2.inOut',
-    })
-
-    // 视频亮度 0.97 -> 1.0，对比度 1.35 -> 1.0
-    const targetBrightness = 0.97 + (0.03 * progress)
-    const targetContrast = 1.35 - (0.35 * progress)
-    gsap.to(videoRef.current, {
-      '--v-contrast': targetContrast,
-      '--v-brightness': targetBrightness,
-      duration: 1.5,
       ease: 'power2.inOut',
     })
 
@@ -344,7 +335,7 @@ export function IntroAnimation() {
     const targetFilmContrast = isLastStep ? 1.15 : 1.35
     const targetFilmBrightness = isLastStep ? 1.05 : 0.97
 
-    gsap.to(videoRef.current, {
+    gsap.to(videoFilterRef.current, {
       '--v-contrast': targetFilmContrast,
       '--v-brightness': targetFilmBrightness,
       '--v-sepia': targetSepia,
@@ -383,16 +374,19 @@ export function IntroAnimation() {
   return (
     <section ref={pageRef} className="intro-page" aria-label="视频滚动叙事">
       <div ref={visualRef} className="intro-animation">
-        {/* 背景视频由滚动进度控制播放帧，不自动播放。 */}
-        <video
-          ref={videoRef}
-          className="intro-bg-video"
-          muted
-          playsInline
-          preload="auto"
-        >
-          <source src="/assets/qixia-scrub-1080p.mp4" type="video/mp4" />
-        </video>
+        {/* 视频滤镜层 - 避免直接修改 video 元素导致 GSAP 冲突 */}
+        <div ref={videoFilterRef} className="intro-video-filter">
+          {/* 背景视频由滚动进度控制播放帧，不自动播放。 */}
+          <video
+            ref={videoRef}
+            className="intro-bg-video"
+            muted
+            playsInline
+            preload="auto"
+          >
+            <source src="/assets/qixia-scrub-1080p.mp4" type="video/mp4" />
+          </video>
+        </div>
 
         {/* 极弱暗色遮罩，保证亮色视频上文字仍清晰。 */}
         <div ref={maskRef} className="intro-dark-mask" />
