@@ -4,6 +4,7 @@ import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { AtmosphereEffects } from './AtmosphereEffects'
 import { AtmosphereShader } from './AtmosphereShader'
+import { GlowText } from './GlowText'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -430,10 +431,13 @@ export function IntroAnimation() {
               className={`intro-copy-line ${index === storyTexts.length - 1 ? 'is-title' : ''}`}
               key={text}
             >
-              {text}
-              {/* 最后一页在 G 右上角添加问窟 */}
-              {index === storyTexts.length - 1 && (
-                <span className="intro-title-superscript">问窟</span>
+              {index === storyTexts.length - 1 ? (
+                <>
+                  <GlowText text={text} isActive={currentStep === storyTexts.length - 1} />
+                  <span className="intro-title-superscript">问窟</span>
+                </>
+              ) : (
+                text
               )}
             </p>
           ))}
