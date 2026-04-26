@@ -1,13 +1,26 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import Lenis from 'lenis'
 import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { AtmosphereEffects } from './AtmosphereEffects'
+import { AtmosphereShader } from './AtmosphereShader'
+
+gsap.registerPlugin(ScrollTrigger)
+
+const storyTexts = [
+  '1400年前，金陵栖霞山屹立起一座承载信仰与时间的舍利塔。',
+  '山岩之间，千佛静默，色彩隐入岁月。',
+  '如今，我们再次向石窟发问。',
+  'GrottoMind',
+]
 
 /* ============================================================
    ProgressRing: 动态进度圆弧
 ============================================================ */
 function ProgressRing({ progress }: { progress: number }) {
   // 进度圆弧
-  const arcR    = 75 // 半径调整到75
-  const arcLen  = 2 * Math.PI * arcR
+  const arcR = 75
+  const arcLen = 2 * Math.PI * arcR
   const arcDash = arcLen * (progress / 100)
 
   return (
@@ -19,14 +32,18 @@ function ProgressRing({ progress }: { progress: number }) {
     >
       {/* 进度弧背景 */}
       <circle
-        cx="100" cy="100" r={arcR}
+        cx="100"
+        cy="100"
+        r={arcR}
         fill="none"
         stroke="rgba(212,169,106,0.12)"
         strokeWidth="0.4"
       />
       {/* 进度弧填充 */}
       <circle
-        cx="100" cy="100" r={arcR}
+        cx="100"
+        cy="100"
+        r={arcR}
         fill="none"
         stroke="#d4a96a"
         strokeWidth="0.6"
@@ -40,277 +57,452 @@ function ProgressRing({ progress }: { progress: number }) {
 }
 
 /* ============================================================
-   LandscapeSVG: 内联暗调风景（占位，也可替换为 <img> 背景）
+   IntroAnimation: 单页视频滚动叙事
 ============================================================ */
-function LandscapeSVG() {
-  return (
-    <svg
-      id="landscape-svg"
-      viewBox="0 0 1920 900"
-      preserveAspectRatio="xMidYMid slice"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
-      <defs>
-        <radialGradient id="fogGrad" cx="50%" cy="100%" r="60%">
-          <stop offset="0%"   stopColor="#2a3855" stopOpacity="0.6" />
-          <stop offset="100%" stopColor="#0e0f11" stopOpacity="0" />
-        </radialGradient>
-        <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor="#111521" />
-          <stop offset="50%"  stopColor="#1e2940" />
-          <stop offset="100%" stopColor="#141820" />
-        </linearGradient>
-        <radialGradient id="vignette" cx="50%" cy="50%" r="70%">
-          <stop offset="50%"  stopColor="transparent" />
-          <stop offset="100%" stopColor="#080a0e" stopOpacity="0.85" />
-        </radialGradient>
-      </defs>
-
-      {/* 天空 */}
-      <rect width="1920" height="900" fill="url(#skyGrad)" />
-
-      {/* 远山 */}
-      <path
-        d="M0,640 Q200,520 400,560 Q550,510 700,550 Q850,480 1000,530
-           Q1150,470 1300,520 Q1500,450 1700,510 Q1850,490 1920,530 L1920,900 L0,900Z"
-        fill="#141d2c" opacity="0.9"
-      />
-      {/* 近山 */}
-      <path
-        d="M0,720 Q150,660 300,690 Q500,640 700,680 Q900,640 1100,670
-           Q1300,640 1500,670 Q1700,650 1920,680 L1920,900 L0,900Z"
-        fill="#0f151e" opacity="0.95"
-      />
-
-      {/* 左侧枯树 */}
-      <g opacity="0.75" fill="#080c12">
-        <path d="M220,470 Q200,440 180,420 Q170,410 150,395 Q140,388 125,375 Q150,380 168,392 Q185,405 195,418 Q205,432 218,448Z" />
-        <path d="M222,500 Q240,475 260,458 Q275,445 295,432 Q310,424 330,415 Q305,428 282,442 Q265,455 248,470 Q232,485 224,502Z" />
-        <path d="M218,535 Q198,512 178,498 Q162,487 142,475 Q128,467 108,458 Q132,466 150,477 Q170,490 186,504 Q202,518 216,536Z" />
-        <path d="M220,560 Q238,538 255,524 Q268,514 285,503 Q298,495 318,487 Q294,498 275,510 Q258,522 242,538 Q228,552 222,562Z" />
-        <path d="M215,580 Q190,565 165,555 Q145,547 118,540 Q100,535 80,528 Q108,533 132,542 Q158,552 178,562 Q200,574 218,582Z" />
-        <path d="M150,395 Q135,378 118,362 Q108,350 95,340" stroke="#080c12" strokeWidth="2" fill="none" opacity="0.8" />
-        <path d="M330,415 Q348,398 368,384 Q385,372 405,360" stroke="#080c12" strokeWidth="2" fill="none" opacity="0.7" />
-      </g>
-
-      {/* 地面草丛 */}
-      <path
-        d="M0,820 Q80,798 160,812 Q240,796 320,818 Q400,800 480,820
-           Q560,802 640,820 L640,900 L0,900Z"
-        fill="#0a0e16" opacity="0.85"
-      />
-      <path
-        d="M1300,830 Q1450,812 1600,825 Q1750,810 1920,822 L1920,900 L1300,900Z"
-        fill="#0a0e16" opacity="0.85"
-      />
-
-      {/* 雾气 */}
-      <rect width="1920" height="900" fill="url(#fogGrad)" opacity="0.7" />
-      <ellipse cx="960" cy="660" rx="900" ry="80" fill="#2a3855" opacity="0.18" />
-      <ellipse cx="960" cy="720" rx="1100" ry="60" fill="#1e2e45" opacity="0.22" />
-
-      {/* 暗角 */}
-      <rect width="1920" height="900" fill="url(#vignette)" />
-    </svg>
-  )
-}
-
-/* ============================================================
-   IntroAnimation: 主入场动画组件
-============================================================ */
-export function IntroAnimation({ onComplete }: { onComplete: () => void }) {
-  const containerRef  = useRef<HTMLDivElement>(null)
-  const loaderRef     = useRef<HTMLDivElement>(null)
-  const maskRef       = useRef<HTMLDivElement>(null)
-  const bgRef         = useRef<HTMLDivElement>(null)
-  const svgBgRef      = useRef<SVGSVGElement>(null)
-  const textRef       = useRef<HTMLDivElement>(null)
-  const guideRef      = useRef<HTMLDivElement>(null)
-  const arrowRef      = useRef<HTMLDivElement>(null)
-  const progressRef   = useRef<HTMLSpanElement>(null)
-  const progressVal   = useRef({ val: 0 })
-  const canEnterRef   = useRef(false)
-  const enteringRef   = useRef(false)
-  const touchStartYRef = useRef<number | null>(null)
+export function IntroAnimation() {
+  const pageRef = useRef<HTMLElement>(null)
+  const visualRef = useRef<HTMLDivElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const loaderRef = useRef<HTMLDivElement>(null)
+  const maskRef = useRef<HTMLDivElement>(null)
+  const textRef = useRef<HTMLDivElement>(null)
+  const guideRef = useRef<HTMLDivElement>(null)
+  const enterRef = useRef<HTMLDivElement>(null)
+  const logoRef = useRef<HTMLDivElement>(null)
+  const progressRef = useRef<HTMLSpanElement>(null)
+  const scrollProgressRef = useRef<HTMLDivElement>(null)
+  const progressVal = useRef({ val: 0 })
+  const [currentStep, setCurrentStep] = useState(0)
 
   useEffect(() => {
-    const loader    = loaderRef.current!
-    const mask      = maskRef.current!
-    const bg        = bgRef.current!
-    const svgBg     = svgBgRef.current!
-    const text      = textRef.current!
-    const guide     = guideRef.current!
-    const arrow     = arrowRef.current!
-    const numEl     = progressRef.current!
+    const page = pageRef.current
+    const visual = visualRef.current
+    const video = videoRef.current
+    const loader = loaderRef.current
+    const mask = maskRef.current
+    const text = textRef.current
+    const guide = guideRef.current
+    const numEl = progressRef.current
+    const lines = gsap.utils.toArray<HTMLElement>('.intro-copy-line')
 
-    // 初始状态
-    gsap.set(text,  { opacity: 0, y: 10 })
+    if (!page || !visual || !video || !loader || !mask || !text || !guide || !numEl) return
+
+    let lenis: Lenis | null = null
+    let rafHandler: ((time: number) => void) | null = null
+    let storyStarted = false
+    let loaderDone = false
+    let videoDuration = 0
+    let activeStep = 0
+    let stepLocked = false
+    let stepUnlockTimer: number | null = null
+    let wheelHandler: ((event: WheelEvent) => void) | null = null
+    let keyHandler: ((event: KeyboardEvent) => void) | null = null
+
+    const previousBodyOverflow = document.body.style.overflow
+    const previousHtmlOverflow = document.documentElement.style.overflow
+
+    // 加载阶段锁住页面，避免用户在视频还没接管前滚到中段。
+    document.body.style.overflow = 'hidden'
+    document.documentElement.style.overflow = 'hidden'
+    window.scrollTo(0, 0)
+
+    gsap.set(video, { opacity: 0 })
+    gsap.set(text, { opacity: 0, y: 20 })
     gsap.set(guide, { opacity: 0 })
-    gsap.set(svgBg, { opacity: 0 })
-    gsap.set(bg,    { filter: 'brightness(0.05)' })
+    gsap.set(lines, { autoAlpha: 0, y: 20 })
+    gsap.set(lines[0], { autoAlpha: 1, y: 0 })
 
-    const tl = gsap.timeline({ defaults: { ease: 'power2.inOut' } })
+    const setupStory = () => {
+      if (storyStarted || !loaderDone || videoDuration <= 0) return
+      storyStarted = true
 
-    /* 阶段 1: 数字 0→100 */
-    tl.to(progressVal.current, {
-      val: 100,
-      duration: 2.8,
-      ease: 'power1.inOut',
-      onUpdate() {
-        numEl.textContent = String(Math.round(progressVal.current.val))
-        // 这里直接更新 SVG 圆弧，避免为了进度数字频繁触发 React 渲染。
-        const arcR = 75
-        const arcLen = 2 * Math.PI * arcR
-        const arcDash = arcLen * (progressVal.current.val / 100)
-        const fillCircle = loader.querySelector('.progress-ring-svg circle:nth-child(2)') as SVGCircleElement
-        if (fillCircle) {
-          fillCircle.style.strokeDasharray = `${arcDash} ${arcLen}`
+      document.body.style.overflow = previousBodyOverflow
+      document.documentElement.style.overflow = previousHtmlOverflow
+      window.scrollTo(0, 0)
+      video.pause()
+      video.currentTime = 0
+
+      lenis = new Lenis({
+        lerp: 0.08,
+        smoothWheel: false,
+        wheelMultiplier: 0.9,
+        touchMultiplier: 1,
+      })
+
+      lenis.on('scroll', ScrollTrigger.update)
+      rafHandler = (time: number) => {
+        lenis?.raf(time * 1000)
+      }
+      gsap.ticker.add(rafHandler)
+      gsap.ticker.lagSmoothing(0)
+
+      gsap.to(video, {
+        currentTime: Math.max(videoDuration - 0.04, 0),
+        ease: 'none',
+        scrollTrigger: {
+          trigger: page,
+          start: 'top top',
+          end: 'bottom bottom',
+          scrub: true,
+          onUpdate(self) {
+            // 更新激光进度条
+            if (scrollProgressRef.current) {
+              scrollProgressRef.current.style.height = `${self.progress * 100}%`
+            }
+          },
+        },
+      })
+
+      const showStepText = (nextStep: number) => {
+        if (nextStep === activeStep) return
+
+        const currentLine = lines[activeStep]
+        const nextLine = lines[nextStep]
+        if (!currentLine || !nextLine) return
+
+        // 控制 logo 显示/隐藏：只在第一步显示
+        if (logoRef.current) {
+          if (nextStep === 0) {
+            logoRef.current.classList.remove('is-hidden')
+            logoRef.current.classList.add('is-visible')
+          } else {
+            logoRef.current.classList.remove('is-visible')
+            logoRef.current.classList.add('is-hidden')
+          }
         }
-      },
-    })
 
-    /* 阶段 2: 停顿 + loader 淡出 */
-    .to(loader, { opacity: 0, duration: 0.8, ease: 'power2.out', delay: 0.5 })
+        gsap.killTweensOf(lines)
+        const textTl = gsap.timeline()
+        textTl
+          .to(currentLine, {
+            autoAlpha: 0,
+            y: -12,
+            duration: 0.34,
+            ease: 'power2.out',
+          })
+          // 明确留白：上一句彻底消失后，下一句才允许出现。
+          .to({}, { duration: 0.22 })
+          .set(lines, { autoAlpha: 0 })
+          .fromTo(
+            nextLine,
+            { autoAlpha: 0, y: 20 },
+            {
+              autoAlpha: 1,
+              y: 0,
+              duration: 0.62,
+              ease: 'power3.out',
+            },
+          )
 
-    /* 阶段 3: 遮罩消失 + 背景浮现 */
-    .to(mask,  { opacity: 0, duration: 1.8, ease: 'power3.out' }, '-=0.3')
-    .to(bg,    { filter: 'brightness(1)', duration: 2.2, ease: 'power2.out' }, '<')
-    .to(svgBg, { opacity: 1, duration: 2.2, ease: 'power2.out' }, '<')
+        activeStep = nextStep
+        setCurrentStep(nextStep)
+      }
 
-    /* 阶段 4: 文案从下往上淡入 */
-    .to(text, { opacity: 1, y: 0, duration: 1.4, ease: 'power3.out' }, '-=1.2')
+      const scrollToStep = (nextStep: number) => {
+        const maxStep = lines.length - 1
+        const targetStep = Math.max(0, Math.min(maxStep, nextStep))
+        if (targetStep === activeStep || stepLocked) return
 
-    /* 阶段 5: 引导层淡入 + 无限浮动 */
-    .to(guide, {
-      opacity: 1,
-      duration: 1,
-      ease: 'power2.out',
-      onComplete() {
-        canEnterRef.current = true
-        gsap.to(arrow, {
-          y: -8,
-          duration: 1.4,
-          ease: 'sine.inOut',
-          yoyo: true,
-          repeat: -1,
+        stepLocked = true
+        const maxScroll = Math.max(document.documentElement.scrollHeight - window.innerHeight, 0)
+        const targetScroll = maxScroll * (targetStep / maxStep)
+
+        showStepText(targetStep)
+        lenis?.scrollTo(targetScroll, {
+          duration: 1.25,
+          easing: (t: number) => 1 - Math.pow(1 - t, 3),
+          force: true,
         })
-      },
-    }, '-=0.4')
 
-    return () => { tl.kill() }
+        if (stepUnlockTimer) window.clearTimeout(stepUnlockTimer)
+        stepUnlockTimer = window.setTimeout(() => {
+          stepLocked = false
+        }, 950)
+      }
+
+      wheelHandler = (event: WheelEvent) => {
+        if (!storyStarted || Math.abs(event.deltaY) < 3) return
+
+        event.preventDefault()
+        event.stopPropagation()
+
+        if (stepLocked) return
+        const direction = event.deltaY > 0 ? 1 : -1
+        scrollToStep(activeStep + direction)
+      }
+
+      window.addEventListener('wheel', wheelHandler, { passive: false, capture: true })
+
+      keyHandler = (event: KeyboardEvent) => {
+        if (event.key === 'ArrowDown' || event.key === 'PageDown' || event.key === ' ') {
+          event.preventDefault()
+          scrollToStep(activeStep + 1)
+        }
+        if (event.key === 'ArrowUp' || event.key === 'PageUp') {
+          event.preventDefault()
+          scrollToStep(activeStep - 1)
+        }
+      }
+
+      window.addEventListener('keydown', keyHandler)
+
+      ScrollTrigger.refresh()
+    }
+
+    const onLoadedMetadata = () => {
+      videoDuration = video.duration || 0
+      setupStory()
+    }
+
+    video.addEventListener('loadedmetadata', onLoadedMetadata)
+    if (video.readyState >= 1) onLoadedMetadata()
+
+    const loadTl = gsap.timeline({ defaults: { ease: 'power2.inOut' } })
+
+    loadTl
+      .to(progressVal.current, {
+        val: 100,
+        duration: 2.8,
+        ease: 'power1.inOut',
+        onUpdate() {
+          numEl.textContent = String(Math.round(progressVal.current.val))
+          // 直接更新 SVG 圆弧，避免为了进度数字频繁触发 React 渲染。
+          const arcR = 75
+          const arcLen = 2 * Math.PI * arcR
+          const arcDash = arcLen * (progressVal.current.val / 100)
+          const fillCircle = loader.querySelector('.progress-ring-svg circle:nth-child(2)') as SVGCircleElement
+          if (fillCircle) {
+            fillCircle.style.strokeDasharray = `${arcDash} ${arcLen}`
+          }
+        },
+      })
+      .to(loader, { opacity: 0, duration: 0.8, ease: 'power2.out', delay: 0.5 })
+      .to(mask, { opacity: 0.18, duration: 1.8, ease: 'power3.out' }, '-=0.3')
+      .to(video, { opacity: 1, duration: 2.2, ease: 'power2.out' }, '<')
+      .to(text, { opacity: 1, y: 0, duration: 1.4, ease: 'power3.out' }, '-=1.2')
+      .to(guide, {
+        opacity: 1,
+        duration: 1,
+        ease: 'power2.out',
+        onComplete() {
+          loaderDone = true
+          setupStory()
+        },
+      }, '-=0.4')
+
+    return () => {
+      loadTl.kill()
+      video.removeEventListener('loadedmetadata', onLoadedMetadata)
+      if (wheelHandler) {
+        window.removeEventListener('wheel', wheelHandler, { capture: true })
+      }
+      if (keyHandler) {
+        window.removeEventListener('keydown', keyHandler)
+      }
+      if (stepUnlockTimer) window.clearTimeout(stepUnlockTimer)
+      ScrollTrigger.getAll().forEach((trigger) => trigger.kill())
+      if (rafHandler) gsap.ticker.remove(rafHandler)
+      lenis?.destroy()
+      document.body.style.overflow = previousBodyOverflow
+      document.documentElement.style.overflow = previousHtmlOverflow
+    }
   }, [])
 
-  // 进入主场景：支持点击、键盘、滚轮和手机上滑。
-  const handleEnter = () => {
-    if (!canEnterRef.current || enteringRef.current) return
-    enteringRef.current = true
+  // 监听 currentStep，使暗角遮罩在每个阶段递减，最后一步彻底消失（过渡更自然）
+  // 同时同步恢复背景视频的亮度和对比度
+  useEffect(() => {
+    if (!maskRef.current || !videoRef.current) return
+    const maxStep = storyTexts.length - 1
+    const progress = currentStep / maxStep // 0 到 1
 
-    gsap.to(containerRef.current, {
-      opacity: 0,
-      duration: 0.9,
-      ease: 'power2.out',
-      onComplete,
+    // 暗角透明度：前几个阶段正常递减，最后一页保持微弱暗角避免闪白
+    let targetOpacity = 1 - progress
+    if (currentStep === storyTexts.length - 1) {
+      targetOpacity = 0.3 // 最后一页保留30%暗角，与新暗角叠加更自然
+    }
+    gsap.to(maskRef.current, {
+      autoAlpha: targetOpacity,
+      duration: 2.5,
+      ease: 'power2.inOut',
     })
-  }
 
-  const handleWheel = (event: React.WheelEvent<HTMLDivElement>) => {
-    if (event.deltaY > 10) handleEnter()
-  }
+    // 视频亮度 0.97 -> 1.0，对比度 1.35 -> 1.0
+    const targetBrightness = 0.97 + (0.03 * progress)
+    const targetContrast = 1.35 - (0.35 * progress)
+    gsap.to(videoRef.current, {
+      '--v-contrast': targetContrast,
+      '--v-brightness': targetBrightness,
+      duration: 1.5,
+      ease: 'power2.inOut',
+    })
 
-  const handleTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
-    touchStartYRef.current = event.touches[0]?.clientY ?? null
-  }
+    // 最后一页添加胶片滤镜效果 - 使用 GSAP 平滑过渡
+    const isLastStep = currentStep === storyTexts.length - 1
+    const targetSepia = isLastStep ? 0.25 : 0
+    const targetSaturate = isLastStep ? 0.85 : 1
+    const targetHueRotate = isLastStep ? -10 : 0
+    const targetFilmContrast = isLastStep ? 1.15 : 1.35
+    const targetFilmBrightness = isLastStep ? 1.05 : 0.97
 
-  const handleTouchMove = (event: React.TouchEvent<HTMLDivElement>) => {
-    const startY = touchStartYRef.current
-    const currentY = event.touches[0]?.clientY
-    if (startY === null || currentY === undefined) return
-    if (startY - currentY > 32) handleEnter()
-  }
+    gsap.to(videoRef.current, {
+      '--v-contrast': targetFilmContrast,
+      '--v-brightness': targetFilmBrightness,
+      '--v-sepia': targetSepia,
+      '--v-saturate': targetSaturate,
+      '--v-hue-rotate': targetHueRotate,
+      duration: 2.5,
+      ease: 'power2.inOut',
+    })
+  }, [currentStep])
+
+  // 监听 currentStep，控制底部引导区域的显隐和切换
+  useEffect(() => {
+    const guide = guideRef.current
+    const enter = enterRef.current
+    if (!guide || !enter) return
+
+    const isFirst = currentStep === 0
+    const isLast = currentStep === storyTexts.length - 1
+    const isMid = !isFirst && !isLast
+
+    if (isFirst) {
+      // 第一阶段：显示“滑动继续”引导
+      gsap.to(guide, { autoAlpha: 1, duration: 0.5, ease: 'power2.out' })
+      gsap.to(enter, { autoAlpha: 0, duration: 0.3, ease: 'power2.out' })
+    } else if (isMid) {
+      // 中间阶段：两者都隐藏
+      gsap.to(guide, { autoAlpha: 0, duration: 0.3, ease: 'power2.out' })
+      gsap.to(enter, { autoAlpha: 0, duration: 0.3, ease: 'power2.out' })
+    } else {
+      // 最后阶段：显示“进入”按钮
+      gsap.to(guide, { autoAlpha: 0, duration: 0.3, ease: 'power2.out' })
+      gsap.to(enter, { autoAlpha: 1, y: 0, duration: 0.8, delay: 0.3, ease: 'power2.out' })
+    }
+  }, [currentStep])
 
   return (
-    <div
-      ref={containerRef}
-      className="intro-animation"
-      aria-label="入场动画"
-      onWheel={handleWheel}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-    >
-
-      {/* SVG 风景背景 */}
-      <div ref={bgRef} className="intro-bg-layer">
-        <LandscapeSVG />
-      </div>
-      <svg
-        ref={svgBgRef}
-        style={{ position: 'fixed', inset: 0, width: '100%', height: '100%', opacity: 0, zIndex: 1, pointerEvents: 'none' }}
-        viewBox="0 0 1920 900"
-        preserveAspectRatio="xMidYMid slice"
-      />
-
-      {/* 深色遮罩层 */}
-      <div ref={maskRef} className="intro-dark-mask" />
-
-      {/* Loading 环 + 数字 */}
-      <div ref={loaderRef} className="intro-loader-wrap">
-        <div className="intro-loader-inner">
-          <div className="mandala-img" aria-hidden="true" />
-          <ProgressRing progress={0} />
-          <span ref={progressRef} className="intro-progress-num">0</span>
-        </div>
-      </div>
-
-      {/* 中央文案 */}
-      <div ref={textRef} className="intro-text-layer">
-        <p>千年以前，山寺岩壁之间<br />有一束光沉入了石头。</p>
-      </div>
-
-      {/* 底部引导 */}
-      <div ref={guideRef} className="intro-guide">
-        <div
-          ref={arrowRef}
-          className="intro-arrow-wrap"
-          onClick={handleEnter}
-          role="button"
-          tabIndex={0}
-          aria-label="进入"
-          onKeyDown={(event) => {
-            if (event.key === 'Enter' || event.key === ' ' || event.key === 'ArrowDown') {
-              handleEnter()
-            }
-          }}
+    <section ref={pageRef} className="intro-page" aria-label="视频滚动叙事">
+      <div ref={visualRef} className="intro-animation">
+        {/* 背景视频由滚动进度控制播放帧，不自动播放。 */}
+        <video
+          ref={videoRef}
+          className="intro-bg-video"
+          muted
+          playsInline
+          preload="auto"
         >
-          <div className="intro-arrow-circle" />
-          <svg className="intro-arrow-icon" viewBox="0 0 14 14" fill="none">
-            <polyline points="2,4 7,10 12,4" stroke="#d4a96a" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+          <source src="/assets/qixia-scrub-1080p.mp4" type="video/mp4" />
+        </video>
+
+        {/* 极弱暗色遮罩，保证亮色视频上文字仍清晰。 */}
+        <div ref={maskRef} className="intro-dark-mask" />
+
+        {/* 胶片噪点效果 */}
+        <div className="intro-film-grain" aria-hidden="true" />
+
+        {/* 暖色叠加层 - 最后一页激活 */}
+        <div className={`intro-warm-overlay ${currentStep === storyTexts.length - 1 ? 'is-active' : ''}`} aria-hidden="true" />
+
+        {/* 增强暗角 - 最后一页激活 */}
+        <div className={`intro-vignette ${currentStep === storyTexts.length - 1 ? 'is-active' : ''}`} aria-hidden="true" />
+
+        {/* ——— 底部对比度渐变 ——— */}
+        <div className="fog-bottom-dark" />
+
+        {/* Three.js Shader 体积雾 */}
+        <AtmosphereShader currentStep={currentStep} />
+
+        {/* Canvas 浮尘粒子 */}
+        <AtmosphereEffects currentStep={currentStep} />
+
+        {/* Loading 环 + 数字 */}
+        <div ref={loaderRef} className="intro-loader-wrap">
+          <div className="intro-loader-inner">
+            <div className="mandala-img" aria-hidden="true" />
+            <ProgressRing progress={0} />
+            <span ref={progressRef} className="intro-progress-num">0</span>
+          </div>
         </div>
-        <span className="intro-guide-label">滑动继续</span>
-      </div>
 
-      {/* 左上角 Logo 组合 */}
-      <div className="intro-brand-logo" aria-label="GrottoMind">
-        <div className="site-logo-img" />
-        <div className="site-logo-img-en" />
-      </div>
+        {/* 中央文案 */}
+        <div ref={textRef} className="intro-text-layer" aria-live="polite">
+          {/* 中文 Logo + Agent - 只在第一步显示 */}
+          <div ref={logoRef} className="intro-chinese-logo is-visible">
+            <img src="/logo/图层 1.png" alt="问窟" />
+            <span className="intro-agent-text">AI Agent</span>
+          </div>
+          {storyTexts.map((text, index) => (
+            <p
+              className={`intro-copy-line ${index === storyTexts.length - 1 ? 'is-title' : ''}`}
+              key={text}
+            >
+              {text}
+              {/* 最后一页在 G 右上角添加问窟 */}
+              {index === storyTexts.length - 1 && (
+                <span className="intro-title-superscript">问窟</span>
+              )}
+            </p>
+          ))}
+        </div>
 
-      {/* 右下角控制按钮 */}
-      <nav className="intro-ctrl-nav" aria-label="辅助控制">
-        <button className="intro-ctrl-btn" aria-label="设置">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
-            <circle cx="12" cy="12" r="3" />
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-          </svg>
-        </button>
-        <button className="intro-ctrl-btn" aria-label="声音">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
-          </svg>
-        </button>
-      </nav>
-    </div>
+        {/* 底部引导 */}
+        <div ref={guideRef} className="intro-guide">
+          <div className="intro-arrow-wrap" aria-hidden="true">
+            {/* 水波纹圈1 */}
+            <div className="intro-arrow-circle-outer" />
+            {/* 水波纹圈2 */}
+            <div className="intro-arrow-circle-outer intro-arrow-circle-outer-delay" />
+            {/* 主圈 */}
+            <div className="intro-arrow-circle" />
+            <svg className="intro-arrow-icon" viewBox="0 0 16 16" fill="none">
+              <path d="M8 3v10M4 9l4 4 4-4" stroke="currentColor" strokeWidth="0.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <span className="intro-guide-label">滑动继续</span>
+        </div>
+
+        {/* 底部引导：进入按钮（最后阶段显示） */}
+        <div ref={enterRef} className="intro-enter-wrap" style={{ opacity: 0, visibility: 'hidden' }}>
+          <div className="intro-enter-btn-wrap">
+            {/* 水波纹圈1 */}
+            <div className="intro-arrow-circle-outer" />
+            {/* 水波纹圈2 */}
+            <div className="intro-arrow-circle-outer intro-arrow-circle-outer-delay" />
+            {/* 主圈 + hover 填充 */}
+            <button className="intro-enter-btn" aria-label="进入展览">
+              <span className="intro-enter-text">进入</span>
+            </button>
+          </div>
+          <span className="intro-enter-hint">单击Enter键继续</span>
+        </div>
+
+        {/* 左上角 Logo 组合 */}
+        <div className="intro-brand-logo" aria-label="GrottoMind">
+          <div className="site-logo-img" />
+          <div className="site-logo-img-en" />
+        </div>
+
+        {/* 右下角控制按钮 */}
+        <nav className="intro-ctrl-nav" aria-label="辅助控制">
+          <button className="intro-ctrl-btn" aria-label="设置">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+          </button>
+          <button className="intro-ctrl-btn" aria-label="声音">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
+            </svg>
+          </button>
+        </nav>
+
+        {/* 激光进度条 */}
+        <div className="laser-progress-track">
+          <div ref={scrollProgressRef} className="laser-progress-bar" />
+        </div>
+      </div>
+    </section>
   )
 }
