@@ -1,19 +1,40 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <defs>
-    <style>
-      @import url('https://fonts.googleapis.com/css2?family=Germania+One&amp;display=swap');
-    </style>
-  </defs>
-  <!-- 深色圆角背景 -->
-  <rect width="64" height="64" rx="12" fill="#0a0a0a"/>
-  <!-- 哥特字体 G -->
-  <text
-    x="50%"
-    y="56%"
-    dominant-baseline="middle"
-    text-anchor="middle"
-    font-family="'Germania One', serif"
-    font-size="46"
-    fill="#d4a96a"
-  >G</text>
+  <!-- 白色圆角背景 -->
+  <rect width="64" height="64" rx="14" fill="#ffffff"/>
+  
+  <!-- 流畅的G字母造型 - 使用路径绘制螺旋感 -->
+  <path 
+    d="M32 12 
+       C20 12, 12 22, 12 32
+       C12 46, 22 52, 32 52
+       C42 52, 48 46, 48 40
+       C48 36, 44 34, 40 34
+       L28 34
+       L28 30
+       L40 30
+       C46 30, 52 34, 52 40
+       C52 50, 44 56, 32 56
+       C18 56, 8 46, 8 32
+       C8 18, 18 8, 32 8
+       C40 8, 46 12, 50 18
+       L46 20
+       C43 16, 38 12, 32 12Z"
+    fill="#1a1a1a"
+  />
+  
+  <!-- 内部螺旋曲线增加层次感 -->
+  <path 
+    d="M32 18
+       C24 18, 18 24, 18 32
+       C18 42, 24 48, 32 48
+       C36 48, 40 46, 42 42
+       L38 40
+       C37 42, 35 44, 32 44
+       C27 44, 23 39, 23 32
+       C23 26, 27 22, 32 22
+       C35 22, 37 23, 39 25
+       L42 22
+       C40 19, 36 18, 32 18Z"
+    fill="#ffffff"
+  />
 </svg>
