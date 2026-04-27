@@ -63,7 +63,6 @@ export function SandTextAnimation({ text, isActive }: SandTextAnimationProps) {
     const computedStyle = window.getComputedStyle(targetElement)
     const fontSize = parseInt(computedStyle.fontSize)
     const fontFamily = computedStyle.fontFamily
-    const letterSpacing = parseFloat(computedStyle.letterSpacing) || 0
 
     // 创建离屏 canvas 获取文字像素
     const offscreen = document.createElement('canvas')

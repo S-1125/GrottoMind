@@ -57,10 +57,14 @@ function ProgressRing({ progress }: { progress: number }) {
   )
 }
 
+interface IntroAnimationProps {
+  onEnter?: () => void
+}
+
 /* ============================================================
    IntroAnimation: 单页视频滚动叙事
 ============================================================ */
-export function IntroAnimation() {
+export function IntroAnimation({ onEnter }: IntroAnimationProps) {
   const pageRef = useRef<HTMLElement>(null)
   const visualRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -74,7 +78,49 @@ export function IntroAnimation() {
   const progressRef = useRef<HTMLSpanElement>(null)
   const scrollProgressRef = useRef<HTMLDivElement>(null)
   const progressVal = useRef({ val: 0 })
+  const onEnterRef = useRef(onEnter)
   const [currentStep, setCurrentStep] = useState(0)
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [soundOn, setSoundOn] = useState(true)
+  const [reduceMotion, setReduceMotion] = useState(false)
+  const [highContrast, setHighContrast] = useState(false)
+  const [largeText, setLargeText] = useState(false)
+  const [noDrag, setNoDrag] = useState(false)
+  const settingsRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    onEnterRef.current = onEnter
+  }, [onEnter])
+
+  useEffect(() => {
+    // 应用无障碍设置
+    if (reduceMotion) {
+      document.documentElement.classList.add('reduce-motion')
+    } else {
+      document.documentElement.classList.remove('reduce-motion')
+    }
+    if (highContrast) {
+      document.documentElement.classList.add('high-contrast')
+    } else {
+      document.documentElement.classList.remove('high-contrast')
+    }
+    if (largeText) {
+      document.documentElement.classList.add('large-text')
+    } else {
+      document.documentElement.classList.remove('large-text')
+    }
+  }, [reduceMotion, highContrast, largeText])
+
+  useEffect(() => {
+    // 点击外部关闭设置面板
+    const handleClickOutside = (event: MouseEvent) => {
+      if (settingsRef.current && !settingsRef.current.contains(event.target as Node)) {
+        setSettingsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   useEffect(() => {
     const page = pageRef.current
@@ -236,6 +282,12 @@ export function IntroAnimation() {
       window.addEventListener('wheel', wheelHandler, { passive: false, capture: true })
 
       keyHandler = (event: KeyboardEvent) => {
+        if (event.key === 'Enter' && activeStep === lines.length - 1) {
+          event.preventDefault()
+          onEnterRef.current?.()
+          return
+        }
+
         if (event.key === 'ArrowDown' || event.key === 'PageDown' || event.key === ' ') {
           event.preventDefault()
           scrollToStep(activeStep + 1)
@@ -467,7 +519,7 @@ export function IntroAnimation() {
             {/* 水波纹圈2 */}
             <div className="intro-arrow-circle-outer intro-arrow-circle-outer-delay" />
             {/* 主圈 + hover 填充 */}
-            <button className="intro-enter-btn" aria-label="进入展览">
+            <button className="intro-enter-btn" aria-label="进入展览" onClick={() => onEnterRef.current?.()}>
               <span className="intro-enter-text">进入</span>
             </button>
           </div>
@@ -480,18 +532,83 @@ export function IntroAnimation() {
           <div className="site-logo-img-en" />
         </div>
 
-        {/* 右下角控制按钮 */}
+        {/* 右下角控制按钮 - 参考 persepolis.getty.edu */}
         <nav className="intro-ctrl-nav" aria-label="辅助控制">
-          <button className="intro-ctrl-btn" aria-label="设置">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
-              <circle cx="12" cy="12" r="3" />
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          <div className="ctrl-btn-wrapper" ref={settingsRef}>
+            <button
+              className={`intro-ctrl-btn ${settingsOpen ? 'is-active' : ''}`}
+              aria-label="无障碍选项"
+              aria-expanded={settingsOpen}
+              onClick={() => setSettingsOpen(!settingsOpen)}
+            >
+              <svg className="ctrl-btn-outline" viewBox="0 0 50 50" aria-hidden="true">
+                <rect width="48.25" height="48.25" strokeWidth="1.75" x="0.5" y="0.5" rx="16" />
+              </svg>
+              <span className="ctrl-btn-bg" />
+              <svg className="ctrl-icon settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+            </button>
+            {/* 设置面板 */}
+            {settingsOpen && (
+              <div className="settings-panel">
+                <h3 className="settings-title">无障碍选项</h3>
+                <div className="settings-list">
+                  <button
+                    className={`settings-toggle ${reduceMotion ? 'is-on' : ''}`}
+                    onClick={() => setReduceMotion(!reduceMotion)}
+                  >
+                    <span className="settings-label">减少运动</span>
+                    <span className="settings-status">{reduceMotion ? 'on' : 'off'}</span>
+                  </button>
+                  <button
+                    className={`settings-toggle ${highContrast ? 'is-on' : ''}`}
+                    onClick={() => setHighContrast(!highContrast)}
+                  >
+                    <span className="settings-label">高对比度</span>
+                    <span className="settings-status">{highContrast ? 'on' : 'off'}</span>
+                  </button>
+                  <button
+                    className={`settings-toggle ${largeText ? 'is-on' : ''}`}
+                    onClick={() => setLargeText(!largeText)}
+                  >
+                    <span className="settings-label">较大文字</span>
+                    <span className="settings-status">{largeText ? 'on' : 'off'}</span>
+                  </button>
+                  <button
+                    className={`settings-toggle ${noDrag ? 'is-on' : ''}`}
+                    onClick={() => setNoDrag(!noDrag)}
+                  >
+                    <span className="settings-label">无拖动式交互</span>
+                    <span className="settings-status">{noDrag ? 'on' : 'off'}</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+          <button
+            className="intro-ctrl-btn"
+            aria-label={soundOn ? '静音' : '开启声音'}
+            onClick={() => setSoundOn(!soundOn)}
+          >
+            <svg className="ctrl-btn-outline" viewBox="0 0 50 50" aria-hidden="true">
+              <rect width="48.25" height="48.25" strokeWidth="1.75" x="0.5" y="0.5" rx="16" />
             </svg>
-          </button>
-          <button className="intro-ctrl-btn" aria-label="声音">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
+            <span className="ctrl-btn-bg" />
+            <svg className="ctrl-icon sound-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              {soundOn ? (
+                <>
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
+                </>
+              ) : (
+                <>
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                  <line x1="23" y1="9" x2="17" y2="15" />
+                  <line x1="17" y1="9" x2="23" y2="15" />
+                </>
+              )}
             </svg>
           </button>
         </nav>
