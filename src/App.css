@@ -182,16 +182,47 @@ html.lenis body {
 }
 
 @keyframes grain-shift {
-  0%, 100% { transform: translate(0, 0); }
-  10% { transform: translate(-2%, -2%); }
-  20% { transform: translate(2%, 2%); }
-  30% { transform: translate(-1%, 1%); }
-  40% { transform: translate(1%, -1%); }
-  50% { transform: translate(-2%, 2%); }
-  60% { transform: translate(2%, -2%); }
-  70% { transform: translate(-1%, -1%); }
-  80% { transform: translate(1%, 1%); }
-  90% { transform: translate(-2%, -1%); }
+
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+
+  10% {
+    transform: translate(-2%, -2%);
+  }
+
+  20% {
+    transform: translate(2%, 2%);
+  }
+
+  30% {
+    transform: translate(-1%, 1%);
+  }
+
+  40% {
+    transform: translate(1%, -1%);
+  }
+
+  50% {
+    transform: translate(-2%, 2%);
+  }
+
+  60% {
+    transform: translate(2%, -2%);
+  }
+
+  70% {
+    transform: translate(-1%, -1%);
+  }
+
+  80% {
+    transform: translate(1%, 1%);
+  }
+
+  90% {
+    transform: translate(-2%, -1%);
+  }
 }
 
 .intro-dark-mask {
@@ -327,13 +358,11 @@ html.lenis body {
   left: 32%;
   width: 30%;
   height: 80%;
-  background: linear-gradient(
-    180deg,
-    rgba(246, 206, 160, 0.14) 0%,
-    rgba(246, 206, 160, 0.08) 35%,
-    rgba(246, 206, 160, 0.02) 65%,
-    transparent 100%
-  );
+  background: linear-gradient(180deg,
+      rgba(246, 206, 160, 0.14) 0%,
+      rgba(246, 206, 160, 0.08) 35%,
+      rgba(246, 206, 160, 0.02) 65%,
+      transparent 100%);
   filter: blur(28px);
   transform: skewX(-8deg);
   animation: god-ray-sway 18s ease-in-out infinite alternate;
@@ -345,12 +374,10 @@ html.lenis body {
   left: 52%;
   width: 20%;
   height: 70%;
-  background: linear-gradient(
-    180deg,
-    rgba(246, 206, 160, 0.10) 0%,
-    rgba(246, 206, 160, 0.05) 40%,
-    transparent 75%
-  );
+  background: linear-gradient(180deg,
+      rgba(246, 206, 160, 0.10) 0%,
+      rgba(246, 206, 160, 0.05) 40%,
+      transparent 75%);
   filter: blur(22px);
   transform: skewX(6deg);
   animation: god-ray-sway-2 25s ease-in-out infinite alternate;
@@ -363,53 +390,107 @@ html.lenis body {
   left: 0;
   width: 100%;
   height: 45%;
-  background: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 0.70) 0%,
-    rgba(0, 0, 0, 0.40) 25%,
-    rgba(0, 0, 0, 0.10) 55%,
-    transparent 100%
-  );
+  background: linear-gradient(to top,
+      rgba(0, 0, 0, 0.70) 0%,
+      rgba(0, 0, 0, 0.40) 25%,
+      rgba(0, 0, 0, 0.10) 55%,
+      transparent 100%);
   pointer-events: none;
 }
 
 /* ——— 雾气动画关键帧 ——— */
 @keyframes fog-drift-1 {
-  0%   { transform: translateX(0) translateY(0); opacity: 0.75; }
-  50%  { opacity: 0.95; }
-  100% { transform: translateX(10%) translateY(5%); opacity: 0.8; }
+  0% {
+    transform: translateX(0) translateY(0);
+    opacity: 0.75;
+  }
+
+  50% {
+    opacity: 0.95;
+  }
+
+  100% {
+    transform: translateX(10%) translateY(5%);
+    opacity: 0.8;
+  }
 }
 
 @keyframes fog-drift-2 {
-  0%   { transform: translateX(0) translateY(0) scale(1); }
-  100% { transform: translateX(14%) translateY(3%) scale(1.06); }
+  0% {
+    transform: translateX(0) translateY(0) scale(1);
+  }
+
+  100% {
+    transform: translateX(14%) translateY(3%) scale(1.06);
+  }
 }
 
 @keyframes fog-drift-3 {
-  0%   { transform: translateX(0) translateY(0); }
-  100% { transform: translateX(-12%) translateY(6%); }
+  0% {
+    transform: translateX(0) translateY(0);
+  }
+
+  100% {
+    transform: translateX(-12%) translateY(6%);
+  }
 }
 
 @keyframes fog-breath {
-  0%, 100% { opacity: 0.5; transform: scale(1); }
-  50%      { opacity: 0.9; transform: scale(1.1); }
+
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.9;
+    transform: scale(1.1);
+  }
 }
 
 @keyframes fog-rise {
-  0%   { transform: translateX(0) translateY(0); opacity: 0.65; }
-  100% { transform: translateX(6%) translateY(8%); opacity: 0.85; }
+  0% {
+    transform: translateX(0) translateY(0);
+    opacity: 0.65;
+  }
+
+  100% {
+    transform: translateX(6%) translateY(8%);
+    opacity: 0.85;
+  }
 }
 
 @keyframes god-ray-sway {
-  0%   { transform: skewX(-8deg) translateX(0); opacity: 0.65; }
-  50%  { opacity: 0.95; }
-  100% { transform: skewX(-3deg) translateX(5%); opacity: 0.75; }
+  0% {
+    transform: skewX(-8deg) translateX(0);
+    opacity: 0.65;
+  }
+
+  50% {
+    opacity: 0.95;
+  }
+
+  100% {
+    transform: skewX(-3deg) translateX(5%);
+    opacity: 0.75;
+  }
 }
 
 @keyframes god-ray-sway-2 {
-  0%   { transform: skewX(6deg) translateX(0); opacity: 0.5; }
-  50%  { opacity: 0.8; }
-  100% { transform: skewX(9deg) translateX(-5%); opacity: 0.6; }
+  0% {
+    transform: skewX(6deg) translateX(0);
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 0.8;
+  }
+
+  100% {
+    transform: skewX(9deg) translateX(-5%);
+    opacity: 0.6;
+  }
 }
 
 /* ==========================================================================
@@ -457,9 +538,11 @@ html.lenis body {
     transform: translateY(20px);
     text-shadow: 0 0 0px rgba(246, 206, 160, 0);
   }
+
   50% {
     text-shadow: 0 0 20px rgba(246, 206, 160, 0.8), 0 0 40px rgba(246, 206, 160, 0.4);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
@@ -559,7 +642,7 @@ html.lenis body {
   justify-content: center;
   gap: 12px;
   margin-bottom: 3vh;
-  margin-top: -17px;
+  margin-top: -60px;
   opacity: 0;
   transform: translateY(20px);
   transition: opacity 1.4s cubic-bezier(0.2, 0, 0, 1), transform 1.4s cubic-bezier(0.2, 0, 0, 1);
@@ -620,7 +703,8 @@ html.lenis body {
     0 4px 40px rgba(0, 0, 0, 0.9),
     0 1px 2px rgba(0, 0, 0, 0.5);
   position: relative;
-  margin-top: -10vh; /* 将大标题向上偏移 */
+  margin-top: -10vh;
+  /* 将大标题向上偏移 */
 }
 
 /* 粒子激活时隐藏原始文字内容，但保留问窟 */
@@ -720,21 +804,25 @@ html.lenis body {
     border-width: 2px;
     transform: scale(1);
   }
+
   41.67% {
     opacity: 0;
     border-width: 0.5px;
     transform: scale(1.45);
   }
+
   41.68% {
     opacity: 1;
     border-width: 2px;
     transform: scale(1);
   }
+
   83.35% {
     opacity: 0;
     border-width: 0.5px;
     transform: scale(1.45);
   }
+
   83.36%,
   100% {
     opacity: 0;
@@ -744,17 +832,21 @@ html.lenis body {
 }
 
 @keyframes arrow-elastic {
+
   0%,
   60%,
   100% {
     transform: translateY(0) scale(1);
   }
+
   15% {
     transform: translateY(10px) scale(0.9, 1.1);
   }
+
   30% {
     transform: translateY(-4px) scale(1.05, 0.95);
   }
+
   45% {
     transform: translateY(2px) scale(0.98, 1.02);
   }
@@ -767,13 +859,15 @@ html.lenis body {
   position: absolute;
   bottom: clamp(20px, 3.5vh, 40px);
   left: 50%;
-  z-index: 99; /* 提高层级防止被遮挡 */
+  z-index: 99;
+  /* 提高层级防止被遮挡 */
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
   transform: translateX(-50%);
-  pointer-events: none; /* 让波纹等装饰不阻挡鼠标 */
+  pointer-events: none;
+  /* 让波纹等装饰不阻挡鼠标 */
 }
 
 /* 进入按钮整体上移 150px（仅按钮，不影响小字位置） */
@@ -806,7 +900,8 @@ html.lenis body {
   cursor: pointer;
   padding: 0;
   z-index: 10;
-  pointer-events: auto; /* 仅让按钮本身响应鼠标 */
+  pointer-events: auto;
+  /* 仅让按钮本身响应鼠标 */
 }
 
 /* hover：白色圆形从底部弹入填满 */
@@ -993,6 +1088,11 @@ html.lenis body {
   height: 16px;
 }
 
+.ctrl-icon.fullscreen-icon {
+  width: 16px;
+  height: 16px;
+}
+
 /* 设置面板 */
 .settings-panel {
   position: absolute;
@@ -1013,6 +1113,7 @@ html.lenis body {
     opacity: 0;
     transform: translateY(8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1143,10 +1244,60 @@ html.large-text {
   z-index: 2000;
   pointer-events: none;
   opacity: 0;
-  background:
-    radial-gradient(ellipse at 50% 48%, rgba(246, 206, 160, 0.08), transparent 34%),
-    #050505;
+  background: #232227;
   transition: opacity 0.52s var(--ease-expo);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 曼陀罗加载动画 - 与序章 loader 完全一致 */
+.veil-loader {
+  position: relative;
+  width: min(180px, 20vw);
+  height: min(180px, 20vw);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: scale(0.85);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.app-root.is-veiling .veil-loader {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.veil-ornament {
+  position: absolute;
+  inset: -23%;
+  width: auto;
+  height: auto;
+  background-color: var(--c-gold);
+  opacity: 0.8;
+  animation: mandala-spin 40s linear infinite;
+  -webkit-mask-image: url('/assets/ornament.png');
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-image: url('/assets/ornament.png');
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: contain;
+}
+
+.veil-progress-text {
+  position: relative;
+  z-index: 2;
+  color: var(--c-gold);
+  font-family: var(--font-loader);
+  font-size: clamp(36px, 4.5vw, 56px);
+  font-weight: 400;
+  line-height: 0.9;
+  letter-spacing: 0.015em;
+  text-shadow: 0 0 16px rgba(246, 206, 160, 0.1);
+  transform: translateY(2px);
 }
 
 .app-root.is-veiling .experience-veil {
@@ -1167,6 +1318,7 @@ html.large-text {
     opacity: 0;
     filter: brightness(0.72);
   }
+
   to {
     opacity: 1;
     filter: brightness(1);
@@ -1178,19 +1330,29 @@ html.large-text {
   width: 100%;
   min-height: 100vh;
   overflow: hidden;
-  background: #11100f;
+  background: #232227;
   isolation: isolate;
+  overscroll-behavior: contain;
 }
 
-.timeline-hall-video {
+.grotto-model-scene {
   position: absolute;
   inset: 0;
-  z-index: 0;
+  /* 在遮罩层(z:2-4)之上，文字/UI层(z:8+)之下 */
+  z-index: 5;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  filter: contrast(1.08) saturate(0.82) brightness(0.72) sepia(0.08);
-  transform: scale(1.015);
+  /* 冷灰石质调色：提亮 + 降饱和 + 偏冷 + 加对比 */
+  filter: brightness(1.25) saturate(0.55) hue-rotate(-12deg) contrast(1.08);
+}
+
+.grotto-model-scene canvas {
+  display: block;
+  cursor: grab;
+}
+
+.grotto-model-scene canvas:active {
+  cursor: grabbing;
 }
 
 .timeline-hall-mask {
@@ -1199,9 +1361,9 @@ html.large-text {
   z-index: 2;
   pointer-events: none;
   background:
-    radial-gradient(ellipse at 50% 45%, rgba(0, 0, 0, 0.03) 0 24%, rgba(0, 0, 0, 0.42) 68%, rgba(0, 0, 0, 0.78) 100%),
-    linear-gradient(90deg, rgba(0, 0, 0, 0.56), rgba(0, 0, 0, 0.18) 42%, rgba(0, 0, 0, 0.48)),
-    linear-gradient(180deg, rgba(0, 0, 0, 0.36), transparent 34%, rgba(0, 0, 0, 0.56));
+    radial-gradient(ellipse at 48% 50%, rgba(0, 0, 0, 0.02) 0 18%, rgba(0, 0, 0, 0.28) 58%, rgba(0, 0, 0, 0.78) 100%),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.68), rgba(0, 0, 0, 0.18) 45%, rgba(0, 0, 0, 0.54)),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.38), transparent 36%, rgba(0, 0, 0, 0.68));
 }
 
 .timeline-hall-vignette {
@@ -1222,16 +1384,18 @@ html.large-text {
 
 .timeline-hall-copy {
   position: absolute;
-  inset: 0;
+  left: clamp(42px, 7vw, 120px);
+  top: 50%;
   z-index: 8;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 0 10vw;
-  text-align: center;
+  width: min(520px, 36vw);
+  text-align: left;
   pointer-events: none;
-  animation: exhibition-soft-rise 1.55s 0.38s var(--ease-expo) both;
+  transform: translateY(-50%);
+  animation: timeline-copy-side-in 1.55s 0.38s var(--ease-expo) both;
 }
 
 .timeline-hall-kicker {
@@ -1246,16 +1410,30 @@ html.large-text {
 }
 
 .timeline-hall-copy h1 {
-  max-width: 1180px;
+  max-width: 620px;
   color: #ffffff;
   font-family: 'ZiXinFangMengHuanGeTeTi', 'Ma Shan Zheng', 'Noto Serif SC', cursive;
-  font-size: clamp(34px, 4.8vw, 72px);
+  font-size: clamp(42px, 6vw, 92px);
   font-weight: normal;
   line-height: 1.03;
   letter-spacing: 0.025em;
   text-shadow:
     0 5px 42px rgba(0, 0, 0, 0.86),
     0 1px 2px rgba(0, 0, 0, 0.42);
+}
+
+.timeline-hall-copy p {
+  max-width: 520px;
+  margin: clamp(18px, 2.8vh, 34px) 0 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-family: var(--font-sans);
+  font-size: clamp(14px, 1.1vw, 18px);
+  font-weight: 300;
+  line-height: 1.8;
+  letter-spacing: 0.08em;
+  text-shadow:
+    0 4px 28px rgba(0, 0, 0, 0.86),
+    0 1px 2px rgba(0, 0, 0, 0.48);
 }
 
 .timeline-node-index {
@@ -1281,6 +1459,7 @@ html.large-text {
   border-radius: 50%;
   background: rgba(10, 9, 8, 0.08);
   backdrop-filter: blur(2px);
+  cursor: pointer;
   transition:
     color 0.5s var(--ease-expo),
     border-color 0.5s var(--ease-expo),
@@ -1327,6 +1506,280 @@ html.large-text {
   border-radius: 50%;
 }
 
+.timeline-tour-progress {
+  position: absolute;
+  left: clamp(42px, 7vw, 120px);
+  bottom: clamp(46px, 6vh, 80px);
+  z-index: 12;
+  width: min(320px, 28vw);
+  height: 1px;
+  overflow: hidden;
+  background: rgba(246, 206, 160, 0.16);
+  pointer-events: none;
+}
+
+.timeline-tour-progress span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(246, 206, 160, 0.16), rgba(246, 206, 160, 0.86));
+  transform-origin: left center;
+  transition: transform 0.42s var(--ease-expo);
+}
+
+.timeline-scroll-hint {
+  position: absolute;
+  left: clamp(42px, 7vw, 120px);
+  bottom: clamp(62px, 8vh, 104px);
+  z-index: 12;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.54);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 300;
+  letter-spacing: 0.18em;
+  pointer-events: none;
+}
+
+.timeline-hotspot-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 14;
+  pointer-events: none;
+}
+
+.timeline-magnifier {
+  --detail-image: url('/assets/qixia-model/3DModel.jpg');
+  --detail-position: 50% 50%;
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: clamp(88px, 7.6vw, 128px);
+  height: clamp(88px, 7.6vw, 128px);
+  padding: 0;
+  color: rgba(255, 255, 255, 0.92);
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0.82);
+  filter: drop-shadow(0 18px 38px rgba(0, 0, 0, 0.72));
+  transition:
+    opacity 0.76s var(--ease-expo),
+    transform 0.76s var(--ease-expo),
+    filter 0.76s var(--ease-expo);
+}
+
+.timeline-magnifier.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.timeline-magnifier:hover,
+.timeline-magnifier:focus-visible {
+  filter:
+    drop-shadow(0 22px 48px rgba(0, 0, 0, 0.82))
+    drop-shadow(0 0 28px rgba(246, 206, 160, 0.28));
+}
+
+.timeline-magnifier-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    repeating-conic-gradient(
+      from 8deg,
+      rgba(246, 206, 160, 0.88) 0deg 5deg,
+      transparent 5deg 10deg
+    );
+  opacity: 0.72;
+  mask:
+    radial-gradient(circle, transparent 0 42%, #000 43% 48%, transparent 50%),
+    repeating-radial-gradient(circle, #000 0 2px, transparent 2px 5px);
+  mask-composite: intersect;
+}
+
+.timeline-magnifier-ring::before,
+.timeline-magnifier-ring::after {
+  content: '';
+  position: absolute;
+  inset: 15%;
+  border: 1px solid rgba(246, 206, 160, 0.56);
+  border-radius: 50%;
+}
+
+.timeline-magnifier-ring::after {
+  inset: 25%;
+  border-color: rgba(255, 255, 255, 0.34);
+}
+
+.timeline-magnifier-lens {
+  position: relative;
+  width: 48%;
+  height: 48%;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.62);
+  border-radius: 50%;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+    var(--detail-image);
+  background-position:
+    center,
+    var(--detail-position);
+  background-size:
+    auto,
+    420%;
+  box-shadow:
+    inset 0 0 24px rgba(0, 0, 0, 0.42),
+    0 0 24px rgba(246, 206, 160, 0.18);
+}
+
+.timeline-magnifier-lens::after {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  background: linear-gradient(130deg, rgba(255, 255, 255, 0.4), transparent 44%);
+  opacity: 0.38;
+}
+
+.timeline-magnifier-label {
+  position: absolute;
+  left: 50%;
+  bottom: -18px;
+  color: rgba(255, 255, 255, 0.78);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 300;
+  letter-spacing: 0.22em;
+  text-shadow: 0 5px 18px rgba(0, 0, 0, 0.86);
+  transform: translateX(-50%);
+}
+
+.timeline-detail-preview {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: grid;
+  place-items: center;
+  padding: clamp(26px, 5vw, 72px);
+  background:
+    radial-gradient(ellipse at 50% 42%, rgba(40, 34, 26, 0.34), transparent 52%),
+    rgba(4, 4, 4, 0.78);
+  backdrop-filter: blur(18px);
+  animation: detail-preview-in 0.72s var(--ease-expo) both;
+}
+
+.timeline-detail-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: transparent;
+  cursor: zoom-out;
+}
+
+.timeline-detail-panel {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(320px, 0.92fr) minmax(280px, 0.58fr);
+  gap: clamp(28px, 5vw, 76px);
+  align-items: center;
+  width: min(1160px, 92vw);
+  margin: 0;
+}
+
+.timeline-detail-image-wrap {
+  position: relative;
+  min-height: min(62vh, 620px);
+  overflow: hidden;
+  border: 1px solid rgba(246, 206, 160, 0.22);
+  background: #080706;
+  box-shadow:
+    0 34px 90px rgba(0, 0, 0, 0.58),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.timeline-detail-image-wrap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 42% 36%, transparent 0 40%, rgba(0, 0, 0, 0.48) 88%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 22%, rgba(0, 0, 0, 0.36));
+}
+
+.timeline-detail-image-wrap img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: min(62vh, 620px);
+  object-fit: cover;
+  filter: saturate(0.9) contrast(1.06) brightness(0.9);
+  transform: scale(1.08);
+}
+
+.timeline-detail-copy {
+  color: #ffffff;
+  text-align: left;
+}
+
+.timeline-detail-copy span {
+  color: rgba(246, 206, 160, 0.82);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 300;
+  letter-spacing: 0.32em;
+}
+
+.timeline-detail-copy h2 {
+  margin: 18px 0 20px;
+  font-family: 'ZiXinFangMengHuanGeTeTi', 'Ma Shan Zheng', 'Noto Serif SC', cursive;
+  font-size: clamp(42px, 5vw, 78px);
+  font-weight: normal;
+  line-height: 1.04;
+  letter-spacing: 0.04em;
+}
+
+.timeline-detail-copy p {
+  max-width: 440px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.74);
+  font-family: var(--font-sans);
+  font-size: clamp(14px, 1.04vw, 17px);
+  font-weight: 300;
+  line-height: 1.9;
+  letter-spacing: 0.08em;
+}
+
+.timeline-detail-copy button {
+  margin-top: 34px;
+  padding: 12px 22px;
+  color: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(246, 206, 160, 0.42);
+  border-radius: 999px;
+  background: rgba(246, 206, 160, 0.06);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 300;
+  letter-spacing: 0.18em;
+  cursor: pointer;
+  transition:
+    background 0.45s var(--ease-expo),
+    border-color 0.45s var(--ease-expo),
+    transform 0.45s var(--ease-expo);
+}
+
+.timeline-detail-copy button:hover,
+.timeline-detail-copy button:focus-visible {
+  border-color: rgba(246, 206, 160, 0.82);
+  background: rgba(246, 206, 160, 0.12);
+  transform: translateY(-2px);
+}
+
 .exhibition-ctrl-nav {
   animation: exhibition-soft-rise 1.4s 0.72s var(--ease-expo) both;
 }
@@ -1336,6 +1789,7 @@ html.large-text {
     opacity: 0;
     transform: translateY(18px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1347,9 +1801,34 @@ html.large-text {
     opacity: 0;
     transform: translate(16px, -50%);
   }
+
   to {
     opacity: 1;
     transform: translate(0, -50%);
+  }
+}
+
+@keyframes timeline-copy-side-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-50% + 18px));
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(-50%);
+  }
+}
+
+@keyframes detail-preview-in {
+  from {
+    opacity: 0;
+    transform: scale(1.015);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
@@ -1387,6 +1866,21 @@ html.large-text {
   .timeline-node span {
     font-size: 13px;
   }
+
+  .timeline-magnifier {
+    width: 82px;
+    height: 82px;
+  }
+
+  .timeline-detail-panel {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .timeline-detail-image-wrap,
+  .timeline-detail-image-wrap img {
+    min-height: 46vh;
+  }
 }
 
 @keyframes timeline-index-mobile-in {
@@ -1394,6 +1888,7 @@ html.large-text {
     opacity: 0;
     transform: translate(-50%, 16px);
   }
+
   to {
     opacity: 1;
     transform: translate(-50%, 0);

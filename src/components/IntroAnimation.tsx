@@ -4,6 +4,7 @@ import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { AtmosphereEffects } from './AtmosphereEffects'
 import { AtmosphereShader } from './AtmosphereShader'
+import { FullscreenButton } from './FullscreenButton'
 import { GlowText } from './GlowText'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -611,6 +612,7 @@ export function IntroAnimation({ onEnter }: IntroAnimationProps) {
               )}
             </svg>
           </button>
+          <FullscreenButton />
         </nav>
 
         {/* 激光进度条 */}
