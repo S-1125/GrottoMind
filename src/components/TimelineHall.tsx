@@ -1,79 +1,122 @@
-import { useEffect, useRef, useState, type CSSProperties, type WheelEvent } from 'react'
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type PointerEvent as ReactPointerEvent,
+  type WheelEvent,
+} from 'react'
 import { AtmosphereEffects } from './AtmosphereEffects'
 import { AtmosphereShader } from './AtmosphereShader'
 import { FullscreenButton } from './FullscreenButton'
 import { GrottoModelScene } from './GrottoModelScene'
 
-const tourStops = [
+const detailImage = '/assets/qixia-model/3DModel.jpg'
+
+const stupaStops = [
   {
-    id: 'overview',
-    label: '塔',
-    title: '舍利塔',
-    body: '1400 年前，金陵栖霞山立起一座承载信仰与时间的舍利塔。它不是孤立的建筑，而是山、寺、窟之间的精神坐标。',
+    id: 'intro',
+    label: '章',
+    nav: '章',
+    title: '第一章 · 舍利塔',
+    body: '镜头从远处缓慢靠近，舍利塔从云雾与暗金浮尘中显现。请轻滚鼠标，沿着塔身逐段进入它的结构、造像与纹样。',
+    mode: 'intro',
+    marker: { x: '51%', y: '47%' },
+    lens: null,
+    button: '开始观察',
+  },
+  {
+    id: 'finial',
+    label: '塔刹',
+    nav: '刹',
+    title: '六重塔刹',
+    body: '表面装饰有莲瓣、束腰和云纹，分别象征着佛塔传统的覆钵、相轮和火珠。塔刹向上收束，使整座舍利塔获得清晰的精神指向。',
+    mode: 'lens',
+    marker: { x: '50.5%', y: '18%' },
+    lens: { x: '35%', y: '38%', position: '48% 10%', pattern: 'lotus' },
+    button: '查阅形制',
   },
   {
     id: 'eaves',
-    label: '檐',
-    title: '层檐',
-    body: '层层石檐向外舒展，承接天光，也留下风化的阴影。檐口的起伏让舍利塔在静止中仍有向上的节奏。',
+    label: '塔檐',
+    nav: '檐',
+    title: '五重密檐',
+    body: '层层挑出的密檐具有仿木结构意味，檐角与檐下阴影共同构成石塔向上的节奏。风化让边缘变钝，却没有抹去结构的秩序。',
+    mode: 'lens',
+    marker: { x: '52%', y: '34%' },
+    lens: { x: '34%', y: '42%', position: '54% 22%', pattern: 'joinery' },
+    button: '查看结构',
   },
   {
     id: 'niche',
-    label: '龛',
-    title: '塔身佛龛',
-    body: '塔身龛像与浮雕把信仰刻入石面。人物、衣纹与龛壁在岁月中磨损，却仍保留可被重新观看的线索。',
+    label: '佛龛',
+    nav: '龛',
+    title: '三十二尊佛像',
+    body: '塔身佛龛以层级方式分布，坐佛、龛楣与塔身转角共同形成连续的礼佛秩序。数字观看在这里不是复原结论，而是重新辨认轮廓。',
+    mode: 'lens',
+    marker: { x: '51%', y: '54%' },
+    lens: { x: '35%', y: '50%', position: '50% 58%', pattern: 'cloud' },
+    button: '查看布局',
   },
   {
-    id: 'texture',
-    label: '纹',
-    title: '石上纹样',
-    body: '裂隙、磨蚀与残留纹理不是噪点，而是时间的细节。它们提示我们：数字显影应先尊重石头本身。',
+    id: 'guardian',
+    label: '天王',
+    nav: '王',
+    title: '天王造像',
+    body: '第一层转角处的天王身披甲胄，形象威严。仰视镜头让造像重新获得守护者的尺度，也让铠甲线条在石面上变得清晰。',
+    mode: 'lens',
+    marker: { x: '45%', y: '66%' },
+    lens: { x: '34%', y: '55%', position: '38% 72%', pattern: 'armor' },
+    button: '阅读造像',
   },
-]
+  {
+    id: 'bodhisattva',
+    label: '菩萨',
+    nav: '萨',
+    title: '文殊与普贤',
+    body: '塔身正东与正西面可见菩萨题材线索。骑狮的文殊与骑象的普贤，使舍利塔不只是建筑，也成为佛教图像的立体长卷。',
+    mode: 'lens',
+    marker: { x: '57%', y: '66%' },
+    lens: { x: '35%', y: '56%', position: '68% 70%', pattern: 'cloud' },
+    button: '查看坐骑',
+  },
+  {
+    id: 'base',
+    label: '塔基',
+    nav: '基',
+    title: '九山八海',
+    body: '须弥座的束腰部分以海水、龙、亭台楼榭等图像组织空间，呼应佛教宇宙观中的九山八海。塔基让信仰获得可承托的世界结构。',
+    mode: 'lens',
+    marker: { x: '51%', y: '76%' },
+    lens: { x: '35%', y: '60%', position: '52% 86%', pattern: 'wave' },
+    button: '查阅象征',
+  },
+  {
+    id: 'story',
+    label: '八相',
+    nav: '卷',
+    title: '八相成道图',
+    body: '束腰八面以连续叙事组织佛传：西北面“降兜率天”，北面“树下诞生”，东北面“逾城出家”，东面“降魔成道”，其后依次展开说法、涅槃等故事。这里不打开透镜，请直接在 3D 模型上观察这段石上长卷。',
+    mode: 'scroll',
+    marker: { x: '49%', y: '82%' },
+    lens: null,
+    button: '深度阅读',
+  },
+] as const
 
-const detailHotspots = [
-  {
-    id: 'eaves-detail',
-    stopIndex: 1,
-    label: '檐',
-    title: '层檐石构',
-    body: '塔檐以层层外挑形成稳定的垂直节奏，阴影在檐下聚集，使石塔的重量感与向上感同时存在。',
-    x: '56%',
-    y: '34%',
-    image: '/assets/qixia-model/3DModel.jpg',
-    previewPosition: '52% 18%',
-  },
-  {
-    id: 'niche-detail',
-    stopIndex: 2,
-    label: '龛',
-    title: '塔身佛龛',
-    body: '龛像所在的塔身面，是舍利塔与石窟造像关系最直接的观看入口。这里的残损会成为后续复彩推演的重要依据。',
-    x: '53%',
-    y: '58%',
-    image: '/assets/qixia-model/3DModel.jpg',
-    previewPosition: '50% 58%',
-  },
-  {
-    id: 'texture-detail',
-    stopIndex: 3,
-    label: '纹',
-    title: '风化纹理',
-    body: '石面纹样与风化裂隙共同构成“时间层”。本项目中的数字复彩不会覆盖这些痕迹，而是让颜色从痕迹之间显影。',
-    x: '50%',
-    y: '45%',
-    image: '/assets/qixia-model/3DModel.jpg',
-    previewPosition: '66% 40%',
-  },
-]
+type StupaStop = (typeof stupaStops)[number]
 
 function clampProgress(value: number) {
   return Math.min(1, Math.max(0, value))
 }
 
+function stopProgress(index: number) {
+  return index / (stupaStops.length - 1)
+}
+
 /* ============================================================
-   TimelineHall: 第一章 · 塔与窟全景漫游
-   使用真实 OBJ 模型建立轻量 3D 观看体验。
+   TimelineHall: 第一章 · 舍利塔全域交互
+   以 3D 镜头段落、POI 热点、时空透镜和图文深读构成。
 ============================================================ */
 export function TimelineHall() {
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -84,14 +127,45 @@ export function TimelineHall() {
   const [noDrag, setNoDrag] = useState(false)
   const [tourProgress, setTourProgress] = useState(0)
   const [activeStop, setActiveStop] = useState(0)
-  const [activePreview, setActivePreview] = useState<(typeof detailHotspots)[number] | null>(null)
+  const [hoveredPoi, setHoveredPoi] = useState<string | null>(null)
+  const [activePreview, setActivePreview] = useState<StupaStop | null>(null)
+  const [activeArticle, setActiveArticle] = useState<StupaStop | null>(null)
+  const [curtainActive, setCurtainActive] = useState(false)
+  const [cursorPoint, setCursorPoint] = useState({ x: 0, y: 0 })
+  const [cursorMode, setCursorMode] = useState<'default' | 'hotspot' | 'lens' | 'button'>('default')
+  const [detailZoom, setDetailZoom] = useState(1)
+  const [detailOffset, setDetailOffset] = useState({ x: 0, y: 0 })
+  const detailDragRef = useRef({ active: false, x: 0, y: 0 })
   const settingsRef = useRef<HTMLDivElement>(null)
-  const currentStop = tourStops[activeStop]
+  const currentStop = stupaStops[activeStop]
+  const activeLensStop = currentStop.mode === 'lens' ? currentStop : null
+  const isIntro = currentStop.mode === 'intro'
+  const isStoryStop = currentStop.mode === 'scroll'
 
   const syncProgress = (nextProgress: number) => {
     const clamped = clampProgress(nextProgress)
     setTourProgress(clamped)
-    setActiveStop(Math.min(tourStops.length - 1, Math.round(clamped * (tourStops.length - 1))))
+    setActiveStop(Math.min(stupaStops.length - 1, Math.round(clamped * (stupaStops.length - 1))))
+  }
+
+  const openArticle = (stop: StupaStop) => {
+    setCurtainActive(true)
+    window.setTimeout(() => {
+      setActiveArticle(stop)
+    }, 360)
+    window.setTimeout(() => {
+      setCurtainActive(false)
+    }, 760)
+  }
+
+  const closeArticle = () => {
+    setCurtainActive(true)
+    window.setTimeout(() => {
+      setActiveArticle(null)
+    }, 360)
+    window.setTimeout(() => {
+      setCurtainActive(false)
+    }, 760)
   }
 
   useEffect(() => {
@@ -117,26 +191,87 @@ export function TimelineHall() {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setActivePreview(null)
+        if (activeArticle) closeArticle()
       }
     }
 
     document.addEventListener('keydown', handleEscape)
     return () => document.removeEventListener('keydown', handleEscape)
-  }, [])
+  }, [activeArticle])
 
   const handleWheel = (event: WheelEvent<HTMLElement>) => {
-    if (noDrag) return
+    if (noDrag || activePreview || activeArticle) return
     event.preventDefault()
     setTourProgress((previousProgress) => {
-      const nextProgress = clampProgress(previousProgress + event.deltaY * 0.00078)
-      setActiveStop(Math.min(tourStops.length - 1, Math.round(nextProgress * (tourStops.length - 1))))
+      const nextProgress = clampProgress(previousProgress + event.deltaY * 0.00042)
+      setActiveStop(Math.min(stupaStops.length - 1, Math.round(nextProgress * (stupaStops.length - 1))))
       return nextProgress
     })
   }
 
+  const handlePointerMove = (event: ReactPointerEvent<HTMLElement>) => {
+    setCursorPoint({ x: event.clientX, y: event.clientY })
+  }
+
+  const openPreview = (stop: StupaStop) => {
+    setDetailZoom(1)
+    setDetailOffset({ x: 0, y: 0 })
+    setActivePreview(stop)
+  }
+
+  const handlePreviewWheel = (event: WheelEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    setDetailZoom((currentZoom) => Math.min(3.2, Math.max(1, currentZoom - event.deltaY * 0.0012)))
+  }
+
+  const handlePreviewPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    detailDragRef.current = {
+      active: true,
+      x: event.clientX,
+      y: event.clientY,
+    }
+    event.currentTarget.setPointerCapture(event.pointerId)
+  }
+
+  const handlePreviewPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!detailDragRef.current.active) return
+
+    const dx = event.clientX - detailDragRef.current.x
+    const dy = event.clientY - detailDragRef.current.y
+    detailDragRef.current.x = event.clientX
+    detailDragRef.current.y = event.clientY
+    setDetailOffset((currentOffset) => ({
+      x: currentOffset.x + dx,
+      y: currentOffset.y + dy,
+    }))
+  }
+
+  const handlePreviewPointerUp = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (detailDragRef.current.active && event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+    detailDragRef.current.active = false
+  }
+
   return (
-    <section className="timeline-hall" aria-label="第一章：舍利塔" onWheel={handleWheel}>
-      {/* 层级顺序：遮罩(z:2-4) → 模型(z:5) → 文字/UI(z:8+) */}
+    <section
+      className="timeline-hall stupa-chapter"
+      aria-label="第一章：舍利塔"
+      onWheel={handleWheel}
+      onPointerMove={handlePointerMove}
+    >
+      <div
+        className={`museum-cursor is-${cursorMode}`}
+        style={{
+          '--cursor-x': `${cursorPoint.x}px`,
+          '--cursor-y': `${cursorPoint.y}px`,
+        } as CSSProperties}
+        aria-hidden="true"
+      >
+        <span className="museum-cursor-dot" />
+        <span className="museum-cursor-ring" />
+      </div>
+
       <div className="timeline-hall-mask" aria-hidden="true" />
       <div className="timeline-hall-vignette" aria-hidden="true" />
       <div className="fog-bottom-dark" aria-hidden="true" />
@@ -144,7 +279,6 @@ export function TimelineHall() {
       <AtmosphereShader currentStep={0} />
       <AtmosphereEffects currentStep={0} />
 
-      {/* 模型在遮罩之上，不被暗角压暗 */}
       <GrottoModelScene progress={tourProgress} />
       <div className="intro-film-grain" aria-hidden="true" />
 
@@ -153,51 +287,114 @@ export function TimelineHall() {
         <div className="site-logo-img-en" />
       </div>
 
-      <div className="timeline-hall-copy" key={currentStop.id}>
+      <div className={`timeline-hall-copy stupa-intro-copy ${isIntro ? 'is-visible' : ''}`}>
         <span className="timeline-hall-kicker">第一章 · 舍利塔</span>
-        <h1>{currentStop.title}</h1>
-        <p>{currentStop.body}</p>
+        <h1>第一章 · 舍利塔</h1>
+        <p>{stupaStops[0].body}</p>
       </div>
 
-      <div className="timeline-hotspot-layer" aria-label="舍利塔局部细节">
-        {detailHotspots.map((hotspot) => {
-          const isVisible = activeStop === hotspot.stopIndex
+      <div className="stupa-poi-layer" aria-label="舍利塔局部热点">
+        {stupaStops.slice(1).map((stop, index) => {
+          const actualIndex = index + 1
+          const isActive = activeStop === actualIndex
+          const isHovered = hoveredPoi === stop.id
 
           return (
             <button
-              className={`timeline-magnifier ${isVisible ? 'is-visible' : ''}`}
-              key={hotspot.id}
+              className={`stupa-poi ${isActive ? 'is-active' : ''} ${isHovered ? 'is-hovered' : ''}`}
+              key={stop.id}
               type="button"
               style={{
-                left: hotspot.x,
-                top: hotspot.y,
-                '--detail-image': `url(${hotspot.image})`,
-                '--detail-position': hotspot.previewPosition,
-              } as CSSProperties}
-              aria-label={`查看${hotspot.title}细节`}
-              aria-hidden={!isVisible}
-              tabIndex={isVisible ? 0 : -1}
-              onClick={() => setActivePreview(hotspot)}
+                left: stop.marker.x,
+                top: stop.marker.y,
+              }}
+              aria-label={`前往${stop.title}`}
+              onPointerEnter={() => {
+                setHoveredPoi(stop.id)
+                setCursorMode('hotspot')
+              }}
+              onPointerLeave={() => {
+                setHoveredPoi(null)
+                setCursorMode('default')
+              }}
+              onClick={() => syncProgress(stopProgress(actualIndex))}
             >
-              <span className="timeline-magnifier-ring" aria-hidden="true" />
-              <span className="timeline-magnifier-lens" aria-hidden="true" />
-              <span className="timeline-magnifier-label">{hotspot.label}</span>
+              <span />
             </button>
           )
         })}
       </div>
 
-      <nav className="timeline-node-index" aria-label="第一章漫游节点">
-        {tourStops.map((stop, index) => (
+      {activeLensStop && (
+        <div className="stupa-lens-stage" key={activeLensStop.id}>
+          <button
+            className={`stupa-lens stupa-lens-${activeLensStop.lens.pattern}`}
+            type="button"
+            style={{
+              left: activeLensStop.lens.x,
+              top: activeLensStop.lens.y,
+              '--detail-image': `url(${detailImage})`,
+              '--detail-position': activeLensStop.lens.position,
+            } as CSSProperties}
+            aria-label={`查看${activeLensStop.title}原貌细节`}
+            onPointerEnter={() => setCursorMode('lens')}
+            onPointerLeave={() => setCursorMode('default')}
+            onClick={() => openPreview(activeLensStop)}
+          >
+            <span className="stupa-lens-ornament" aria-hidden="true" />
+            <span className="stupa-lens-core" aria-hidden="true" />
+            <span className="stupa-lens-hint">点击查看原貌</span>
+          </button>
+
+          <article className="stupa-info-panel">
+            <span className="stupa-info-kicker">{activeLensStop.label}</span>
+            <h2>{activeLensStop.title}</h2>
+            <i aria-hidden="true" />
+            <p>{activeLensStop.body}</p>
+            <button
+              type="button"
+              onPointerEnter={() => setCursorMode('button')}
+              onPointerLeave={() => setCursorMode('default')}
+              onClick={() => openArticle(activeLensStop)}
+            >
+              {activeLensStop.button}
+              <span aria-hidden="true">→</span>
+            </button>
+          </article>
+        </div>
+      )}
+
+      {isStoryStop && (
+        <article className="stupa-info-panel stupa-story-panel" key={currentStop.id}>
+          <span className="stupa-info-kicker">{currentStop.label}</span>
+          <h2>{currentStop.title}</h2>
+          <i aria-hidden="true" />
+          <p>{currentStop.body}</p>
+          <button
+            type="button"
+            onPointerEnter={() => setCursorMode('button')}
+            onPointerLeave={() => setCursorMode('default')}
+            onClick={() => openArticle(currentStop)}
+          >
+            {currentStop.button}
+            <span aria-hidden="true">→</span>
+          </button>
+        </article>
+      )}
+
+      <nav className="timeline-node-index stupa-node-index" aria-label="第一章漫游节点">
+        {stupaStops.map((stop, index) => (
           <button
             className={`timeline-node ${index === activeStop ? 'is-active' : ''}`}
             key={stop.id}
             type="button"
             aria-label={`漫游节点：${stop.title}`}
             aria-pressed={index === activeStop}
-            onClick={() => syncProgress(index / (tourStops.length - 1))}
+            onPointerEnter={() => setCursorMode('button')}
+            onPointerLeave={() => setCursorMode('default')}
+            onClick={() => syncProgress(stopProgress(index))}
           >
-            <span>{stop.label}</span>
+            <span>{stop.nav}</span>
           </button>
         ))}
       </nav>
@@ -206,31 +403,79 @@ export function TimelineHall() {
         <span style={{ transform: `scaleX(${Math.max(0.08, tourProgress)})` }} />
       </div>
 
-      <p className="timeline-scroll-hint">轻滚鼠标，推近舍利塔的局部细节。</p>
+      <p className="timeline-scroll-hint">轻滚鼠标，镜头沿舍利塔局部游览。</p>
 
       {activePreview && (
-        <div className="timeline-detail-preview" role="dialog" aria-modal="true" aria-label={`${activePreview.title}全屏细节`}>
+        <div className="stupa-deep-view" role="dialog" aria-modal="true" aria-label={`${activePreview.title}高清细节`}>
           <button
-            className="timeline-detail-backdrop"
+            className="stupa-deep-close"
             type="button"
             aria-label="关闭细节预览"
+            onPointerEnter={() => setCursorMode('button')}
+            onPointerLeave={() => setCursorMode('default')}
             onClick={() => setActivePreview(null)}
-          />
-          <figure className="timeline-detail-panel">
-            <div className="timeline-detail-image-wrap">
-              <img src={activePreview.image} alt={activePreview.title} />
-            </div>
-            <figcaption className="timeline-detail-copy">
-              <span>局部细节</span>
-              <h2>{activePreview.title}</h2>
-              <p>{activePreview.body}</p>
-              <button type="button" onClick={() => setActivePreview(null)}>
-                返回舍利塔
-              </button>
-            </figcaption>
-          </figure>
+          >
+            ×
+          </button>
+          <div
+            className="stupa-deep-canvas"
+            role="img"
+            aria-label={activePreview.title}
+            onWheel={handlePreviewWheel}
+            onPointerDown={handlePreviewPointerDown}
+            onPointerMove={handlePreviewPointerMove}
+            onPointerUp={handlePreviewPointerUp}
+            onPointerLeave={handlePreviewPointerUp}
+          >
+            <img
+              src={detailImage}
+              alt={activePreview.title}
+              style={{
+                transform: `translate(${detailOffset.x}px, ${detailOffset.y}px) scale(${detailZoom})`,
+              }}
+            />
+          </div>
+          <p className="stupa-deep-caption">拖拽移动，滚轮缩放。当前为风化细节占位图。</p>
         </div>
       )}
+
+      {activeArticle && (
+        <article className="stupa-article-view" aria-label={`${activeArticle.title}图文扩展页`}>
+          <button
+            className="stupa-article-close"
+            type="button"
+            aria-label="关闭图文扩展页"
+            onPointerEnter={() => setCursorMode('button')}
+            onPointerLeave={() => setCursorMode('default')}
+            onClick={closeArticle}
+          >
+            ×
+          </button>
+          <aside>
+            <img src={detailImage} alt={`${activeArticle.title}文献占位图`} />
+            <span>{activeArticle.title}</span>
+          </aside>
+          <div className="stupa-article-scroll">
+            <section>
+              <span>Research Note</span>
+              <h2>{activeArticle.title}</h2>
+              <p>{activeArticle.body}</p>
+              <p>
+                后续这里将替换为该局部的历史照片、文献扫描与结构说明。当前版本先建立展馆式图文阅读框架，确保从 3D 场景到 2D 长页的过渡节奏成立。
+              </p>
+            </section>
+            <section>
+              <span>Material Reading</span>
+              <h3>石面、纹样与观看边界</h3>
+              <p>
+                所有复彩与显影内容都应被标注为数字推演，而非历史原貌判断。图文页承担解释功能，帮助观众区分文物现状、视觉研究与 AI 想象。
+              </p>
+            </section>
+          </div>
+        </article>
+      )}
+
+      <div className={`blackout-transition ${curtainActive ? 'is-active' : ''}`} aria-hidden="true" />
 
       <nav className="intro-ctrl-nav exhibition-ctrl-nav" aria-label="辅助控制">
         <div className="ctrl-btn-wrapper" ref={settingsRef}>
@@ -238,6 +483,8 @@ export function TimelineHall() {
             className={`intro-ctrl-btn ${settingsOpen ? 'is-active' : ''}`}
             aria-label="无障碍选项"
             aria-expanded={settingsOpen}
+            onPointerEnter={() => setCursorMode('button')}
+            onPointerLeave={() => setCursorMode('default')}
             onClick={() => setSettingsOpen(!settingsOpen)}
           >
             <svg className="ctrl-btn-outline" viewBox="0 0 50 50" aria-hidden="true">
@@ -290,6 +537,8 @@ export function TimelineHall() {
         <button
           className="intro-ctrl-btn"
           aria-label={soundOn ? '静音' : '开启声音'}
+          onPointerEnter={() => setCursorMode('button')}
+          onPointerLeave={() => setCursorMode('default')}
           onClick={() => setSoundOn(!soundOn)}
         >
           <svg className="ctrl-btn-outline" viewBox="0 0 50 50" aria-hidden="true">
