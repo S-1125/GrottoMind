@@ -6,35 +6,55 @@ interface GrottoModelSceneProps {
   progress: number
 }
 
-interface DragState {
-  active: boolean
-  x: number
-  y: number
-}
-
 function easeInOut(t: number) {
   return t * t * (3 - 2 * t)
 }
 
 function getCameraPose(progress: number) {
-  const p = easeInOut(THREE.MathUtils.clamp(progress, 0, 1))
-  const angle = THREE.MathUtils.lerp(-0.62, 0.68, p)
-  const radius = THREE.MathUtils.lerp(3.08, 1.78, p)
-  // 相机高度降低到模型底部附近，实现平视/仰视效果
-  const height = THREE.MathUtils.lerp(-0.1, -0.2, p)
+  const cameraStops = [
+    {
+      position: new THREE.Vector3(Math.sin(-0.62) * 3.08, -0.1, Math.cos(-0.62) * 3.08),
+      target: new THREE.Vector3(-0.02, 0.7, 0.02),
+    },
+    {
+      position: new THREE.Vector3(-0.58, 1.42, 2.05),
+      target: new THREE.Vector3(-0.04, 2.05, 0.02),
+    },
+    {
+      position: new THREE.Vector3(1.42, 0.98, 2.05),
+      target: new THREE.Vector3(-0.04, 1.42, 0.04),
+    },
+    {
+      position: new THREE.Vector3(0.26, 0.28, 1.58),
+      target: new THREE.Vector3(-0.02, 0.96, 0.05),
+    },
+    {
+      position: new THREE.Vector3(-1.32, -0.08, 1.38),
+      target: new THREE.Vector3(-0.24, 0.54, 0.1),
+    },
+    {
+      position: new THREE.Vector3(1.28, -0.02, 1.42),
+      target: new THREE.Vector3(0.18, 0.58, 0.08),
+    },
+    {
+      position: new THREE.Vector3(0.18, -0.32, 1.54),
+      target: new THREE.Vector3(0, 0.28, 0.04),
+    },
+    {
+      position: new THREE.Vector3(-0.82, -0.18, 1.18),
+      target: new THREE.Vector3(-0.08, 0.22, 0.04),
+    },
+  ]
+
+  const rawProgress = THREE.MathUtils.clamp(progress, 0, 1) * (cameraStops.length - 1)
+  const index = Math.min(cameraStops.length - 2, Math.floor(rawProgress))
+  const localProgress = easeInOut(rawProgress - index)
+  const from = cameraStops[index]
+  const to = cameraStops[index + 1]
 
   return {
-    position: new THREE.Vector3(
-      Math.sin(angle) * radius,
-      height,
-      Math.cos(angle) * radius
-    ),
-    target: new THREE.Vector3(
-      THREE.MathUtils.lerp(-0.02, -0.06, p),
-      // lookAt 指向模型中上部，产生仰视感
-      THREE.MathUtils.lerp(0.7, 0.9, p),
-      THREE.MathUtils.lerp(0.02, 0.08, p)
-    ),
+    position: from.position.clone().lerp(to.position, localProgress),
+    target: from.target.clone().lerp(to.target, localProgress),
   }
 }
 
@@ -164,9 +184,6 @@ export function GrottoModelScene({ progress }: GrottoModelSceneProps) {
     const targetPosition = new THREE.Vector3()
     const targetLookAt = new THREE.Vector3()
     const startTime = performance.now()
-    const envRotation = new THREE.Vector2(-0.42, 0)
-    const targetEnvRotation = new THREE.Vector2(0, 0)
-    const dragState: DragState = { active: false, x: 0, y: 0 }
     let raf = 0
 
     const initialPose = getCameraPose(progressRef.current)
@@ -203,43 +220,9 @@ export function GrottoModelScene({ progress }: GrottoModelSceneProps) {
     }
     window.addEventListener('resize', handleResize)
 
-    const handlePointerDown = (event: PointerEvent) => {
-      dragState.active = true
-      dragState.x = event.clientX
-      dragState.y = event.clientY
-      renderer.domElement.setPointerCapture?.(event.pointerId)
-    }
-
-    const handlePointerMove = (event: PointerEvent) => {
-      if (!dragState.active) return
-
-      const dx = event.clientX - dragState.x
-      const dy = event.clientY - dragState.y
-      dragState.x = event.clientX
-      dragState.y = event.clientY
-
-      targetEnvRotation.x += dx * 0.0015
-      targetEnvRotation.y = THREE.MathUtils.clamp(targetEnvRotation.y + dy * 0.00075, -0.08, 0.08)
-    }
-
-    const handlePointerUp = (event: PointerEvent) => {
-      dragState.active = false
-      renderer.domElement.releasePointerCapture?.(event.pointerId)
-    }
-
-    renderer.domElement.addEventListener('pointerdown', handlePointerDown)
-    renderer.domElement.addEventListener('pointermove', handlePointerMove)
-    renderer.domElement.addEventListener('pointerup', handlePointerUp)
-    renderer.domElement.addEventListener('pointerleave', handlePointerUp)
-
     return () => {
       cancelAnimationFrame(raf)
       window.removeEventListener('resize', handleResize)
-      renderer.domElement.removeEventListener('pointerdown', handlePointerDown)
-      renderer.domElement.removeEventListener('pointermove', handlePointerMove)
-      renderer.domElement.removeEventListener('pointerup', handlePointerUp)
-      renderer.domElement.removeEventListener('pointerleave', handlePointerUp)
-
       renderer.dispose()
       scene.traverse((object) => {
         if (object instanceof THREE.Mesh) {

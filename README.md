@@ -1,5 +1,9 @@
 # 问窟 GrottoMind
 
+<p align="center">
+  <img src="public/assets/wenku-logo-final.png" alt="GrottoMind Logo" width="120" />
+</p>
+
 > 栖霞山石窟造像 AI 数字复彩交互档案馆
 
 让沉默的石窟重新被看见、被理解、被参与。
