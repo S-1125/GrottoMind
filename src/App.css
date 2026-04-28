@@ -1609,26 +1609,143 @@ html.large-text {
   height: 48px;
 }
 
+/* GSAP 统一淡入淡出容器 */
+.stupa-fade-group {
+  position: absolute;
+  inset: 0;
+  z-index: 17;
+  pointer-events: none;
+}
+
+.stupa-fade-group > * {
+  pointer-events: auto;
+}
+
+/* SVG 引导线 */
+.stupa-guide-svg {
+  position: absolute;
+  inset: 0;
+  z-index: 17;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.stupa-guide-line {
+  stroke: rgba(246, 206, 160, 0.35);
+  stroke-width: 1;
+  stroke-dasharray: 6 4;
+  stroke-dashoffset: 0;
+  animation: guide-line-flow 2s linear infinite;
+}
+
+@keyframes guide-line-flow {
+  to { stroke-dashoffset: -20; }
+}
+
+/* ==========================================================================
+   序章全屏遮罩与文字（ TimelineHall 第一章）
+   ========================================================================== */
+.stupa-intro-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 29;
+  background: radial-gradient(circle at center, #050404 0%, #000000 100%);
+  pointer-events: none;
+}
+
 .stupa-intro-copy {
+  /* 覆盖 timeline-hall-copy 的左对齐定位和侧入动画 */
   left: 50%;
   align-items: center;
   width: min(920px, 76vw);
   text-align: center;
-  opacity: 0;
+  transform: translate(-50%, -50%);
+  /* 提升层级，覆盖所有其他 UI 元素 */
+  z-index: 30;
+  /* 关键：覆盖继承的 timeline-copy-side-in 动画，
+     否则 fill-mode:both 会用 translateY(-50%) 覆盖掉 translate(-50%,-50%)，
+     导致水平居中失效 */
   animation: none;
-  transform: translate(-50%, calc(-50% + 18px));
-  transition:
-    opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 0;
+}
+
+.stupa-kicker-wrap {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 28px;
+  top: -160px;
+}
+
+.stupa-intro-title-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100px;
+  height: 100px;
+  background-color: #a68f6d; /* 低饱和度黄褐色 */
+  -webkit-mask-image: url('/icon1/图层 16.png');
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-image: url('/icon1/图层 16.png');
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: contain;
+  /* 作为底纹，不阻挡交互，透明度通过 GSAP 控制 */
+  pointer-events: none;
+  z-index: -1;
 }
 
 .stupa-intro-copy.is-visible {
   opacity: 1;
-  transform: translate(-50%, -50%);
+}
+
+.stupa-intro-copy.is-fading-out {
+  opacity: 0;
+  transition: opacity 1.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .stupa-intro-copy p {
   max-width: 700px;
+  margin-top: 40px;
+  font-size: clamp(13px, 1vw, 15px);
+  line-height: 2.1;
+  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: 0.12em;
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+}
+
+.stupa-intro-copy h1 {
+  font-size: clamp(69px, 10.5vw, 150px);
+  letter-spacing: 0.04em;
+  text-shadow: 
+    0 10px 60px rgba(0, 0, 0, 0.9),
+    0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+.stupa-intro-copy .timeline-hall-kicker {
+  margin-bottom: 0;
+  margin-right: -0.35em; /* 抵消 letter-spacing 导致的不完全居中 */
+  line-height: 1;
+  font-size: clamp(29px, 2.4vw, 36px);
+  font-family: 'ZiXinFangMengHuanGeTeTi', 'Ma Shan Zheng', 'Noto Serif SC', cursive;
+  color: #ffffff;
+  letter-spacing: 0.35em;
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+}
+
+.stupa-scroll-cue {
+  margin-top: 32px;
+  color: rgba(255, 255, 255, 0.4);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 300;
+  letter-spacing: 0.16em;
 }
 
 .stupa-poi-layer {
@@ -1720,27 +1837,31 @@ html.large-text {
   border-radius: 50%;
   background: transparent;
   pointer-events: auto;
-  opacity: 0;
-  clip-path: circle(0% at 50% 50%);
-  transform: translate(-50%, -50%) translateY(18px);
-  animation: stupa-lens-open 0.78s 0.08s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  /* GSAP 会控制从 0 展开到 50% */
+  clip-path: circle(50% at 50% 50%);
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  will-change: clip-path;
 }
 
 .stupa-lens-ornament {
   position: absolute;
+  /* 让纹样比主体稍大 */
   inset: -10%;
-  background: rgba(246, 206, 160, 0.9);
-  opacity: 0.9;
+  background: rgba(246, 206, 160, 0.95);
+  opacity: 0.85;
   transform: rotate(-45deg);
-  animation: stupa-ornament-settle 0.86s 0.08s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   -webkit-mask-image: url('/assets/ornament.png');
   -webkit-mask-position: center;
   -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
   -webkit-mask-size: contain;
   mask-image: url('/assets/ornament.png');
   mask-position: center;
   mask-repeat: no-repeat;
   mask-size: contain;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s ease, filter 0.6s ease;
+  will-change: transform;
 }
 
 .stupa-lens-joinery .stupa-lens-ornament {
@@ -1752,62 +1873,34 @@ html.large-text {
 }
 
 .stupa-lens-core {
-  position: relative;
-  width: 56%;
-  height: 56%;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.72);
+  position: absolute;
+  /* 增大 inset 值（从 13% 到 17%），让中心图片单独缩小，外圈纹样大小不变 */
+  inset: 17%;
+  width: auto;
+  height: auto;
+  border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 50%;
-  background-image:
-    radial-gradient(circle at 42% 32%, rgba(255, 255, 255, 0.28), transparent 34%),
-    var(--detail-image);
-  background-position:
-    center,
-    var(--detail-position);
-  background-size:
-    auto,
-    520%;
-  box-shadow:
-    0 0 42px rgba(0, 0, 0, 0.52),
-    inset 0 0 38px rgba(0, 0, 0, 0.52);
-  filter: grayscale(1) contrast(1.55) brightness(0.82);
-  transition:
-    transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-    filter 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  background-image: var(--detail-image);
+  background-position: var(--detail-position);
+  background-size: cover;
+  box-shadow: inset 0 0 32px rgba(0, 0, 0, 0.5);
+  filter: grayscale(1) contrast(1.25) sepia(0.2) brightness(0.95);
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), filter 0.6s ease;
+  will-change: transform;
 }
 
 .stupa-lens:hover .stupa-lens-core,
 .stupa-lens:focus-visible .stupa-lens-core {
-  transform: scale(1.06);
-  filter: grayscale(1) contrast(1.75) brightness(0.92);
+  transform: scale(1.05);
+  filter: grayscale(1) contrast(1.4) sepia(0.1) brightness(1.1);
 }
 
-.stupa-lens-hint {
-  position: absolute;
-  left: 50%;
-  top: calc(100% + 16px);
-  min-width: 132px;
-  padding: 8px 12px;
-  color: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 999px;
-  background: rgba(12, 12, 12, 0.28);
-  backdrop-filter: blur(8px);
-  font-family: var(--font-sans);
-  font-size: 12px;
-  font-weight: 300;
-  letter-spacing: 0.18em;
-  opacity: 0;
-  transform: translate(-50%, 8px);
-  transition:
-    opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.stupa-lens:hover .stupa-lens-hint,
-.stupa-lens:focus-visible .stupa-lens-hint {
+.stupa-lens:hover .stupa-lens-ornament,
+.stupa-lens:focus-visible .stupa-lens-ornament {
+  /* 纹样本身带有 -45deg 的基础旋转，悬浮时叠加 scale 效果 */
+  transform: rotate(-45deg) scale(1.05);
   opacity: 1;
-  transform: translate(-50%, 0);
+  filter: brightness(1.1) saturate(1.2);
 }
 
 .stupa-info-panel {
@@ -1818,9 +1911,18 @@ html.large-text {
   width: min(460px, 31vw);
   color: rgba(255, 255, 255, 0.9);
   pointer-events: auto;
-  transform: translateY(calc(-50% + 20px));
-  animation: stupa-panel-in 0.9s 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  opacity: 0;
+  transform: translateY(-50%);
+}
+
+/* 热点装饰 icon */
+.stupa-info-icon {
+  display: block;
+  width: 42px;
+  height: 42px;
+  margin-bottom: 16px;
+  object-fit: contain;
+  opacity: 0.55;
+  filter: brightness(0) invert(1);
 }
 
 .stupa-info-kicker {
@@ -1830,9 +1932,6 @@ html.large-text {
   font-size: 12px;
   font-weight: 300;
   letter-spacing: 0.32em;
-  opacity: 0;
-  transform: translateY(12px);
-  animation: stupa-panel-item-in 0.72s 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .stupa-info-panel h2 {
@@ -1842,9 +1941,6 @@ html.large-text {
   font-weight: normal;
   line-height: 1.02;
   letter-spacing: 0.035em;
-  opacity: 0;
-  transform: translateY(15px);
-  animation: stupa-panel-item-in 0.78s 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .stupa-info-panel i {
@@ -1853,7 +1949,6 @@ html.large-text {
   height: 1px;
   margin: 0 0 24px;
   background: linear-gradient(90deg, rgba(246, 206, 160, 0.72), rgba(246, 206, 160, 0));
-  animation: stupa-divider-grow 0.8s 0.34s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .stupa-info-panel p {
@@ -1864,9 +1959,6 @@ html.large-text {
   font-weight: 300;
   line-height: 1.9;
   letter-spacing: 0.08em;
-  opacity: 0;
-  transform: translateY(16px);
-  animation: stupa-panel-item-in 0.88s 0.46s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .stupa-info-panel button {
@@ -1885,9 +1977,7 @@ html.large-text {
   font-size: 13px;
   font-weight: 300;
   letter-spacing: 0.18em;
-  opacity: 0;
-  transform: translateY(14px);
-  animation: stupa-panel-item-in 0.72s 0.62s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  cursor: pointer;
 }
 
 .stupa-info-panel button::before {
@@ -1902,6 +1992,57 @@ html.large-text {
 
 .stupa-info-panel button span {
   transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 深度阅读按钮 (覆盖原有 button) */
+.stupa-deep-read-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 32px;
+  padding: 10px 24px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: white !important;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  letter-spacing: 0.1em;
+  border-radius: 4px !important;
+  overflow: hidden;
+  transition: border-color 0.4s ease, color 0.4s ease;
+}
+
+.stupa-deep-read-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(212, 169, 106, 0.15) !important;
+  transform: translateX(-101%) !important;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  z-index: 0;
+}
+
+.stupa-deep-read-btn:hover {
+  border-color: #d4a96a !important;
+  color: #d4a96a !important;
+}
+
+.stupa-deep-read-btn:hover::before {
+  transform: translateX(0) !important;
+}
+
+.stupa-deep-read-btn .arrow {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  z-index: 1;
+}
+
+.stupa-deep-read-btn:hover .arrow {
+  transform: translateX(6px);
 }
 
 .stupa-info-panel button:hover,
@@ -2519,4 +2660,683 @@ html.large-text {
     opacity: 1;
     transform: translate(-50%, 0);
   }
+}
+
+/* ============================================================
+   全局自定义光标 (Custom Cursor)
+============================================================ */
+.custom-cursor-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9999;
+  mix-blend-mode: exclusion;
+}
+
+.cursor-dot {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  background-color: white;
+  border-radius: 50%;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  will-change: transform;
+}
+
+.cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 32px;
+  height: 32px;
+  margin: -16px 0 0 -16px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  pointer-events: none;
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), 
+              height 0.3s cubic-bezier(0.16, 1, 0.3, 1), 
+              margin 0.3s cubic-bezier(0.16, 1, 0.3, 1), 
+              border-color 0.3s ease;
+  will-change: transform;
+}
+
+.cursor-ring.is-hovering {
+  width: 48px;
+  height: 48px;
+  margin: -24px 0 0 -24px;
+  border-color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.cursor-dot.is-hovering {
+  opacity: 0;
+}
+
+/* ============================================================
+   全局转场遮罩 (Global Blackout)
+============================================================ */
+.global-blackout {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background-color: #000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.global-blackout.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ============================================================
+   深度阅读长页面 (Deep Read Article)
+============================================================ */
+.deep-read-article {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  background-color: #0b0c0f;
+  color: #fff;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.6s ease, visibility 0.6s;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.deep-read-article.is-visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.deep-read-article .back-btn {
+  position: fixed;
+  top: 40px;
+  left: 48px;
+  z-index: 60;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.8);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  letter-spacing: 0.15em;
+  padding: 8px 24px;
+  border-radius: 999px;
+  cursor: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(8px);
+}
+
+.deep-read-article .back-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.deep-read-article .back-btn span {
+  transition: transform 0.3s ease;
+}
+
+.deep-read-article .back-btn:hover span {
+  transform: translateX(-4px);
+}
+
+.article-layout {
+  display: flex;
+  min-height: 100vh;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.article-sticky-media {
+  flex: 1;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  padding: 40px 40px 40px 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.media-placeholder {
+  width: 100%;
+  height: 80vh;
+  background-color: #1a1c23;
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+  background-image: var(--detail-image, url('/assets/qixia-model/3DModel.jpg'));
+  background-size: cover;
+  background-position: center;
+  filter: grayscale(1) contrast(1.2);
+}
+
+.media-placeholder::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 120px rgba(11, 12, 15, 0.8);
+}
+
+.article-content {
+  flex: 1;
+  max-width: 720px;
+  padding: 12vh 60px 12vh 40px;
+}
+
+.article-content header {
+  margin-bottom: 60px;
+}
+
+.article-kicker {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  letter-spacing: 0.25em;
+  color: #d4a96a;
+  margin-bottom: 24px;
+}
+
+.article-content h1 {
+  font-family: 'ZiXinFangMengHuanGeTeTi', 'Ma Shan Zheng', 'Noto Serif SC', cursive;
+  font-size: 56px;
+  font-weight: normal;
+  line-height: 1.1;
+  margin: 0 0 32px 0;
+}
+
+.article-divider {
+  display: block;
+  width: 60px;
+  height: 2px;
+  background: #d4a96a;
+}
+
+.article-body p {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 2.2;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 32px;
+  font-weight: 300;
+  letter-spacing: 0.05em;
+}
+
+.article-body p.lead {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 2;
+  margin-bottom: 48px;
+}
+
+/* ============================================================
+   全屏大图预览容器 (Fullscreen Image Viewer)
+============================================================ */
+.fullscreen-image-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background-color: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.5s;
+  pointer-events: none;
+}
+
+.fullscreen-image-viewer.is-active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.fullscreen-image-viewer .viewer-image {
+  width: 100vw;
+  height: 100vh;
+  object-fit: contain;
+  transform: scale(0.8) translateY(40px);
+  opacity: 0;
+  transition: transform 0.6s cubic-bezier(0.25, 1, 0.3, 1) 0.05s, opacity 0.5s ease 0.05s;
+}
+
+.fullscreen-image-viewer.is-active .viewer-image {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+
+.close-viewer-btn {
+  position: absolute;
+  top: 40px;
+  right: 40px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 2;
+}
+
+.close-viewer-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+/* ============================================================
+   舍利塔结构数据可视化面板 (Cyber-Archaeology HUD)
+============================================================ */
+.stupa-data-viz {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.8s ease 0.2s;
+}
+
+.stupa-data-viz.is-visible {
+  opacity: 1;
+}
+
+.stupa-data-viz .viz-header {
+  position: absolute;
+  top: 10vh;
+  right: clamp(100px, 12vw, 180px);
+  border-bottom: 1px solid rgba(246, 206, 160, 0.4);
+  padding-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transform: translateY(20px);
+  opacity: 0;
+  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s;
+}
+
+.stupa-data-viz.is-visible .viz-header {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.viz-id {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.75rem;
+  color: rgba(246, 206, 160, 0.8);
+  letter-spacing: 0.1em;
+  padding: 2px 6px;
+  border: 1px solid rgba(246, 206, 160, 0.3);
+  border-radius: 2px;
+}
+
+.viz-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.9);
+  letter-spacing: 0.2em;
+}
+
+.viz-diagram {
+  position: absolute;
+  inset: 0;
+}
+
+/* 通用节点样式 */
+.viz-node {
+  position: absolute;
+  width: 240px;
+  opacity: 0;
+  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ================= 通用排版体系 ================= */
+/* 右侧节点 (塔刹、密檐、塔基) */
+.node-right {
+  left: 55%;
+  transform: translateX(30px);
+}
+.stupa-data-viz.is-visible .node-right { transform: translateX(0); opacity: 1; }
+
+.node-right .node-line {
+  position: absolute;
+  right: 100%; /* 从文本左侧向左边(中心塔)射出 */
+  top: 14px;
+  height: 1px;
+  background: rgba(246, 206, 160, 0.6);
+  transform-origin: right;
+  transform: scaleX(0);
+}
+.stupa-data-viz.is-visible .node-right .node-line { transform: scaleX(1); }
+
+.node-right .node-line::before {
+  content: '';
+  position: absolute;
+  left: -3px; /* 锚点在连线最左侧(即塔身上) */
+  top: -2px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgb(246, 206, 160);
+  box-shadow: 0 0 8px rgba(246, 206, 160, 0.8);
+  opacity: 0;
+}
+.stupa-data-viz.is-visible .node-right .node-line::before { opacity: 1; }
+
+/* 左侧节点 (雕心、塔身) */
+.node-left {
+  right: 55%;
+  text-align: right;
+  transform: translateX(-30px);
+}
+.stupa-data-viz.is-visible .node-left { transform: translateX(0); opacity: 1; }
+
+.node-left .node-line {
+  position: absolute;
+  left: 100%; /* 从文本右侧向右边(中心塔)射出 */
+  top: 14px;
+  height: 1px;
+  background: rgba(246, 206, 160, 0.6);
+  transform-origin: left;
+  transform: scaleX(0);
+}
+.stupa-data-viz.is-visible .node-left .node-line { transform: scaleX(1); }
+
+.node-left .node-line::before {
+  content: '';
+  position: absolute;
+  right: -3px; /* 锚点在连线最右侧(即塔身上) */
+  top: -2px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgb(246, 206, 160);
+  box-shadow: 0 0 8px rgba(246, 206, 160, 0.8);
+  opacity: 0;
+}
+.stupa-data-viz.is-visible .node-left .node-line::before { opacity: 1; }
+
+/* 左侧节点文字镜像 */
+.node-left .node-content h4 { flex-direction: row-reverse; }
+.node-left .node-stats { flex-direction: row-reverse; }
+
+
+/* ================= 具体节点坐标与动效 ================= */
+/* 1. 塔刹 (最上方) */
+.node-finial { top: 12%; left: 58%; }
+.node-finial .node-line { width: 8vw; transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.6s; }
+.stupa-data-viz.is-visible .node-finial { transition-delay: 0.4s; }
+.stupa-data-viz.is-visible .node-finial .node-line::before { transition: opacity 0.3s 1.4s; }
+
+/* 2. 佛龛 (偏上) */
+.node-niche { top: 28%; right: 62%; }
+.node-niche .node-line { width: 9vw; transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.8s; }
+.stupa-data-viz.is-visible .node-niche { transition-delay: 0.6s; }
+.stupa-data-viz.is-visible .node-niche .node-line::before { transition: opacity 0.3s 1.6s; }
+
+/* 3. 密檐 (中部) */
+.node-eaves { top: 46%; left: 63%; } 
+.node-eaves .node-line { width: 13vw; transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1) 1.0s; }
+.stupa-data-viz.is-visible .node-eaves { transition-delay: 0.8s; }
+.stupa-data-viz.is-visible .node-eaves .node-line::before { transition: opacity 0.3s 1.8s; }
+
+/* 4. 塔身 (下部) */
+.node-body { top: 62%; right: 62%; }
+.node-body .node-line { width: 12vw; transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1) 1.2s; }
+.stupa-data-viz.is-visible .node-body { transition-delay: 1.0s; }
+.stupa-data-viz.is-visible .node-body .node-line::before { transition: opacity 0.3s 2.0s; }
+
+/* 5. 塔基 (底部) */
+.node-base { top: 78%; left: 63%; }
+.node-base .node-line { width: 12vw; transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1) 1.4s; }
+.stupa-data-viz.is-visible .node-base { transition-delay: 1.2s; }
+.stupa-data-viz.is-visible .node-base .node-line::before { transition: opacity 0.3s 2.2s; }
+
+/* 6. 浮雕 (最底部) */
+.node-reliefs { top: 88%; right: 66%; }
+.node-reliefs .node-line { width: 17vw; transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1) 1.6s; }
+.stupa-data-viz.is-visible .node-reliefs { transition-delay: 1.4s; }
+.stupa-data-viz.is-visible .node-reliefs .node-line::before { transition: opacity 0.3s 2.4s; }
+
+.node-content h4 {
+  font-family: var(--font-primary);
+  font-size: 1.2rem;
+  font-weight: 400;
+  color: #fff;
+  margin: 0 0 4px 0;
+  letter-spacing: 0.1em;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.node-content h4 span {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  color: rgba(246, 206, 160, 0.6);
+  letter-spacing: 0.2em;
+}
+
+.node-content p {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 12px 0;
+  letter-spacing: 0.05em;
+}
+
+.node-stats {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.15);
+  padding: 4px 0;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+}
+
+.node-stats span:first-child {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.node-stats span:last-child {
+  color: rgba(246, 206, 160, 0.9);
+}
+
+/* ============================================================
+   舍利塔左侧：历史与风化档案面板
+============================================================ */
+.stupa-degradation-viz {
+  position: absolute;
+  top: 50%;
+  left: clamp(80px, 10vw, 150px);
+  transform: translateY(-50%);
+  width: 300px;
+  height: 65vh;
+  z-index: 10;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  opacity: 0;
+  transition: opacity 0.8s ease 0.2s;
+}
+
+.stupa-degradation-viz.is-visible {
+  opacity: 1;
+}
+
+/* 史诗感横向引言排版 */
+.poetic-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transform: translateY(-20px);
+  opacity: 0;
+  transition: all 1s cubic-bezier(0.16, 1, 0.3, 1) 0.4s;
+}
+
+.stupa-degradation-viz.is-visible .poetic-intro {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.poetic-title {
+  font-family: 'ZiXinFangMengHuanGeTeTi', 'Ma Shan Zheng', 'Noto Serif SC', cursive;
+  font-size: 2.5rem;
+  font-weight: normal;
+  color: #fff;
+  letter-spacing: 0.08em;
+  margin: 0;
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
+  white-space: nowrap;
+}
+
+.poetic-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.poetic-body p {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.65);
+  line-height: 1.8;
+  letter-spacing: 0.1em;
+  margin: 0;
+  font-weight: 300;
+}
+
+/* 粒子全息模型包裹层 */
+.particle-model-wrapper {
+  position: relative;
+  width: 100%;
+  flex-grow: 1;
+  min-height: 200px;
+  max-height: 300px;
+  margin: 10px 0;
+  opacity: 0;
+  transform: scale(0.9);
+  transition: all 1s cubic-bezier(0.16, 1, 0.3, 1) 0.5s;
+}
+
+.stupa-degradation-viz.is-visible .particle-model-wrapper {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* 颜料风化数据档案 */
+.degradation-records {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  transform: translateY(20px);
+  opacity: 0;
+  transition: all 1s cubic-bezier(0.16, 1, 0.3, 1) 0.6s;
+}
+
+.stupa-degradation-viz.is-visible .degradation-records {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.deg-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.deg-id {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 0.1em;
+  padding: 2px 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+}
+
+.deg-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.8);
+  letter-spacing: 0.2em;
+}
+
+.deg-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.deg-bar {
+  height: 4px;
+  border-radius: 2px;
+  width: 100%;
+  transform-origin: left;
+  transform: scaleX(0);
+  transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.stupa-degradation-viz.is-visible .deg-item:nth-child(2) .deg-bar { transition-delay: 0.8s; transform: scaleX(1); }
+.stupa-degradation-viz.is-visible .deg-item:nth-child(3) .deg-bar { transition-delay: 1.0s; transform: scaleX(1); }
+.stupa-degradation-viz.is-visible .deg-item:nth-child(4) .deg-bar { transition-delay: 1.2s; transform: scaleX(1); }
+
+/* 朱砂：红 -> 黑 */
+.deg-bar.cinnabar {
+  background: linear-gradient(to right, #e74c3c, #2c3e50, #111);
+  box-shadow: 0 0 8px rgba(231, 76, 60, 0.4);
+}
+
+/* 石青：蓝 -> 绿 -> 黑 */
+.deg-bar.azurite {
+  background: linear-gradient(to right, #3498db, #16a085, #111);
+  box-shadow: 0 0 8px rgba(52, 152, 219, 0.4);
+}
+
+/* 碳酸钙：白 -> 灰破损 */
+.deg-bar.calcium {
+  background: linear-gradient(to right, #ecf0f1, #7f8c8d, transparent);
+  box-shadow: 0 0 8px rgba(236, 240, 241, 0.3);
+}
+
+.deg-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+}
+
+.deg-chem {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.deg-arrow {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.deg-result {
+  color: rgba(246, 206, 160, 0.9);
 }
