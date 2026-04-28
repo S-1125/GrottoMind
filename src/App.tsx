@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Exhibition } from './components/Exhibition'
 import { IntroAnimation } from './components/IntroAnimation'
+import { CustomCursor } from './components/CustomCursor'
 import './App.css'
 
 type ExperienceStage = 'intro' | 'loading' | 'exhibition'
@@ -61,7 +62,9 @@ function App() {
   }, [isVeiling, stage])
 
   return (
-    <main className={`app-root ${isVeiling ? 'is-veiling' : ''}`}>
+    <>
+      <CustomCursor />
+      <main className={`app-root ${isVeiling ? 'is-veiling' : ''}`}>
       {stage === 'intro' ? (
         <IntroAnimation onEnter={enterExhibition} />
       ) : stage === 'loading' ? null : (
@@ -89,6 +92,7 @@ function App() {
         </div>
       </div>
     </main>
+    </>
   )
 }
 
