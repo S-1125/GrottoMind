@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Exhibition } from './components/Exhibition'
 import { IntroAnimation } from './components/IntroAnimation'
 import { CustomCursor } from './components/CustomCursor'
+import gsap from 'gsap'
 import './App.css'
 
 type ExperienceStage = 'intro' | 'loading' | 'exhibition'
@@ -48,13 +49,19 @@ function App() {
         if (t < 1) {
           rafRef.current = requestAnimationFrame(tick)
         } else {
-          // 加载完成，短暂停留后淡出
-          timersRef.current.push(window.setTimeout(() => {
-            setStage('exhibition')
-            timersRef.current.push(window.setTimeout(() => {
-              setIsVeiling(false)
-            }, 600))
-          }, 400))
+          // 加载完成，使用 GSAP 执行浮动淡出动画
+          gsap.to('.veil-loader', {
+            y: -15,
+            opacity: 0,
+            duration: 0.6,
+            ease: 'power2.inOut',
+            onComplete: () => {
+              setStage('exhibition')
+              timersRef.current.push(window.setTimeout(() => {
+                setIsVeiling(false)
+              }, 100))
+            }
+          })
         }
       }
       rafRef.current = requestAnimationFrame(tick)

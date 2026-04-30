@@ -1,6 +1,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import * as THREE from 'three'
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js'
+import gsap from 'gsap'
 
 /* ============================================================
    相机停靠点：每个 stop 对应一个相机位置和注视目标
@@ -12,32 +13,36 @@ const cameraStops = [
   },
   {
     // 塔刹 (Finial) - 改为接近平视：相机高度和目标高度几乎一致
-    position: new THREE.Vector3(-0.25, 1.5, 0.8),
-    target: new THREE.Vector3(0.15, 1.5, 0),
+    position: new THREE.Vector3(-0.25, 1.5, 0.9),
+    target: new THREE.Vector3(0.08, 1.42, 0),
   },
   {
-    position: new THREE.Vector3(1.42, 0.98, 2.05),
-    target: new THREE.Vector3(-0.04, 1.42, 0.04),
+    // 密檐 (Eaves) - 稍微拉远并把视线下移，确保五层塔檐完整入镜，同时保持轻微仰视
+    position: new THREE.Vector3(-0.5, 0.7, 1.5),
+    target: new THREE.Vector3(0.3, 0.9, 0),
   },
   {
-    position: new THREE.Vector3(0.26, 0.28, 1.58),
-    target: new THREE.Vector3(-0.02, 0.96, 0.05),
+    // 佛龛 (Niche) - 拉近焦距并平视，聚焦塔身中段的浮雕细节，让三十二尊佛像更加清晰
+    position: new THREE.Vector3(-0.4, 0.75, 1.1),
+    target: new THREE.Vector3(0.1, 0.75, 0),
   },
   {
-    position: new THREE.Vector3(-1.32, -0.08, 1.38),
-    target: new THREE.Vector3(-0.24, 0.54, 0.1),
+    // 天王 (Guardian) - 采用您发现的最佳威严机位：低机位仰视，完美捕捉天王正面
+    position: new THREE.Vector3(-0.74, 0.1, 0.31),
+    target: new THREE.Vector3(0.3, 0.35, 0.14),
   },
   {
-    position: new THREE.Vector3(1.28, -0.02, 1.42),
-    target: new THREE.Vector3(0.18, 0.58, 0.08),
+    // 菩萨 (Bodhisattva) - 从天王视角继续严格向左平移一面（绕Y轴45度），抬高相机高度接近平视
+    position: new THREE.Vector3(-1.0, -0.05, -0.05),
+    target: new THREE.Vector3(-0.3, 0.30, 0.20),
   },
   {
     position: new THREE.Vector3(0.18, -0.32, 1.54),
-    target: new THREE.Vector3(0, 0.28, 0.04),
+    target: new THREE.Vector3(0.2, 0.28, 0.04),
   },
   {
     position: new THREE.Vector3(-0.82, -0.18, 1.18),
-    target: new THREE.Vector3(-0.08, 0.22, 0.04),
+    target: new THREE.Vector3(0.5, 0.22, 0.04),
   },
 ]
 
@@ -64,6 +69,8 @@ export interface GrottoModelSceneHandle {
   setCameraProgress: (progress: number) => void
   /** 设置是否开启环绕模式（八相成道图特写） */
   setOrbitMode: (isOrbit: boolean) => void
+  /** 播放入场推进动画 */
+  playIntroDolly: (duration: number) => void
 }
 
 /* ============================================================
@@ -97,6 +104,17 @@ export const GrottoModelScene = forwardRef<GrottoModelSceneHandle>(
       setOrbitMode(isOrbit: boolean) {
         isOrbitingRef.current = isOrbit
         // 当退出轨道模式时，保留当前的旋转角度，或让它在 idle 状态中平滑过渡（这里简化为保持）
+      },
+      playIntroDolly(duration: number) {
+        if (!sceneInternals.current) return
+        const { camera, currentTarget } = sceneInternals.current
+        // 从更远的位置推向当前位置
+        gsap.from(camera.position, {
+          z: camera.position.z + 2.5,
+          duration,
+          ease: 'power3.out',
+          onUpdate: () => camera.lookAt(currentTarget)
+        })
       }
     }))
 
@@ -119,7 +137,8 @@ export const GrottoModelScene = forwardRef<GrottoModelSceneHandle>(
         antialias: true,
         powerPreference: 'high-performance',
       })
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75))
+      // 将最大像素比放宽到 2.0（原本为 1.75），这能直接提升高分屏下的物理锐度
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
       renderer.setSize(container.clientWidth, container.clientHeight)
       renderer.outputColorSpace = THREE.SRGBColorSpace
       renderer.toneMapping = THREE.ACESFilmicToneMapping
@@ -132,39 +151,49 @@ export const GrottoModelScene = forwardRef<GrottoModelSceneHandle>(
       renderer.domElement.style.height = '100%'
 
       // ---- 照明系统 ----
-      const ambient = new THREE.HemisphereLight(0x8795a4, 0x38302a, 2.5)
+      // 整体氛围光稍微压暗
+      const ambient = new THREE.HemisphereLight(0x8795a4, 0x38302a, 1.7)
       scene.add(ambient)
-      const ambientFill = new THREE.AmbientLight(0x9098a4, 1.2)
+      const ambientFill = new THREE.AmbientLight(0x9098a4, 1.0)
       scene.add(ambientFill)
-      const keyLight = new THREE.DirectionalLight(0xe8eaf0, 3.4)
+      // 主光源（原2.2 -> 1.5），减弱正面高光，让阴影更重，从而凸显雕刻纹理的立体感
+      const keyLight = new THREE.DirectionalLight(0xe8eaf0, 1.5)
       keyLight.position.set(-3.2, 5.4, 4.4)
       scene.add(keyLight)
       const rimLight = new THREE.DirectionalLight(0x9fb4d0, 1.2)
       rimLight.position.set(4, 2.4, -3.5)
       scene.add(rimLight)
-      const rightFill = new THREE.DirectionalLight(0xd8dce6, 2.0)
+      const rightFill = new THREE.DirectionalLight(0xd8dce6, 1.2)
       rightFill.position.set(4, 3.0, 3.0)
       scene.add(rightFill)
       const backLight = new THREE.DirectionalLight(0xc0c8d8, 1.8)
       backLight.position.set(0, 3.0, -5)
       scene.add(backLight)
-      const frontBottom = new THREE.DirectionalLight(0xd8d4ce, 1.6)
+      // 底部补光减弱，避免“洗掉”下方基座的材质细节（0.8 -> 0.3）
+      const frontBottom = new THREE.DirectionalLight(0xd8d4ce, 0.3)
       frontBottom.position.set(0, 1.0, 5)
       scene.add(frontBottom)
 
-      // ---- 模型组 ----
-      const modelGroup = new THREE.Group()
-      
-      // 1. 先创建一个用来“扶正”原始扫描模型的内部容器
-      const alignedModel = new THREE.Group()
-      alignedModel.rotation.set(-0.06, -0.22, THREE.MathUtils.degToRad(3.2))
-      
-      // 2. 将扶正后的模型组沿 Y 轴旋转 180 度，展示背面
-      modelGroup.rotation.y = Math.PI
-      modelGroup.position.set(0, 0.95, 0)
-      
-      modelGroup.add(alignedModel)
-      scene.add(modelGroup)
+      // ---- 标准化模型展示容器 (Standard Display State) ----
+      // 严格使用多层父级 Group 分离不同的空间变换逻辑，防止坐标系污染和加载重置
+
+      // 层级 1: 最终展示组 (控制模型在场景中的全局位置与朝向)
+      const displayGroup = new THREE.Group()
+      displayGroup.name = "StandardDisplayGroup"
+      displayGroup.rotation.y = Math.PI // 旋转 180 度展示背面
+      displayGroup.position.set(0, 0.95, 0) // 整体抬高以适应镜头
+      scene.add(displayGroup)
+
+      // 层级 2: 物理校准组 (专门用于抵消扫描模型本身的物理倾斜)
+      const alignmentGroup = new THREE.Group()
+      alignmentGroup.name = "PhysicalAlignmentGroup"
+      alignmentGroup.rotation.set(-0.06, -0.22, THREE.MathUtils.degToRad(3.2))
+      displayGroup.add(alignmentGroup)
+
+      // 层级 3: 原始模型居中组 (专门用于包裹加载好的原始几何体并进行缩放居中)
+      const rawModelContainer = new THREE.Group()
+      rawModelContainer.name = "RawModelContainer"
+      alignmentGroup.add(rawModelContainer)
 
       // ---- 初始相机姿态 ----
       const currentTarget = new THREE.Vector3()
@@ -182,7 +211,8 @@ export const GrottoModelScene = forwardRef<GrottoModelSceneHandle>(
 
       textureLoader.load('/assets/qixia-model/3DModel.jpg', (texture) => {
         texture.colorSpace = THREE.SRGBColorSpace
-        texture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 8)
+        // 彻底拉满各向异性过滤（Anisotropic Filtering），这能极大缓解贴图在倾斜视角下的模糊感
+        texture.anisotropy = renderer.capabilities.getMaxAnisotropy()
         const material = new THREE.MeshStandardMaterial({
           map: texture,
           roughness: 0.82,
@@ -209,12 +239,9 @@ export const GrottoModelScene = forwardRef<GrottoModelSceneHandle>(
           shader.fragmentShader = shader.fragmentShader.replace(
             '#include <dithering_fragment>',
             `#include <dithering_fragment>
-             // 圆柱形包围盒裁剪：只针对底部杂乱区域进行裁剪
-             // 测量该像素到中心 Y 轴的距离
+             // 圆柱形包围盒裁剪：稍微收紧裁剪半径和高度，切除右侧残留的红边
              float radius = length(vWorldPosCustom.xz);
-             
-             // 扩大半径到 0.66，以免切到方形须弥座的边角；同时把高度压低到 0.0 以下，只切最底部的红边
-             if (vWorldPosCustom.y < 0.0 && radius > 0.66) {
+             if (vWorldPosCustom.y < 0.01 && radius > 0.6) {
                  discard;
              }
             `
@@ -228,7 +255,8 @@ export const GrottoModelScene = forwardRef<GrottoModelSceneHandle>(
           box.getCenter(center)
           object.position.sub(center)
           object.scale.multiplyScalar(2.1 / Math.max(size.x, size.y, size.z))
-          alignedModel.add(object)
+          // 4. 将处理好的纯净几何体装入最底层的原始包裹组
+          rawModelContainer.add(object)
           object.traverse((child) => {
             if (child instanceof THREE.Mesh) {
               child.material = material
@@ -243,15 +271,25 @@ export const GrottoModelScene = forwardRef<GrottoModelSceneHandle>(
       let raf = 0
       const animate = () => {
         const elapsed = (performance.now() - startTime) / 1000
-        
+
         if (isOrbitingRef.current) {
           // 轨道模式：缓慢顺时针持续旋转 (每秒约 2 度)
           orbitAngleRef.current += 0.0005
+        } else if (orbitAngleRef.current !== 0) {
+          // 退出轨道模式时，平滑地将轨道累加角度归零，让模型优雅地“转回正轨”
+          // 1. 将角度取模，避免观看太久后多圈疯狂反转，寻找最短回归路径
+          orbitAngleRef.current = orbitAngleRef.current % (Math.PI * 2)
+          if (orbitAngleRef.current > Math.PI) orbitAngleRef.current -= Math.PI * 2
+          else if (orbitAngleRef.current < -Math.PI) orbitAngleRef.current += Math.PI * 2
+          
+          // 2. 阻尼平滑回正
+          orbitAngleRef.current = THREE.MathUtils.lerp(orbitAngleRef.current, 0, 0.05)
+          if (Math.abs(orbitAngleRef.current) < 0.001) orbitAngleRef.current = 0
         }
-        
+
         // 叠加基础旋转 + 呼吸微动 + 轨道累加旋转 (基础旋转现已改为 Math.PI 以展示背面)
-        modelGroup.rotation.y = Math.PI + Math.sin(elapsed * 0.28) * 0.006 + orbitAngleRef.current
-        
+        displayGroup.rotation.y = Math.PI + Math.sin(elapsed * 0.28) * 0.006 + orbitAngleRef.current
+
         camera.lookAt(currentTarget)
         renderer.render(scene, camera)
         raf = requestAnimationFrame(animate)
