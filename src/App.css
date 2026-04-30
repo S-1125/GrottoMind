@@ -1245,7 +1245,7 @@ html.large-text {
   pointer-events: none;
   opacity: 0;
   background: #232227;
-  transition: opacity 0.52s var(--ease-expo);
+  transition: opacity 0.8s ease-in-out;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1436,6 +1436,119 @@ html.large-text {
     0 1px 2px rgba(0, 0, 0, 0.48);
 }
 
+/* ==========================================================================
+   数学曲线圆形导航指示器 - 参考 persepolis 风格
+   ========================================================================== */
+.curve-nav-index {
+  position: absolute;
+  right: clamp(24px, 3.5vw, 52px);
+  top: 50%;
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  transform: translateY(-50%);
+  animation: curve-nav-in 1.4s 0.62s var(--ease-expo) both;
+}
+
+@keyframes curve-nav-in {
+  from {
+    opacity: 0;
+    transform: translateY(-40%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%);
+  }
+}
+
+.curve-nav-dot {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  color: rgba(212, 169, 106, 0.5);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color 0.4s var(--ease-expo), transform 0.3s ease;
+}
+
+.curve-nav-dot:hover,
+.curve-nav-dot:focus-visible {
+  color: rgba(212, 169, 106, 0.85);
+  transform: scale(1.1);
+}
+
+.curve-nav-dot.is-active {
+  color: #d4a96a;
+  transform: scale(1.15);
+}
+
+/* SVG 莲花瓣形状 */
+.curve-nav-ring {
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s var(--ease-expo);
+}
+
+/* 悬停时旋转 */
+.curve-nav-dot:hover .curve-nav-ring,
+.curve-nav-dot:focus-visible .curve-nav-ring {
+  transform: rotate(45deg);
+}
+
+.ring-lotus {
+  transition: all 0.4s var(--ease-expo);
+}
+
+.ring-mid {
+  transition: all 0.4s var(--ease-expo);
+}
+
+.ring-inner {
+  transition: r 0.4s var(--ease-expo);
+}
+
+.ring-glow {
+  animation: ring-pulse 2s ease-in-out infinite;
+}
+
+@keyframes ring-pulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.05); }
+}
+
+/* 悬停提示 */
+.curve-nav-tooltip {
+  position: absolute;
+  right: calc(100% + 12px);
+  top: 50%;
+  padding: 6px 12px;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.9);
+  white-space: nowrap;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  border-radius: 4px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-50%) translateX(8px);
+  transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+}
+
+.curve-nav-dot:hover .curve-nav-tooltip,
+.curve-nav-dot:focus-visible .curve-nav-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-50%) translateX(0);
+}
+
+/* 旧样式兼容 - 保留但不再使用 */
 .timeline-node-index {
   position: absolute;
   right: clamp(20px, 3vw, 48px);
@@ -1677,7 +1790,7 @@ html.large-text {
   justify-content: center;
   align-items: center;
   margin-bottom: 28px;
-  top: -160px;
+  top: -80px;
 }
 
 .stupa-intro-title-icon {
@@ -1884,7 +1997,8 @@ html.large-text {
   background-position: var(--detail-position);
   background-size: cover;
   box-shadow: inset 0 0 32px rgba(0, 0, 0, 0.5);
-  filter: grayscale(1) contrast(1.25) sepia(0.2) brightness(0.95);
+  /* 弃用之前的黑白做旧滤镜，改用略微压暗并提升对比度的自然滤镜 */
+  filter: brightness(0.85) contrast(1.15) saturate(0.9);
   transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), filter 0.6s ease;
   will-change: transform;
 }
@@ -1892,7 +2006,8 @@ html.large-text {
 .stupa-lens:hover .stupa-lens-core,
 .stupa-lens:focus-visible .stupa-lens-core {
   transform: scale(1.05);
-  filter: grayscale(1) contrast(1.4) sepia(0.1) brightness(1.1);
+  /* 悬浮时让图片变亮并恢复饱和度，产生“点亮”的视觉反馈 */
+  filter: brightness(1.1) contrast(1.15) saturate(1.1);
 }
 
 .stupa-lens:hover .stupa-lens-ornament,

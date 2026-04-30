@@ -37,7 +37,9 @@ const stupaStops = [
     subtitle: '塔刹 · Finial',
     body: '表面装饰有莲瓣、束腰和云纹，分别象征着佛塔传统的覆钵、相轮和火珠。塔刹向上收束，使整座舍利塔获得清晰的精神指向。',
     mode: 'lens' as const,
-    marker: { x: '50.5%', y: '18%' },
+    // 放大镜的屏幕坐标 (相对于窗口左上角)
+    // 根据您截图里塔的位置，大概在屏幕偏左上三分之一处
+    marker: { x: '32%', y: '22%' },
     lensImage: '/1.jpg',
     lensPosition: '50% 50%',
     icon: '/icon1/图层 9.png',
@@ -50,7 +52,7 @@ const stupaStops = [
     subtitle: '塔檐 · Eaves',
     body: '层层挑出的密檐具有仿木结构意味，檐角与檐下阴影共同构成石塔向上的节奏。风化让边缘变钝，却没有抹去结构的秩序。',
     mode: 'lens' as const,
-    marker: { x: '52%', y: '34%' },
+    marker: { x: '40%', y: '45%' },
     lensImage: '/2.jpg',
     lensPosition: '50% 50%',
     icon: '/icon1/图层 11.png',
@@ -63,7 +65,7 @@ const stupaStops = [
     subtitle: '佛龛 · Niche',
     body: '塔身佛龛以层级方式分布，坐佛、龛楣与塔身转角共同形成连续的礼佛秩序。数字观看在这里不是复原结论，而是重新辨认轮廓。',
     mode: 'lens' as const,
-    marker: { x: '51%', y: '54%' },
+    marker: { x: '35%', y: '46%' },
     lensImage: '/3.jpg',
     lensPosition: '50% 50%',
     icon: '/icon1/图层 12.png',
@@ -89,7 +91,7 @@ const stupaStops = [
     subtitle: '菩萨 · Bodhisattva',
     body: '塔身正东与正西面可见菩萨题材线索。骑狮的文殊与骑象的普贤，使舍利塔不只是建筑，也成为佛教图像的立体长卷。',
     mode: 'lens' as const,
-    marker: { x: '57%', y: '66%' },
+    marker: { x: '38%', y: '66%' },
     lensImage: '/章节1图片素材/普贤菩萨.jpg',
     lensPosition: '68% 70%',
     icon: '/icon1/图层 1.png',
@@ -102,7 +104,7 @@ const stupaStops = [
     subtitle: '塔基 · Base',
     body: '须弥座的束腰部分以海水、龙、亭台楼榭等图像组织空间，呼应佛教宇宙观中的九山八海。塔基让信仰获得可承托的世界结构。',
     mode: 'lens' as const,
-    marker: { x: '51%', y: '76%' },
+    marker: { x: '42%', y: '66%' },
     lensImage: '/章节1图片素材/塔基与须弥座.jpg',
     lensPosition: '52% 86%',
     icon: '/icon1/图层 13.png',
@@ -115,7 +117,7 @@ const stupaStops = [
     subtitle: '八相成道 · Story',
     body: '束腰八面以连续叙事组织佛传：西北面"降兜率天"，北面"树下诞生"，东北面"逾城出家"，东面"降魔成道"，其后依次展开说法、涅槃等故事。',
     mode: 'scroll' as const,
-    marker: { x: '49%', y: '82%' },
+    marker: { x: '30%', y: '80%' },
     lensImage: '/章节1图片素材/八相成道图-1.jpg',
     lensPosition: '50% 50%',
     icon: '/icon1/图层 14.png',
@@ -177,67 +179,83 @@ export function TimelineHall({ onDeepRead }: TimelineHallProps) {
     document.documentElement.classList.toggle('large-text', largeText)
   }, [reduceMotion, highContrast, largeText])
 
-  // ---- 初始淡入：整页淡入 + 序章标题淡入后自动淡出 ----
+  // ---- 初始淡入：整页淡入 + 序章标题淡入后自动淡出 + UI 错峰入场 ----
   useEffect(() => {
     const introEl = introTextRef.current
     const veilEl = introVeilRef.current
+    const fadeGroup = fadeGroupRef.current
 
     if (introEl && veilEl) {
       const kicker = introEl.querySelector('.timeline-hall-kicker')
       const title = introEl.querySelector('h1')
       const titleIcon = introEl.querySelector('.stupa-intro-title-icon')
       const p = introEl.querySelector('p')
-      
+
+      // 预设状态：所有引线标签和右侧导航栏初始完全透明
+      gsap.set('.viz-node', { opacity: 0, y: 15 })
+      gsap.set('.stupa-nav-list', { opacity: 0 })
+
       const introTl = gsap.timeline()
-      
+
+      // 第一幕：氛围拉满
       // 遮罩层默认显示（提亮 15%，从 0.85 降至 0.70）
       gsap.set(veilEl, { opacity: 0.70 })
       gsap.set(introEl, { opacity: 1 })
-      
+
+      // 触发 3D 相机平滑推进
+      if (modelRef.current) {
+        modelRef.current.playIntroDolly(2.5)
+      }
+
       introTl
         // 1. Kicker 出现 (微光)
         .fromTo(kicker,
           { opacity: 0, y: 15, filter: 'blur(8px)' },
-          { opacity: 1, y: 0, filter: 'blur(0px)', duration: 1.2, ease: 'power2.out' },
-          '-=0.8'
+          { opacity: 1, y: 0, filter: 'blur(0px)', duration: 1.2, ease: 'power2.out' }
         )
-        // 2. 主标题出现 (从大到小，模糊变清晰，字间距略微收缩)
+        // 2. 主标题出现 (从大到小，模糊变清晰)
         .fromTo(title,
           { opacity: 0, scale: 1.15, filter: 'blur(12px)', letterSpacing: '0.15em' },
           { opacity: 1, scale: 1, filter: 'blur(0px)', letterSpacing: '0.04em', duration: 1.8, ease: 'power3.out' },
           '-=0.6'
         )
-        // 2.5 Kicker 背后的 icon 浮现 (100%透明度)
+        // 3. Kicker 背后的 icon 浮现
         .fromTo(titleIcon,
           { opacity: 0, scale: 0.9, filter: 'blur(8px)' },
           { opacity: 1, scale: 1, filter: 'blur(0px)', duration: 1.6, ease: 'power2.out' },
           '-=1.4'
         )
-        // 3. 正文段落浮现
+        // 4. 正文段落浮现
         .fromTo(p,
           { opacity: 0, y: 20 },
           { opacity: 1, y: 0, duration: 1.4, ease: 'power2.out' },
           '-=1.0'
         )
-        // 停留展示 (缩短0.5s，变为2.3s)
-        .to({}, { duration: 2.3 })
-        // 淡出序章文字和遮罩层
+        // 第二幕：信息消退（停留展示 3.5s 后，巨幕标题淡出）
+        .to({}, { duration: 3.5 })
         .to([introEl, veilEl], {
           opacity: 0,
-          y: -15, // 仅影响文字，遮罩的 y 不明显
-          duration: 1.6,
+          y: -15, // 仅影响文字
+          duration: 0.8,
           ease: 'power2.inOut',
-          stagger: 0.1,
           onComplete: () => setIntroFadedOut(true),
         })
-    }
-
-    // fadeGroup 也需要淡入（非序章内容在之后的过渡中控制）
-    if (fadeGroupRef.current) {
-      gsap.fromTo(fadeGroupRef.current,
-        { opacity: 0, y: 24 },
-        { opacity: 1, y: 0, duration: 1.2, ease: 'power2.out', delay: 0.3 }
-      )
+        // 第三幕：探索开启
+        // 主标题消失后，右侧导航与模型周围的 HUD 标签如星空般依次浮现
+        .to('.stupa-nav-list', { opacity: 1, duration: 1.0, ease: 'power2.out' }, '-=0.2')
+        .to('.viz-node', {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          ease: 'power2.out',
+          stagger: 0.15
+        }, '<')
+        // fadeGroup 淡入（包含透镜面板，但初始在章页面默认隐藏）
+        .fromTo(fadeGroup,
+          { opacity: 0, y: 24 },
+          { opacity: 1, y: 0, duration: 1.2, ease: 'power2.out' },
+          '<'
+        )
     }
   }, [])
 
@@ -257,6 +275,9 @@ export function TimelineHall({ onDeepRead }: TimelineHallProps) {
     if (isAnimating) return
     if (targetIndex < 0 || targetIndex >= stupaStops.length) return
     if (targetIndex === currentStop) return
+    
+    // 强制顺序浏览：只能点击前后相邻的节点，禁止跨步飞转
+    if (Math.abs(targetIndex - currentStop) > 1) return
 
     setIsAnimating(true)
     timelineRef.current?.kill()
@@ -270,7 +291,7 @@ export function TimelineHall({ onDeepRead }: TimelineHallProps) {
       const group = fadeGroupRef.current
       const els = group.querySelectorAll('h2, i, p, .stupa-deep-read-btn, .stupa-info-kicker, .stupa-info-icon')
       const lens = group.querySelector('.stupa-lens')
-      
+
       tl.to(els, {
         opacity: 0,
         y: 10,
@@ -278,7 +299,7 @@ export function TimelineHall({ onDeepRead }: TimelineHallProps) {
         ease: 'power2.in',
         stagger: 0.05
       }, 0)
-      
+
       if (lens) {
         tl.to(lens, {
           clipPath: 'circle(0% at center)',
@@ -302,7 +323,7 @@ export function TimelineHall({ onDeepRead }: TimelineHallProps) {
     // 切换停靠点（此时 UI 不可见，所以 React 重渲染不会闪烁）
     tl.call(() => {
       setCurrentStop(targetIndex)
-      
+
       // 判断是否进入“八相成道”轨道模式
       const isTargetStory = stupaStops[targetIndex].mode === 'scroll'
       modelRef.current?.setOrbitMode?.(isTargetStory)
@@ -317,11 +338,11 @@ export function TimelineHall({ onDeepRead }: TimelineHallProps) {
         setIsAnimating(false)
         return
       }
-      
+
       const group = fadeGroupRef.current
       // 重置整体透明度和位置（因为前面阶段 A 改的是子元素）
       gsap.set(group, { opacity: 1, y: 0 })
-      
+
       const title = group.querySelector('h2')
       const line = group.querySelector('i')
       const body = group.querySelector('p')
@@ -331,38 +352,38 @@ export function TimelineHall({ onDeepRead }: TimelineHallProps) {
       const icon = group.querySelector('.stupa-info-icon')
 
       const enterTl = gsap.timeline({ onComplete: () => setIsAnimating(false) })
-      
+
       // 0ms: 标题自下而上滑入
       if (title) {
-        enterTl.fromTo(title, 
-          { opacity: 0, y: 15 }, 
+        enterTl.fromTo(title,
+          { opacity: 0, y: 15 },
           { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out' },
           0
         )
       }
-      
+
       if (kicker) {
-         enterTl.fromTo(kicker, { opacity: 0 }, { opacity: 1, duration: 0.6 }, 0)
+        enterTl.fromTo(kicker, { opacity: 0 }, { opacity: 1, duration: 0.6 }, 0)
       }
       if (icon) {
-         enterTl.fromTo(icon, { opacity: 0 }, { opacity: 1, duration: 0.6 }, 0)
+        enterTl.fromTo(icon, { opacity: 0 }, { opacity: 1, duration: 0.6 }, 0)
       }
-      
+
       // 透镜圆润撑开
       if (lens) {
-         enterTl.fromTo(lens,
-            { clipPath: 'circle(0% at center)', opacity: 0 },
-            { clipPath: 'circle(50% at center)', opacity: 1, duration: 0.8, ease: 'power2.out' },
+        enterTl.fromTo(lens,
+          { clipPath: 'circle(0% at center)', opacity: 0 },
+          { clipPath: 'circle(50% at center)', opacity: 1, duration: 0.8, ease: 'power2.out' },
+          0
+        )
+        const ornament = lens.querySelector('.stupa-lens-ornament')
+        if (ornament) {
+          enterTl.fromTo(ornament,
+            { rotation: -45 },
+            { rotation: 0, duration: 0.8, ease: 'power2.out' },
             0
-         )
-         const ornament = lens.querySelector('.stupa-lens-ornament')
-         if (ornament) {
-            enterTl.fromTo(ornament,
-               { rotation: -45 },
-               { rotation: 0, duration: 0.8, ease: 'power2.out' },
-               0
-            )
-         }
+          )
+        }
       }
 
       // 100ms: 装饰线展开
@@ -452,7 +473,7 @@ export function TimelineHall({ onDeepRead }: TimelineHallProps) {
         <>
           {/* 背景压暗遮罩 */}
           <div ref={introVeilRef} className="stupa-intro-veil" aria-hidden="true" />
-          
+
           <div
             ref={introTextRef}
             className="timeline-hall-copy stupa-intro-copy"
@@ -480,16 +501,7 @@ export function TimelineHall({ onDeepRead }: TimelineHallProps) {
         {/* ---- 透镜 + 信息面板 + 引线 ---- */}
         {isLens && (
           <div className="stupa-lens-stage">
-            {/* SVG 引导线 */}
-            <svg className="stupa-guide-svg" aria-hidden="true">
-              <line
-                className="stupa-guide-line"
-                x1={stop.marker.x}
-                y1={stop.marker.y}
-                x2="68%"
-                y2="50%"
-              />
-            </svg>
+
 
             {/* 透镜 */}
             <button
@@ -522,8 +534,8 @@ export function TimelineHall({ onDeepRead }: TimelineHallProps) {
               <h2>{stop.title}</h2>
               <i aria-hidden="true" />
               <p>{stop.body}</p>
-              <button 
-                className="stupa-deep-read-btn interactive" 
+              <button
+                className="stupa-deep-read-btn interactive"
                 onClick={onDeepRead}
               >
                 深度阅读
@@ -536,6 +548,25 @@ export function TimelineHall({ onDeepRead }: TimelineHallProps) {
         {/* ---- 故事模式面板 ---- */}
         {isStory && (
           <div className="stupa-lens-stage">
+
+
+            {/* 透镜 */}
+            <button
+              className="stupa-lens interactive"
+              type="button"
+              onClick={() => setActiveImage(stop.lensImage)}
+              style={{
+                left: stop.marker.x,
+                top: stop.marker.y,
+                '--detail-image': `url("${stop.lensImage}")`,
+                '--detail-position': stop.lensPosition,
+              } as React.CSSProperties}
+              aria-label={`查看${stop.title}原貌细节`}
+            >
+              <span className="stupa-lens-ornament" aria-hidden="true" />
+              <span className="stupa-lens-core" aria-hidden="true" />
+            </button>
+
             <article className="stupa-info-panel stupa-story-panel">
               {stop.icon && (
                 <img
@@ -549,7 +580,7 @@ export function TimelineHall({ onDeepRead }: TimelineHallProps) {
               <h2>{stop.title}</h2>
               <i aria-hidden="true" />
               <p>{stop.body}</p>
-              <button 
+              <button
                 className="stupa-deep-read-btn interactive"
                 onClick={onDeepRead}
               >
@@ -581,7 +612,7 @@ export function TimelineHall({ onDeepRead }: TimelineHallProps) {
               </div>
             </div>
           </div>
-          
+
           {/* 2. 密檐 - 右侧 */}
           <div className="viz-node node-right node-eaves">
             <div className="node-line"></div>
@@ -624,7 +655,7 @@ export function TimelineHall({ onDeepRead }: TimelineHallProps) {
               </div>
             </div>
           </div>
-          
+
           {/* 5. 塔基 - 右侧 */}
           <div className="viz-node node-right node-base">
             <div className="node-line"></div>
@@ -657,20 +688,82 @@ export function TimelineHall({ onDeepRead }: TimelineHallProps) {
         </div>
       </div>
 
-      {/* ---- 右侧导航索引（跳过第一个"章"按钮） ---- */}
-      <nav className="timeline-node-index stupa-node-index" aria-label="第一章漫游节点">
+      {/* ---- 右侧导航索引 - 数学曲线圆形指示器 ---- */}
+      <nav className="curve-nav-index" aria-label="第一章漫游节点">
         {stupaStops.slice(1).map((s, idx) => {
           const actualIdx = idx + 1
+          const isActive = actualIdx === currentStop
           return (
             <button
-              className={`timeline-node ${actualIdx === currentStop ? 'is-active' : ''}`}
+              className={`curve-nav-dot ${isActive ? 'is-active' : ''}`}
               key={s.id}
               type="button"
               aria-label={`漫游节点：${s.title}`}
-              aria-pressed={actualIdx === currentStop}
+              aria-pressed={isActive}
               onClick={() => transitionTo(actualIdx)}
             >
-              <span>{s.nav}</span>
+              {/* 莲花瓣形状的外圈 - 使用 SVG 路径绘制 */}
+              <svg className="curve-nav-ring" viewBox="0 0 44 44" aria-hidden="true">
+                {/* 莲花瓣外圈 - 8个对称花瓣，以(22,22)为中心 */}
+                <path
+                  className="ring-lotus"
+                  d="M 17 10
+                     A 8 8 0 0 1 22 2
+                     A 8 8 0 0 1 27 10
+                     A 8 8 0 0 1 36.1 7.9
+                     A 8 8 0 0 1 34 17
+                     A 8 8 0 0 1 42 22
+                     A 8 8 0 0 1 34 27
+                     A 8 8 0 0 1 36.1 36.1
+                     A 8 8 0 0 1 27 34
+                     A 8 8 0 0 1 22 42
+                     A 8 8 0 0 1 17 34
+                     A 8 8 0 0 1 7.9 36.1
+                     A 8 8 0 0 1 10 27
+                     A 8 8 0 0 1 2 22
+                     A 8 8 0 0 1 10 17
+                     A 8 8 0 0 1 7.9 7.9
+                     A 8 8 0 0 1 17 10 Z"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                {/* 中间装饰圆环 - 以(22,22)为中心 */}
+                <circle
+                  className="ring-mid"
+                  cx="22"
+                  cy="22"
+                  r="10"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1"
+                />
+                {/* 内圈圆点 - 以(22,22)为中心 */}
+                <circle
+                  className="ring-inner"
+                  cx="22"
+                  cy="22"
+                  r={isActive ? 5 : 3}
+                  fill="currentColor"
+                />
+                {/* 激活状态的外发光 - 以(22,22)为中心 */}
+                {isActive && (
+                  <circle
+                    className="ring-glow"
+                    cx="22"
+                    cy="22"
+                    r="16"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="0.5"
+                    opacity="0.5"
+                  />
+                )}
+              </svg>
+              {/* 悬停提示 */}
+              <span className="curve-nav-tooltip">{s.title}</span>
             </button>
           )
         })}
@@ -752,22 +845,22 @@ export function TimelineHall({ onDeepRead }: TimelineHallProps) {
       </nav>
 
       {/* ---- 全屏大图预览容器 ---- */}
-      <div 
+      <div
         className={`fullscreen-image-viewer ${activeImage ? 'is-active' : ''}`}
         aria-hidden={!activeImage}
         onClick={() => setActiveImage(null)}
       >
-        <button 
-          className="close-viewer-btn interactive" 
+        <button
+          className="close-viewer-btn interactive"
           onClick={(e) => { e.stopPropagation(); setActiveImage(null) }}
         >
           ✕
         </button>
-        <img 
-          src={displayedImage || ''} 
-          alt="全屏原貌图" 
+        <img
+          src={displayedImage || ''}
+          alt="全屏原貌图"
           className="viewer-image"
-          onClick={(e) => e.stopPropagation()} 
+          onClick={(e) => e.stopPropagation()}
         />
       </div>
     </section>
