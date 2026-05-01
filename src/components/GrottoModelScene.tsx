@@ -1,7 +1,14 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import * as THREE from 'three'
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js'
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
 import gsap from 'gsap'
+
+const MODEL_TEXTURE_URL = '/assets/qixia-model/3DModel.jpg'
+const MODEL_GLB_URL = '/assets/qixia-model/3DModel0.glb'
+const MODEL_OBJ_URL = '/assets/qixia-model/3DModel0.obj'
+const DRACO_DECODER_PATH = '/assets/draco/'
 
 /* ============================================================
    相机停靠点：每个 stop 对应一个相机位置和注视目标
@@ -73,14 +80,51 @@ export interface GrottoModelSceneHandle {
   playIntroDolly: (duration: number) => void
 }
 
+interface GrottoModelSceneProps {
+  onLoadProgress?: (progress: number) => void
+  onSceneReady?: () => void
+}
+
+function loadTexture(loader: THREE.TextureLoader, url: string) {
+  return new Promise<THREE.Texture>((resolve, reject) => {
+    loader.load(url, resolve, undefined, reject)
+  })
+}
+
+function loadObj(loader: OBJLoader, url: string) {
+  return new Promise<THREE.Group>((resolve, reject) => {
+    loader.load(url, resolve, undefined, reject)
+  })
+}
+
+function loadGltfScene(loader: GLTFLoader, url: string) {
+  return new Promise<THREE.Group>((resolve, reject) => {
+    loader.load(url, (gltf) => resolve(gltf.scene), undefined, reject)
+  })
+}
+
+async function hasGlbAsset() {
+  try {
+    const response = await fetch(MODEL_GLB_URL, { method: 'HEAD' })
+    return response.ok
+  } catch {
+    return false
+  }
+}
+
 /* ============================================================
    GrottoModelScene: 第一章 3D 模型漫游场景
    相机控制完全由父组件通过 ref.setCameraProgress 驱动。
    内部 RAF 仅负责渲染和微小呼吸动效。
 ============================================================ */
-export const GrottoModelScene = forwardRef<GrottoModelSceneHandle>(
-  function GrottoModelScene(_props, ref) {
+export const GrottoModelScene = forwardRef<GrottoModelSceneHandle, GrottoModelSceneProps>(
+  function GrottoModelScene({ onLoadProgress, onSceneReady }, ref) {
     const containerRef = useRef<HTMLDivElement>(null)
+    const loadCallbacksRef = useRef({ onLoadProgress, onSceneReady })
+
+    useEffect(() => {
+      loadCallbacksRef.current = { onLoadProgress, onSceneReady }
+    }, [onLoadProgress, onSceneReady])
 
     // 存储 Three.js 内部对象供 imperative handle 访问
     const sceneInternals = useRef<{
@@ -206,13 +250,28 @@ export const GrottoModelScene = forwardRef<GrottoModelSceneHandle>(
       sceneInternals.current = { camera, currentTarget }
 
       // ---- 加载模型 ----
-      const textureLoader = new THREE.TextureLoader()
-      const objLoader = new OBJLoader()
+      const manager = new THREE.LoadingManager()
+      const textureLoader = new THREE.TextureLoader(manager)
+      const objLoader = new OBJLoader(manager)
+      const gltfLoader = new GLTFLoader(manager)
+      const dracoLoader = new DRACOLoader(manager)
+      dracoLoader.setDecoderPath(DRACO_DECODER_PATH)
+      gltfLoader.setDRACOLoader(dracoLoader)
 
-      textureLoader.load('/assets/qixia-model/3DModel.jpg', (texture) => {
+      let disposed = false
+      let stupaTexture: THREE.Texture | null = null
+      let stupaMaterial: THREE.MeshStandardMaterial | null = null
+
+      manager.onProgress = (_url, loaded, total) => {
+        const progress = total > 0 ? (loaded / total) * 100 : 0
+        loadCallbacksRef.current.onLoadProgress?.(progress)
+      }
+
+      const createStupaMaterial = (texture: THREE.Texture) => {
         texture.colorSpace = THREE.SRGBColorSpace
-        // 彻底拉满各向异性过滤（Anisotropic Filtering），这能极大缓解贴图在倾斜视角下的模糊感
+        // 彻底拉满各向异性过滤，这能极大缓解贴图在倾斜视角下的模糊感。
         texture.anisotropy = renderer.capabilities.getMaxAnisotropy()
+
         const material = new THREE.MeshStandardMaterial({
           map: texture,
           roughness: 0.82,
@@ -222,7 +281,7 @@ export const GrottoModelScene = forwardRef<GrottoModelSceneHandle>(
           depthWrite: true,  // 保持深度写入，避免排序问题
         })
 
-        // 通过修改底层着色器，实现 Y 轴底部的平滑渐隐（羽化），代替生硬的裁剪
+        // 通过修改底层着色器，实现 Y 轴底部的平滑渐隐，代替生硬的裁剪。
         material.onBeforeCompile = (shader) => {
           shader.vertexShader = shader.vertexShader.replace(
             '#include <common>',
@@ -247,24 +306,58 @@ export const GrottoModelScene = forwardRef<GrottoModelSceneHandle>(
             `
           )
         }
-        objLoader.load('/assets/qixia-model/3DModel0.obj', (object) => {
-          const box = new THREE.Box3().setFromObject(object)
-          const size = new THREE.Vector3()
-          const center = new THREE.Vector3()
-          box.getSize(size)
-          box.getCenter(center)
-          object.position.sub(center)
-          object.scale.multiplyScalar(2.1 / Math.max(size.x, size.y, size.z))
-          // 4. 将处理好的纯净几何体装入最底层的原始包裹组
-          rawModelContainer.add(object)
-          object.traverse((child) => {
-            if (child instanceof THREE.Mesh) {
-              child.material = material
-              child.frustumCulled = true
-            }
-          })
+
+        return material
+      }
+
+      const mountModel = (object: THREE.Object3D, material: THREE.Material) => {
+        const box = new THREE.Box3().setFromObject(object)
+        const size = new THREE.Vector3()
+        const center = new THREE.Vector3()
+        box.getSize(size)
+        box.getCenter(center)
+        object.position.sub(center)
+        object.scale.multiplyScalar(2.1 / Math.max(size.x, size.y, size.z))
+        object.traverse((child) => {
+          if (child instanceof THREE.Mesh) {
+            child.material = material
+            child.frustumCulled = true
+          }
         })
-      })
+        rawModelContainer.add(object)
+      }
+
+      const loadModelObject = async () => {
+        if (await hasGlbAsset()) {
+          try {
+            return await loadGltfScene(gltfLoader, MODEL_GLB_URL)
+          } catch (error) {
+            console.warn('GLB 模型加载失败，已回退到 OBJ。', error)
+          }
+        }
+        return loadObj(objLoader, MODEL_OBJ_URL)
+      }
+
+      Promise.all([
+        loadTexture(textureLoader, MODEL_TEXTURE_URL),
+        loadModelObject(),
+      ])
+        .then(([texture, object]) => {
+          if (disposed) {
+            texture.dispose()
+            return
+          }
+          stupaTexture = texture
+          stupaMaterial = createStupaMaterial(texture)
+          mountModel(object, stupaMaterial)
+          loadCallbacksRef.current.onLoadProgress?.(100)
+          loadCallbacksRef.current.onSceneReady?.()
+        })
+        .catch((error) => {
+          console.error('舍利塔模型资源加载失败。', error)
+          loadCallbacksRef.current.onLoadProgress?.(100)
+          loadCallbacksRef.current.onSceneReady?.()
+        })
 
       // ---- 渲染循环：仅渲染 + 呼吸微动 / 轨道自转 ----
       const startTime = performance.now()
@@ -306,9 +399,11 @@ export const GrottoModelScene = forwardRef<GrottoModelSceneHandle>(
       window.addEventListener('resize', handleResize)
 
       return () => {
+        disposed = true
         cancelAnimationFrame(raf)
         window.removeEventListener('resize', handleResize)
         sceneInternals.current = null
+        dracoLoader.dispose()
         renderer.dispose()
         scene.traverse((object) => {
           if (object instanceof THREE.Mesh) {
@@ -320,6 +415,8 @@ export const GrottoModelScene = forwardRef<GrottoModelSceneHandle>(
             }
           }
         })
+        stupaMaterial?.dispose()
+        stupaTexture?.dispose()
         if (container.contains(renderer.domElement)) {
           container.removeChild(renderer.domElement)
         }

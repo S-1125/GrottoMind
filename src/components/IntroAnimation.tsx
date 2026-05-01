@@ -476,7 +476,7 @@ export function IntroAnimation({ onEnter }: IntroAnimationProps) {
         <div ref={textRef} className="intro-text-layer" aria-live="polite">
           {/* 中文 Logo + Agent - 只在第一步显示 */}
           <div ref={logoRef} className="intro-chinese-logo is-visible">
-            <img src="/logo/图层 1.png" alt="问窟" />
+            <img src="/assets/logo.png" alt="问窟" />
             <span className="intro-agent-text">AI Agent</span>
           </div>
           {storyTexts.map((text, index) => (

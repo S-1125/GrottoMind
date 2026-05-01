@@ -1487,6 +1487,21 @@ html.large-text {
   transform: scale(1.15);
 }
 
+.curve-nav-dot.is-locked {
+  opacity: 0.34;
+  cursor: not-allowed;
+}
+
+.curve-nav-dot.is-locked:hover,
+.curve-nav-dot.is-locked:focus-visible {
+  color: rgba(212, 169, 106, 0.5);
+  transform: none;
+}
+
+.curve-nav-dot:disabled {
+  pointer-events: none;
+}
+
 /* SVG 莲花瓣形状 */
 .curve-nav-ring {
   width: 100%;
@@ -1651,6 +1666,15 @@ html.large-text {
   font-size: 12px;
   font-weight: 300;
   letter-spacing: 0.18em;
+  pointer-events: none;
+}
+
+.stupa-chapter.is-intro-playing .curve-nav-index,
+.stupa-chapter.is-intro-playing .timeline-tour-progress,
+.stupa-chapter.is-intro-playing .timeline-scroll-hint,
+.stupa-chapter.is-intro-playing .stupa-data-viz {
+  opacity: 0;
+  visibility: hidden;
   pointer-events: none;
 }
 
@@ -2855,146 +2879,519 @@ html.large-text {
 /* ============================================================
    深度阅读长页面 (Deep Read Article)
 ============================================================ */
-.deep-read-article {
-  position: absolute;
-  inset: 0;
+/* ============================================================
+   横向画廊 (Deep Read Gallery) - Getty Museum Editorial Style
+============================================================ */
+.deep-read-gallery {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100dvh;
   z-index: 50;
-  background-color: #0b0c0f;
+  background-color: #161616; /* Getty dark background */
   color: #fff;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.6s ease, visibility 0.6s;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  transition: opacity 0.8s ease, visibility 0.8s;
+  overflow: hidden;
 }
 
-.deep-read-article.is-visible {
+.deep-read-gallery.is-visible {
   opacity: 1;
   visibility: visible;
 }
 
-.deep-read-article .back-btn {
-  position: fixed;
-  top: 40px;
-  left: 48px;
+/* ---- 顶部栏 & 关闭按钮 ---- */
+.gallery-topbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100px;
   z-index: 60;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 4vw;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  pointer-events: none;
+}
+
+.topbar-left {
+  display: flex;
+  gap: 40px;
+}
+
+.tech-text {
+  font-family: var(--font-sans), 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+}
+
+.tech-text.coords {
+  opacity: 0.5;
+}
+
+/* ---- 底部技术网格栏 ---- */
+.gallery-bottombar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  z-index: 60;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 4vw;
+  pointer-events: none;
+}
+
+.scroll-indicator {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.indicator-line {
+  width: 120px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.indicator-line::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 1px;
+  width: 30%;
+  background: rgba(255, 255, 255, 0.6);
+  animation: scrollPan 2s infinite cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes scrollPan {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(330%); }
+}
+
+.status-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #d4a96a;
+  margin-right: 8px;
+  box-shadow: 0 0 8px #d4a96a;
+  animation: pulseDot 2s infinite;
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.gallery-logo {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 24px;
+  font-weight: 500;
+  color: #fff;
+}
+
+.gallery-close-btn {
+  pointer-events: auto;
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.8);
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
   font-family: var(--font-sans);
   font-size: 13px;
-  letter-spacing: 0.15em;
-  padding: 8px 24px;
-  border-radius: 999px;
-  cursor: none;
+  letter-spacing: 0.1em;
   display: flex;
   align-items: center;
   gap: 12px;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(8px);
+  cursor: none;
+  transition: color 0.3s ease;
 }
 
-.deep-read-article .back-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  border-color: rgba(255, 255, 255, 0.4);
+.gallery-close-btn:hover {
+  color: #fff;
 }
 
-.deep-read-article .back-btn span {
-  transition: transform 0.3s ease;
-}
-
-.deep-read-article .back-btn:hover span {
-  transform: translateX(-4px);
-}
-
-.article-layout {
-  display: flex;
-  min-height: 100vh;
-  max-width: 1600px;
-  margin: 0 auto;
-}
-
-.article-sticky-media {
-  flex: 1;
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  padding: 40px 40px 40px 48px;
+.gallery-close-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.media-placeholder {
-  width: 100%;
-  height: 80vh;
-  background-color: #1a1c23;
-  border-radius: 4px;
-  position: relative;
-  overflow: hidden;
-  background-image: var(--detail-image, url('/assets/qixia-model/3DModel.jpg'));
-  background-size: cover;
-  background-position: center;
-  filter: grayscale(1) contrast(1.2);
-}
-
-.media-placeholder::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  box-shadow: inset 0 0 120px rgba(11, 12, 15, 0.8);
-}
-
-.article-content {
-  flex: 1;
-  max-width: 720px;
-  padding: 12vh 60px 12vh 40px;
-}
-
-.article-content header {
-  margin-bottom: 60px;
-}
-
-.article-kicker {
-  display: block;
-  font-family: var(--font-sans);
-  font-size: 13px;
-  letter-spacing: 0.25em;
-  color: #d4a96a;
-  margin-bottom: 24px;
-}
-
-.article-content h1 {
-  font-family: 'ZiXinFangMengHuanGeTeTi', 'Ma Shan Zheng', 'Noto Serif SC', cursive;
-  font-size: 56px;
-  font-weight: normal;
-  line-height: 1.1;
-  margin: 0 0 32px 0;
-}
-
-.article-divider {
-  display: block;
-  width: 60px;
-  height: 2px;
-  background: #d4a96a;
-}
-
-.article-body p {
-  font-family: var(--font-sans);
   font-size: 16px;
-  line-height: 2.2;
-  color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 32px;
   font-weight: 300;
+  transition: border-color 0.3s ease;
+}
+
+.gallery-close-btn:hover .gallery-close-icon {
+  border-color: #fff;
+}
+
+/* ---- 自由横向滑动轨道 ---- */
+.gallery-scroll-track {
+  display: flex;
+  align-items: flex-start; /* 全局基线：上对齐 */
+  gap: 5vw; /* 将 8vw 的全局间距收紧到 5vw，增强图文之间的视觉关联 */
+  padding: 0 10vw; /* 移除 padding，由子元素各自控制垂直占位 */
+  box-sizing: border-box; /* 确保 padding 包含在 100dvh 内 */
+  width: 100%;
+  height: 100dvh;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.gallery-scroll-track::-webkit-scrollbar {
+  display: none;
+}
+
+.gallery-card-wrapper {
+  flex-shrink: 0;
+  /* 移除 height: 100% 和 align-items: center，让内容自然上对齐并由内容撑开高度 */
+}
+
+/* ---- 文本排版基础 (Getty 风格) ---- */
+.card-kicker {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 12px;
+  text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
-.article-body p.lead {
-  font-size: 18px;
-  color: rgba(255, 255, 255, 0.9);
+.card-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 56px;
+  font-weight: 400;
+  line-height: 1.1;
+  margin: 0 0 32px 0;
+  color: #e8d6c0; /* Pale gold / champagne */
+}
+
+.card-body {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 16px;
+  line-height: 2.2;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 300;
+  max-width: 420px;
+}
+
+.card-caption {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.4);
+  margin-top: 16px;
+  max-width: 300px;
+}
+
+.card-note {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+  margin-top: 24px;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+  padding-left: 16px;
+}
+
+.card-reference {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.35);
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.1);
+  max-width: 420px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.card-reference .ref-icon {
+  color: #e8d6c0;
+  opacity: 0.6;
+}
+
+/* ---- 布局: Hero (大标题) ---- */
+.card-hero {
+  /* 移除死板的宽容度设定，靠内部内容撑开或者靠行内 style 控制 */
+  min-width: 280px; 
+}
+
+.card-hero-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 64px;
+  font-weight: 300;
+  line-height: 1.2;
+  color: #e8d6c0;
+  margin: 0 0 24px 0;
+  white-space: pre-line;
+}
+
+.card-hero-subtitle {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.5);
+  display: block;
+  margin-bottom: 40px;
+}
+
+/* ---- 布局: Text (常规文本块) ---- */
+.card-text {
+  /* 由 React 行内样式控制宽度，这里仅做最小托底 */
+  min-width: 280px;
+  /* 移除全部背景、边框、玻璃态，文字直接浮于深色背景之上 */
+}
+
+/* 巨型引用文本 (类似于图2的波斯大帝文本) */
+.card-quote {
+  width: 45vw;
+  min-width: 500px;
+}
+
+.card-quote-text {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 44px;
+  font-weight: 300;
+  line-height: 1.4;
+  color: #e8d6c0;
+  margin-bottom: 40px;
+}
+
+.card-quote-subtext {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 15px;
   line-height: 2;
-  margin-bottom: 48px;
+  color: rgba(255, 255, 255, 0.6);
+  max-width: 500px;
+}
+
+/* ---- 布局: Image (图片块) ---- */
+.card-image {
+  height: auto !important; /* 放弃硬编码高度，让内容撑开 */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start; /* 左对齐文字 */
+  box-sizing: border-box;
+}
+
+.card-image.full-height {
+  height: 100dvh !important;
+  padding: 0;
+}
+
+.card-image.full-height .card-image-frame {
+  border-radius: 0;
+  height: 100%;
+}
+
+/* ---- 裁切标记 (Crop Marks) ---- */
+.card-image-wrapper {
+  position: relative;
+  display: inline-block; /* 收缩包裹内部 img，杜绝留白 */
+  padding: 0;
+}
+
+.crop-mark {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  z-index: 10;
+  pointer-events: none;
+  transition: border-color 0.4s ease;
+}
+
+.card-image:hover .crop-mark,
+.card-dual-image figure:hover .crop-mark {
+  border-color: #d4a96a;
+}
+
+.crop-mark.top-left { top: -8px; left: -8px; border-right: none; border-bottom: none; }
+.crop-mark.top-right { top: -8px; right: -8px; border-left: none; border-bottom: none; }
+.crop-mark.bottom-left { bottom: -8px; left: -8px; border-right: none; border-top: none; }
+.crop-mark.bottom-right { bottom: -8px; right: -8px; border-left: none; border-top: none; }
+
+.card-image-frame {
+  border-radius: 2px;
+  position: relative;
+  display: block;
+}
+
+.card-image-frame img {
+  display: block;
+  max-width: 100%;
+  max-height: 65vh; /* 恢复合理的图片高度 */
+  width: auto;
+  height: auto;
+  object-fit: contain; /* 实际上不需要 contain 因为长宽是由 auto 决定的 */
+}
+
+.card-image-frame.cover img {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+}
+
+/* ---- 布局: Dual Image (双图并列) ---- */
+.card-dual-image {
+  display: flex;
+  gap: 4vw;
+  height: auto !important;
+  align-items: flex-start;
+}
+
+.card-dual-image figure {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* 左对齐文字 */
+  justify-content: center;
+}
+
+.card-dual-image figure .card-image-wrapper {
+  display: inline-block;
+}
+
+/* ---- 布局: Gallery (网格图) ---- */
+.card-gallery {
+  display: flex;
+  gap: 6vw;
+  height: auto;
+  align-items: center;
+}
+
+.card-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 16px;
+  height: 100%;
+  width: 70vw;
+}
+
+.grid-item {
+  margin: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.grid-item .card-image-frame {
+  height: 100%;
+  border-radius: 0;
+}
+
+.grid-item figcaption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 40px 16px 16px;
+  background: linear-gradient(to top, rgba(22,22,22,0.9), transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.grid-item figcaption strong {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #e8d6c0;
+}
+
+.grid-item figcaption span {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* ---- 结语 ---- */
+.end-card {
+  width: auto;
+  align-self: center; /* 覆盖全局的上对齐，使其自身在 100vh 轨道中居中，从而与左侧的主体文案形成居中对齐效果 */
+}
+
+/* ---- 结语 (弱化提示版) ---- */
+.card-closing-subtle {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* 子元素左对齐 */
+  text-align: left; /* 文本左对齐 */
+  width: auto;
+  opacity: 0.5; /* 整体大幅度弱化，表明这不是展览正文内容 */
+  transition: opacity 0.4s ease;
+}
+
+.card-closing-subtle:hover {
+  opacity: 0.9; /* 鼠标移入时微微提亮 */
+}
+
+.closing-kicker {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}
+
+.closing-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 24px; /* 较小的标题，不抢正文风头 */
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0 0 16px 0;
+}
+
+.closing-body {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0 0 32px 0;
+}
+
+.btn-editorial-subtle {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15); /* 极弱的透明白边框，不抢戏 */
+  color: rgba(255, 255, 255, 0.5);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  padding: 10px 32px;
+  border-radius: 2px;
+  cursor: none;
+  transition: all 0.4s ease;
+}
+
+.btn-editorial-subtle:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+  color: #fff;
 }
 
 /* ============================================================
@@ -3069,11 +3466,16 @@ html.large-text {
   z-index: 10;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.8s ease 0.2s;
+  visibility: hidden;
+  /* 退出时快速淡出，不留延迟，避免切换到其他节点时信息残留 */
+  transition: opacity 0.4s ease, visibility 0s 0.4s;
 }
 
 .stupa-data-viz.is-visible {
   opacity: 1;
+  visibility: visible;
+  /* 进入时带延迟依次显现 */
+  transition: opacity 0.8s ease 0.2s, visibility 0s 0s;
 }
 
 .stupa-data-viz .viz-header {

@@ -4,7 +4,6 @@ import {
   useRef,
   useState,
   type CSSProperties,
-  type WheelEvent,
 } from 'react'
 import gsap from 'gsap'
 import { AtmosphereEffects } from './AtmosphereEffects'
@@ -40,7 +39,7 @@ const stupaStops = [
     // 放大镜的屏幕坐标 (相对于窗口左上角)
     // 根据您截图里塔的位置，大概在屏幕偏左上三分之一处
     marker: { x: '32%', y: '22%' },
-    lensImage: '/1.jpg',
+    lensImage: '/章节1图片素材/塔刹.webp',
     lensPosition: '50% 50%',
     icon: '/icon1/图层 9.png',
   },
@@ -53,7 +52,7 @@ const stupaStops = [
     body: '层层挑出的密檐具有仿木结构意味，檐角与檐下阴影共同构成石塔向上的节奏。风化让边缘变钝，却没有抹去结构的秩序。',
     mode: 'lens' as const,
     marker: { x: '40%', y: '45%' },
-    lensImage: '/2.jpg',
+    lensImage: '/章节1图片素材/塔檐.webp',
     lensPosition: '50% 50%',
     icon: '/icon1/图层 11.png',
   },
@@ -66,7 +65,7 @@ const stupaStops = [
     body: '塔身佛龛以层级方式分布，坐佛、龛楣与塔身转角共同形成连续的礼佛秩序。数字观看在这里不是复原结论，而是重新辨认轮廓。',
     mode: 'lens' as const,
     marker: { x: '35%', y: '46%' },
-    lensImage: '/3.jpg',
+    lensImage: '/章节1图片素材/佛龛.webp',
     lensPosition: '50% 50%',
     icon: '/icon1/图层 12.png',
   },
@@ -79,7 +78,7 @@ const stupaStops = [
     body: '第一层转角处的天王身披甲胄，形象威严。仰视镜头让造像重新获得守护者的尺度，也让铠甲线条在石面上变得清晰。',
     mode: 'lens' as const,
     marker: { x: '45%', y: '66%' },
-    lensImage: '/章节1图片素材/天王-1.jpg',
+    lensImage: '/章节1图片素材/天王-1.webp',
     lensPosition: '38% 72%',
     icon: '/icon1/图层 10.png',
   },
@@ -92,7 +91,7 @@ const stupaStops = [
     body: '塔身正东与正西面可见菩萨题材线索。骑狮的文殊与骑象的普贤，使舍利塔不只是建筑，也成为佛教图像的立体长卷。',
     mode: 'lens' as const,
     marker: { x: '38%', y: '66%' },
-    lensImage: '/章节1图片素材/普贤菩萨.jpg',
+    lensImage: '/章节1图片素材/普贤菩萨.webp',
     lensPosition: '68% 70%',
     icon: '/icon1/图层 1.png',
   },
@@ -105,7 +104,7 @@ const stupaStops = [
     body: '须弥座的束腰部分以海水、龙、亭台楼榭等图像组织空间，呼应佛教宇宙观中的九山八海。塔基让信仰获得可承托的世界结构。',
     mode: 'lens' as const,
     marker: { x: '42%', y: '66%' },
-    lensImage: '/章节1图片素材/塔基与须弥座.jpg',
+    lensImage: '/章节1图片素材/塔基与须弥座.webp',
     lensPosition: '52% 86%',
     icon: '/icon1/图层 13.png',
   },
@@ -118,7 +117,7 @@ const stupaStops = [
     body: '束腰八面以连续叙事组织佛传：西北面"降兜率天"，北面"树下诞生"，东北面"逾城出家"，东面"降魔成道"，其后依次展开说法、涅槃等故事。',
     mode: 'scroll' as const,
     marker: { x: '30%', y: '80%' },
-    lensImage: '/章节1图片素材/八相成道图-1.jpg',
+    lensImage: '/章节1图片素材/八相成道图-1.webp',
     lensPosition: '50% 50%',
     icon: '/icon1/图层 14.png',
   },
@@ -134,22 +133,18 @@ function stopProgress(index: number) {
    GSAP 驱动的状态机管理所有 UI 过渡与相机运动。
 ============================================================ */
 interface TimelineHallProps {
-  onDeepRead?: () => void;
+  onDeepRead?: (nodeId: string) => void
+  onAssetsProgress?: (progress: number) => void
+  onAssetsReady?: () => void
+  isPaused?: boolean
 }
 
-export function TimelineHall({ onDeepRead }: TimelineHallProps) {
+export function TimelineHall({ onDeepRead, onAssetsProgress, onAssetsReady, isPaused }: TimelineHallProps) {
   // ---- 核心状态 ----
   const [currentStop, setCurrentStop] = useState(0)
   const [isAnimating, setIsAnimating] = useState(false)
   const [activeImage, setActiveImage] = useState<string | null>(null)
   const [displayedImage, setDisplayedImage] = useState<string | null>(null)
-
-  // 当 activeImage 改变时，如果有值，就同步给 displayedImage（用于维持退出动画期间的 src）
-  useEffect(() => {
-    if (activeImage) {
-      setDisplayedImage(activeImage)
-    }
-  }, [activeImage])
 
   // ---- 辅助 UI 状态 ----
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -172,6 +167,15 @@ export function TimelineHall({ onDeepRead }: TimelineHallProps) {
   const isLens = stop.mode === 'lens'
   const isStory = stop.mode === 'scroll'
 
+  const openImageViewer = useCallback((image: string) => {
+    setDisplayedImage(image)
+    setActiveImage(image)
+  }, [])
+
+  const closeImageViewer = useCallback(() => {
+    setActiveImage(null)
+  }, [])
+
   // ---- 无障碍 ----
   useEffect(() => {
     document.documentElement.classList.toggle('reduce-motion', reduceMotion)
@@ -191,9 +195,11 @@ export function TimelineHall({ onDeepRead }: TimelineHallProps) {
       const titleIcon = introEl.querySelector('.stupa-intro-title-icon')
       const p = introEl.querySelector('p')
 
-      // 预设状态：所有引线标签和右侧导航栏初始完全透明
+      const explorationUi = '.curve-nav-index, .timeline-tour-progress, .timeline-scroll-hint'
+
+      // 预设状态：所有引线标签、右侧导航栏和底部操作提示初始完全透明
       gsap.set('.viz-node', { opacity: 0, y: 15 })
-      gsap.set('.stupa-nav-list', { opacity: 0 })
+      gsap.set(explorationUi, { opacity: 0, y: 12 })
 
       const introTl = gsap.timeline()
 
@@ -242,7 +248,7 @@ export function TimelineHall({ onDeepRead }: TimelineHallProps) {
         })
         // 第三幕：探索开启
         // 主标题消失后，右侧导航与模型周围的 HUD 标签如星空般依次浮现
-        .to('.stupa-nav-list', { opacity: 1, duration: 1.0, ease: 'power2.out' }, '-=0.2')
+        .to(explorationUi, { opacity: 1, y: 0, duration: 1.0, ease: 'power2.out' }, '-=0.2')
         .to('.viz-node', {
           opacity: 1,
           y: 0,
@@ -275,7 +281,7 @@ export function TimelineHall({ onDeepRead }: TimelineHallProps) {
     if (isAnimating) return
     if (targetIndex < 0 || targetIndex >= stupaStops.length) return
     if (targetIndex === currentStop) return
-    
+
     // 强制顺序浏览：只能点击前后相邻的节点，禁止跨步飞转
     if (Math.abs(targetIndex - currentStop) > 1) return
 
@@ -310,6 +316,11 @@ export function TimelineHall({ onDeepRead }: TimelineHallProps) {
       }
     }
 
+    // 阶段 A 补充：强制隐藏概览信息标签（塔刹/密檐/塔基等标注面板）
+    // 因为开场动画给 .viz-node 设置了内联 opacity，CSS 的 visibility 无法覆盖它
+    tl.to('.stupa-data-viz', { opacity: 0, duration: 0.3, ease: 'power2.in' }, 0)
+    tl.to('.viz-node', { opacity: 0, y: 10, duration: 0.3, ease: 'power2.in' }, 0)
+
     // 阶段 B：相机飞行（GSAP 驱动 power3.inOut 缓动）
     tl.to(cameraProgressRef, {
       current: targetProgress,
@@ -334,6 +345,12 @@ export function TimelineHall({ onDeepRead }: TimelineHallProps) {
 
     // 阶段 C：新 UI 淡入
     tl.call(() => {
+      // 切回概览页时，恢复被 GSAP 内联样式压住的概览信息标签
+      if (targetIndex === 0) {
+        gsap.to('.stupa-data-viz', { opacity: 1, duration: 0.6, ease: 'power2.out' })
+        gsap.to('.viz-node', { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out', stagger: 0.1 })
+      }
+
       if (!fadeGroupRef.current) {
         setIsAnimating(false)
         return
@@ -416,18 +433,21 @@ export function TimelineHall({ onDeepRead }: TimelineHallProps) {
   }, [currentStop, isAnimating])
 
   // ---- 滚动防抖：每次仅前进/后退一个停靠点 ----
-  const handleWheel = useCallback((event: WheelEvent<HTMLElement>) => {
-    event.preventDefault()
-    if (isAnimating) return
-
-    // 将 deltaY 转化为方向性离散信号
-    const direction = event.deltaY > 0 ? 1 : -1
-    transitionTo(currentStop + direction)
+  // 使用 ref 保存最新值，避免 addEventListener 闭包过时
+  const wheelStateRef = useRef({ isAnimating, currentStop, transitionTo })
+  useEffect(() => {
+    wheelStateRef.current = { isAnimating, currentStop, transitionTo }
   }, [isAnimating, currentStop, transitionTo])
 
   // ---- 键盘导航 ----
+  const isPausedRef = useRef(isPaused)
+  useEffect(() => {
+    isPausedRef.current = isPaused
+  }, [isPaused])
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      if (isPausedRef.current) return
       if (e.key === 'Escape') setSettingsOpen(false)
       if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
         e.preventDefault()
@@ -442,12 +462,29 @@ export function TimelineHall({ onDeepRead }: TimelineHallProps) {
     return () => document.removeEventListener('keydown', handler)
   }, [currentStop, transitionTo])
 
+  // ---- 滚轮监听：必须用 { passive: false } 才能 preventDefault ----
+  const sectionRef = useRef<HTMLElement>(null)
+  useEffect(() => {
+    const el = sectionRef.current
+    if (!el) return
+    const handler = (e: globalThis.WheelEvent) => {
+      if (isPausedRef.current) return
+      e.preventDefault()
+      const { isAnimating: anim, currentStop: stop, transitionTo: go } = wheelStateRef.current
+      if (anim) return
+      const direction = e.deltaY > 0 ? 1 : -1
+      go(stop + direction)
+    }
+    el.addEventListener('wheel', handler, { passive: false })
+    return () => el.removeEventListener('wheel', handler)
+  }, [])
+
   // ---- 渲染 ----
   return (
     <section
-      className="timeline-hall stupa-chapter"
+      ref={sectionRef}
+      className={`timeline-hall stupa-chapter ${introFadedOut ? '' : 'is-intro-playing'}`}
       aria-label="第一章：舍利塔"
-      onWheel={handleWheel}
     >
       {/* 暗角遮罩与氛围层 */}
       <div className="timeline-hall-mask" aria-hidden="true" />
@@ -457,7 +494,11 @@ export function TimelineHall({ onDeepRead }: TimelineHallProps) {
       <AtmosphereEffects currentStep={0} />
 
       {/* 3D 模型场景 */}
-      <GrottoModelScene ref={modelRef} />
+      <GrottoModelScene
+        ref={modelRef}
+        onLoadProgress={onAssetsProgress}
+        onSceneReady={onAssetsReady}
+      />
       <div className="intro-film-grain" aria-hidden="true" />
 
       {/* Logo */}
@@ -507,7 +548,7 @@ export function TimelineHall({ onDeepRead }: TimelineHallProps) {
             <button
               className="stupa-lens interactive"
               type="button"
-              onClick={() => setActiveImage(stop.lensImage)}
+              onClick={() => openImageViewer(stop.lensImage)}
               style={{
                 left: stop.marker.x,
                 top: stop.marker.y,
@@ -536,7 +577,7 @@ export function TimelineHall({ onDeepRead }: TimelineHallProps) {
               <p>{stop.body}</p>
               <button
                 className="stupa-deep-read-btn interactive"
-                onClick={onDeepRead}
+                onClick={() => onDeepRead?.(stop.id)}
               >
                 深度阅读
                 <span className="arrow" aria-hidden="true">→</span>
@@ -554,13 +595,13 @@ export function TimelineHall({ onDeepRead }: TimelineHallProps) {
             <button
               className="stupa-lens interactive"
               type="button"
-              onClick={() => setActiveImage(stop.lensImage)}
+              onClick={() => openImageViewer(stop.lensImage)}
               style={{
                 left: stop.marker.x,
                 top: stop.marker.y,
                 '--detail-image': `url("${stop.lensImage}")`,
                 '--detail-position': stop.lensPosition,
-              } as React.CSSProperties}
+              } as CSSProperties}
               aria-label={`查看${stop.title}原貌细节`}
             >
               <span className="stupa-lens-ornament" aria-hidden="true" />
@@ -582,7 +623,7 @@ export function TimelineHall({ onDeepRead }: TimelineHallProps) {
               <p>{stop.body}</p>
               <button
                 className="stupa-deep-read-btn interactive"
-                onClick={onDeepRead}
+                onClick={() => onDeepRead?.(stop.id)}
               >
                 阅读全卷
                 <span className="arrow" aria-hidden="true">→</span>
@@ -693,13 +734,18 @@ export function TimelineHall({ onDeepRead }: TimelineHallProps) {
         {stupaStops.slice(1).map((s, idx) => {
           const actualIdx = idx + 1
           const isActive = actualIdx === currentStop
+          const isLocked = Math.abs(actualIdx - currentStop) > 1
+          const isDisabled = isAnimating || isLocked
           return (
             <button
-              className={`curve-nav-dot ${isActive ? 'is-active' : ''}`}
+              className={`curve-nav-dot ${isActive ? 'is-active' : ''} ${isLocked ? 'is-locked' : ''}`}
               key={s.id}
               type="button"
               aria-label={`漫游节点：${s.title}`}
               aria-pressed={isActive}
+              aria-disabled={isDisabled}
+              disabled={isDisabled}
+              title={isLocked ? '请按顺序浏览相邻节点' : s.title}
               onClick={() => transitionTo(actualIdx)}
             >
               {/* 莲花瓣形状的外圈 - 使用 SVG 路径绘制 */}
@@ -848,20 +894,22 @@ export function TimelineHall({ onDeepRead }: TimelineHallProps) {
       <div
         className={`fullscreen-image-viewer ${activeImage ? 'is-active' : ''}`}
         aria-hidden={!activeImage}
-        onClick={() => setActiveImage(null)}
+        onClick={closeImageViewer}
       >
         <button
           className="close-viewer-btn interactive"
-          onClick={(e) => { e.stopPropagation(); setActiveImage(null) }}
+          onClick={(e) => { e.stopPropagation(); closeImageViewer() }}
         >
           ✕
         </button>
-        <img
-          src={displayedImage || ''}
-          alt="全屏原貌图"
-          className="viewer-image"
-          onClick={(e) => e.stopPropagation()}
-        />
+        {displayedImage && (
+          <img
+            src={displayedImage}
+            alt="全屏原貌图"
+            className="viewer-image"
+            onClick={(e) => e.stopPropagation()}
+          />
+        )}
       </div>
     </section>
   )

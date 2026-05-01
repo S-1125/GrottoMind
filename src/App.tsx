@@ -12,14 +12,45 @@ function App() {
   const [isVeiling, setIsVeiling] = useState(false)
   const [loadProgress, setLoadProgress] = useState(0)
   const timersRef = useRef<number[]>([])
-  const rafRef = useRef<number>(0)
+  const loadStartedAtRef = useRef(0)
+  const loadFinishedRef = useRef(false)
 
   useEffect(() => {
     const timers = timersRef.current
     return () => {
       timers.forEach((timer) => window.clearTimeout(timer))
-      cancelAnimationFrame(rafRef.current)
     }
+  }, [])
+
+  const completeLoadTransition = useCallback(() => {
+    if (loadFinishedRef.current) return
+
+    loadFinishedRef.current = true
+    setLoadProgress(100)
+
+    // 黑幕至少停留一段时间，避免缓存命中时一闪而过。
+    const elapsed = performance.now() - loadStartedAtRef.current
+    const delay = Math.max(0, 1200 - elapsed)
+
+    timersRef.current.push(window.setTimeout(() => {
+      gsap.to('.veil-loader', {
+        y: -15,
+        opacity: 0,
+        duration: 0.6,
+        ease: 'power2.inOut',
+        onComplete: () => {
+          setStage('exhibition')
+          timersRef.current.push(window.setTimeout(() => {
+            setIsVeiling(false)
+          }, 100))
+        }
+      })
+    }, delay))
+  }, [])
+
+  const handleAssetsProgress = useCallback((progress: number) => {
+    const nextProgress = Math.max(0, Math.min(99, Math.round(progress)))
+    setLoadProgress((current) => Math.max(current, nextProgress))
   }, [])
 
   const enterExhibition = useCallback(() => {
@@ -28,43 +59,13 @@ function App() {
     // 第一阶段：黑幕淡入
     setIsVeiling(true)
     setLoadProgress(0)
+    loadFinishedRef.current = false
+    loadStartedAtRef.current = performance.now()
 
     timersRef.current.push(window.setTimeout(() => {
-      // 第二阶段：切换到加载中状态，开始模拟进度
+      // 第二阶段：在黑幕下挂载展厅，让模型和贴图开始真实加载。
       setStage('loading')
       window.scrollTo(0, 0)
-
-      let progress = 0
-      const startTime = performance.now()
-      // 总加载时间 2.5 秒
-      const duration = 2500
-
-      const tick = () => {
-        const elapsed = performance.now() - startTime
-        // 使用缓入缓出曲线让进度更自然
-        const t = Math.min(elapsed / duration, 1)
-        progress = Math.round(t * t * (3 - 2 * t) * 100)
-        setLoadProgress(progress)
-
-        if (t < 1) {
-          rafRef.current = requestAnimationFrame(tick)
-        } else {
-          // 加载完成，使用 GSAP 执行浮动淡出动画
-          gsap.to('.veil-loader', {
-            y: -15,
-            opacity: 0,
-            duration: 0.6,
-            ease: 'power2.inOut',
-            onComplete: () => {
-              setStage('exhibition')
-              timersRef.current.push(window.setTimeout(() => {
-                setIsVeiling(false)
-              }, 100))
-            }
-          })
-        }
-      }
-      rafRef.current = requestAnimationFrame(tick)
     }, 520))
   }, [isVeiling, stage])
 
@@ -74,8 +75,11 @@ function App() {
       <main className={`app-root ${isVeiling ? 'is-veiling' : ''}`}>
       {stage === 'intro' ? (
         <IntroAnimation onEnter={enterExhibition} />
-      ) : stage === 'loading' ? null : (
-        <Exhibition />
+      ) : (
+        <Exhibition
+          onAssetsProgress={handleAssetsProgress}
+          onAssetsReady={completeLoadTransition}
+        />
       )}
       <div className="experience-veil" aria-hidden="true">
         <div className="veil-loader">
