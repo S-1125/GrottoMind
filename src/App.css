@@ -1191,6 +1191,56 @@ html.large-text {
   font-size: 120%;
 }
 
+/* 深度阅读无障碍支持 */
+@media (prefers-reduced-motion: reduce) {
+  .deep-read-gallery,
+  .gallery-card-wrapper,
+  .card-image-wrapper,
+  .card-image-frame,
+  .card-image-frame img {
+    transition: none !important;
+    animation: none !important;
+  }
+  
+  .gallery-card-wrapper {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* 深度阅读焦点状态 */
+.gallery-card-wrapper:focus-visible {
+  outline: 2px solid rgba(212, 169, 106, 0.6);
+  outline-offset: 12px;
+}
+
+.gallery-close-btn:focus-visible {
+  outline: 2px solid rgba(212, 169, 106, 0.6);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+/* 深度阅读响应式优化 */
+@media (max-width: 1200px) {
+  .gallery-scroll-track {
+    gap: clamp(32px, 3vw, 48px);
+    padding: 0 8vw;
+  }
+  
+  .card-title {
+    font-size: clamp(32px, 3.5vw, 48px);
+  }
+  
+  .card-hero-title {
+    font-size: clamp(40px, 4.5vw, 56px);
+  }
+  
+  .card-body {
+    font-size: 14px;
+    max-width: 340px;
+  }
+}
+
 @media (max-width: 768px) {
   .intro-loader-inner {
     width: 150px;
@@ -2880,7 +2930,8 @@ html.large-text {
    深度阅读长页面 (Deep Read Article)
 ============================================================ */
 /* ============================================================
-   横向画廊 (Deep Read Gallery) - Getty Museum Editorial Style
+   数字长卷 (Deep Read Gallery) - 博物馆级展览叙事
+   设计理念：不是横向滑动的网页，而是一轴缓缓展开的数字长卷
 ============================================================ */
 .deep-read-gallery {
   position: fixed;
@@ -2889,11 +2940,11 @@ html.large-text {
   width: 100vw;
   height: 100dvh;
   z-index: 50;
-  background-color: #161616; /* Getty dark background */
+  background-color: #141414; /* 比 #161616 更深，更接近博物馆暗场 */
   color: #fff;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.8s ease, visibility 0.8s;
+  transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), visibility 1s;
   overflow: hidden;
 }
 
@@ -2908,31 +2959,31 @@ html.large-text {
   top: 0;
   left: 0;
   right: 0;
-  height: 100px;
+  height: 80px; /* 从 100px 缩减，更克制 */
   z-index: 60;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 4vw;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0 5vw;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04); /* 更淡的分隔线 */
   pointer-events: none;
 }
 
 .topbar-left {
   display: flex;
-  gap: 40px;
+  gap: 32px;
 }
 
 .tech-text {
   font-family: var(--font-sans), 'JetBrains Mono', monospace;
-  font-size: 11px;
-  letter-spacing: 0.15em;
-  color: rgba(255, 255, 255, 0.4);
+  font-size: 10px; /* 从 11px 缩减 */
+  letter-spacing: 0.2em; /* 增加字间距 */
+  color: rgba(255, 255, 255, 0.35); /* 更淡 */
   text-transform: uppercase;
 }
 
 .tech-text.coords {
-  opacity: 0.5;
+  opacity: 0.45;
 }
 
 /* ---- 底部技术网格栏 ---- */
@@ -2941,112 +2992,125 @@ html.large-text {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 60px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  height: 50px; /* 从 60px 缩减 */
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
   z-index: 60;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 4vw;
+  padding: 0 5vw;
   pointer-events: none;
 }
 
 .scroll-indicator {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
+}
+
+.scroll-label {
+  font-size: 9px;
+  letter-spacing: 0.25em;
 }
 
 .indicator-line {
-  width: 120px;
+  width: 100px; /* 从 120px 缩减 */
   height: 1px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
   position: relative;
   overflow: hidden;
 }
 
-.indicator-line::after {
-  content: '';
+/* 基于真实滚动进度的进度条 */
+.indicator-progress {
   position: absolute;
   top: 0;
   left: 0;
-  height: 1px;
-  width: 30%;
-  background: rgba(255, 255, 255, 0.6);
-  animation: scrollPan 2s infinite cubic-bezier(0.16, 1, 0.3, 1);
+  height: 100%;
+  background: linear-gradient(90deg, #d4a96a, #f6cea0);
+  transition: width 0.1s linear;
 }
 
-@keyframes scrollPan {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(330%); }
+/* 移除原来的虚假动画 */
+.indicator-line::after {
+  display: none;
 }
 
 .status-dot {
   display: inline-block;
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background-color: #d4a96a;
   margin-right: 8px;
-  box-shadow: 0 0 8px #d4a96a;
-  animation: pulseDot 2s infinite;
+  /* 移除发光效果，更克制 */
+  box-shadow: none;
+  opacity: 0.8;
+  animation: pulseDot 3s infinite ease-in-out; /* 放慢节奏 */
 }
 
 @keyframes pulseDot {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
-}
-
-.gallery-logo {
-  font-family: 'Noto Serif SC', serif;
-  font-size: 24px;
-  font-weight: 500;
-  color: #fff;
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
 }
 
 .gallery-close-btn {
   pointer-events: auto;
   background: transparent;
   border: none;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.5);
   font-family: var(--font-sans);
-  font-size: 13px;
-  letter-spacing: 0.1em;
+  font-size: 12px;
+  letter-spacing: 0.15em;
   display: flex;
   align-items: center;
-  gap: 12px;
-  cursor: none;
-  transition: color 0.3s ease;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 8px 0;
 }
 
 .gallery-close-btn:hover {
   color: #fff;
 }
 
+.close-text {
+  transition: transform 0.3s ease;
+}
+
+.gallery-close-btn:hover .close-text {
+  transform: translateX(-4px);
+}
+
 .gallery-close-icon {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
-  font-weight: 300;
-  transition: border-color 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.gallery-close-icon svg {
+  width: 14px;
+  height: 14px;
 }
 
 .gallery-close-btn:hover .gallery-close-icon {
-  border-color: #fff;
+  border-color: #d4a96a;
+  background: rgba(212, 169, 106, 0.1);
+  transform: rotate(90deg);
 }
 
-/* ---- 自由横向滑动轨道 ---- */
+/* ---- 展线轨道 ---- */
 .gallery-scroll-track {
   display: flex;
-  align-items: flex-start; /* 全局基线：上对齐 */
-  gap: 5vw; /* 将 8vw 的全局间距收紧到 5vw，增强图文之间的视觉关联 */
-  padding: 0 10vw; /* 移除 padding，由子元素各自控制垂直占位 */
-  box-sizing: border-box; /* 确保 padding 包含在 100dvh 内 */
+  align-items: center; /* 统一居中 */
+  gap: clamp(48px, 4vw, 72px); /* 更紧凑的间距 */
+  padding: 0 12vw; /* 增加左右留白 */
+  box-sizing: border-box;
   width: 100%;
   height: 100dvh;
   overflow-x: auto;
@@ -3055,8 +3119,6 @@ html.large-text {
   -ms-overflow-style: none;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
-  transform: translateZ(0);
-  will-change: transform;
 }
 
 .gallery-scroll-track::-webkit-scrollbar {
@@ -3065,74 +3127,134 @@ html.large-text {
 
 .gallery-card-wrapper {
   flex-shrink: 0;
-  /* 移除 height: 100% 和 align-items: center，让内容自然上对齐并由内容撑开高度 */
+  align-self: center; /* 统一居中 */
+  opacity: 0; /* 初始隐藏，由 GSAP 动画显示 */
 }
 
-/* ---- 文本排版基础 (Getty 风格) ---- */
+/* ---- 文本排版基础 (博物馆展签风格) ---- */
 .card-kicker {
   display: block;
   font-family: var(--font-sans);
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
-  margin-bottom: 12px;
+  font-size: 10px; /* 更小，更克制 */
+  color: rgba(212, 169, 106, 0.6); /* 暗金色 */
+  margin-bottom: 16px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.15em;
 }
 
 .card-title {
   font-family: 'Noto Serif SC', serif;
-  font-size: 56px;
+  font-size: clamp(40px, 4vw, 56px); /* 响应式字号 */
   font-weight: 400;
-  line-height: 1.1;
-  margin: 0 0 32px 0;
-  color: #e8d6c0; /* Pale gold / champagne */
+  line-height: 1.15;
+  margin: 0 0 28px 0;
+  color: #f5f0e8; /* 更温暖的白色 */
+  letter-spacing: 0.02em;
+}
+
+.card-divider {
+  width: 40px;
+  height: 1px;
+  background: linear-gradient(90deg, #d4a96a, transparent);
+  margin-bottom: 24px;
 }
 
 .card-body {
   font-family: 'Noto Serif SC', serif;
-  font-size: 16px;
-  line-height: 2.2;
-  color: rgba(255, 255, 255, 0.7);
+  font-size: 15px; /* 从 16px 微调 */
+  line-height: 1.85; /* 从 2.2 收紧，阅读更流畅 */
+  color: rgba(255, 255, 255, 0.75);
   font-weight: 300;
-  max-width: 420px;
+  max-width: 380px; /* 从 420px 收窄 */
+  text-align: justify; /* 两端对齐，更像展签 */
+  text-align-last: left;
 }
 
 .card-caption {
   font-family: var(--font-sans);
-  font-size: 12px;
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.4);
-  margin-top: 16px;
-  max-width: 300px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.45);
+  margin-top: 20px;
+  max-width: 280px;
+  letter-spacing: 0.02em;
 }
 
 .card-note {
   font-family: 'Noto Serif SC', serif;
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.55);
   font-style: italic;
-  margin-top: 24px;
-  border-left: 1px solid rgba(255, 255, 255, 0.2);
+  margin-top: 28px;
+  border-left: 2px solid rgba(212, 169, 106, 0.3);
   padding-left: 16px;
+  line-height: 1.7;
+}
+
+/* 色彩调色板 - 悬停显示 */
+.image-color-palette {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  display: flex;
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(12px);
+  padding: 10px 14px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  z-index: 10;
+  /* 默认隐藏，悬停显示 */
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-image:hover .image-color-palette,
+.card-image-wrapper:hover .image-color-palette {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.mini-color-swatch {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mini-color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.4);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.mini-color-text {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.8);
+  letter-spacing: 0.5px;
 }
 
 .card-reference {
   font-family: var(--font-sans);
-  font-size: 11px;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.35);
-  margin-top: 24px;
+  font-size: 10px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.3);
+  margin-top: 28px;
   padding-top: 16px;
-  border-top: 1px dashed rgba(255, 255, 255, 0.1);
-  max-width: 420px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  max-width: 380px;
   display: flex;
   gap: 8px;
   align-items: flex-start;
 }
 
 .card-reference .ref-icon {
-  color: #e8d6c0;
-  opacity: 0.6;
+  color: #d4a96a;
+  opacity: 0.5;
+  font-size: 12px;
 }
 
 /* ---- 布局: Hero (大标题) ---- */
