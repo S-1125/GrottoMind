@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, Suspense } from 'react'
+import { Suspense, useEffect, useMemo, useRef } from 'react'
 import { Canvas, useFrame, useLoader } from '@react-three/fiber'
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'
 import * as THREE from 'three'
@@ -7,6 +7,7 @@ function HoloModel() {
   // 加载原始 OBJ 网格
   const rawObj = useLoader(OBJLoader, '/assets/qixia-model/3DModel0.obj')
   const groupRef = useRef<THREE.Group>(null)
+  const uniformsRef = useRef<{ uTime: { value: number } } | null>(null)
 
   // 预处理模型与创建材质
   const { model, uniforms } = useMemo(() => {
@@ -96,12 +97,23 @@ function HoloModel() {
     return { model: obj, uniforms: shaderUniforms }
   }, [rawObj])
 
+  useEffect(() => {
+    uniformsRef.current = uniforms
+    return () => {
+      if (uniformsRef.current === uniforms) {
+        uniformsRef.current = null
+      }
+    }
+  }, [uniforms])
+
   useFrame((_state, delta) => {
     if (groupRef.current) {
       groupRef.current.rotation.y += delta * 0.15
     }
     // 更新着色器时间
-    uniforms.uTime.value += delta
+    if (uniformsRef.current) {
+      uniformsRef.current.uTime.value += delta
+    }
   })
 
   return (
