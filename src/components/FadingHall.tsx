@@ -76,29 +76,22 @@ export function FadingHall({ onBack }: FadingHallProps) {
     }
   }, [])
 
-  /* ---- 点击"进入"：幕布过渡 ---- */
+  /* ---- 点击"进入"：幕布过渡（线上暂禁用） ---- */
   const handleEnter = useCallback(() => {
-    // 1. 隐藏按钮
+    // 线上暂不开放第二章内容，直接 return
+    return
+
+    // eslint-disable-next-line no-unreachable
     setCtaVisible(false)
-
-    // 2. 200ms 后开始淡出 loader（opacity 过渡 0.6s）
     setTimeout(() => setLoaderFading(true), 200)
-
-    // 3. 400ms 后激活激光线（loader 正在淡出，激光从顶部射入）
     setTimeout(() => setCurtainActive(true), 400)
-
-    // 4. 激光射满后（~900ms），拉开幕布
     setTimeout(() => setCurtainOpen(true), 900)
-
-    // 5. 幕布拉开的同时显示主内容
     setTimeout(() => {
       setMainVisible(true)
       setNavVisible(true)
       setHeroVisible(true)
       setShowcaseVisible(true)
     }, 1000)
-
-    // 6. 过渡全部完成后卸载 loader DOM
     setTimeout(() => setLoaderHidden(true), 2000)
   }, [])
 
@@ -241,7 +234,7 @@ export function FadingHall({ onBack }: FadingHallProps) {
               {/* 主圈按钮（加载完后边框和文字淡入） */}
               <button
                 className={`fh-enter-btn ${ctaVisible ? 'fh-enter-btn--ready' : ''}`}
-                // onClick={handleEnter} // TODO: 上线后恢复点击进入第二章
+                onClick={handleEnter}
                 aria-label="进入第二章"
                 disabled={!ctaVisible}
               >
