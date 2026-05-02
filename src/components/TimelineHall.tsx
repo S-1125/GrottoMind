@@ -34,7 +34,7 @@ const stupaStops = [
     nav: '刹',
     title: '六重塔刹',
     subtitle: '塔刹 · Finial',
-    body: '表面装饰有莲瓣、束腰和云纹，分别象征着佛塔传统的覆钵、相轮和火珠。塔刹向上收束，使整座舍利塔获得清晰的精神指向。',
+    body: '表面装饰有莲瓣、束腰和云纹，分别象征着佛塔传统的覆钵、相轮和火珠。塔刹向上收束，使整座舍利塔获得清晰的精神指向。注：现存塔刹为民国时期（1930年）重修。',
     mode: 'lens' as const,
     // 放大镜的屏幕坐标 (相对于窗口左上角)
     // 根据您截图里塔的位置，大概在屏幕偏左上三分之一处
@@ -101,7 +101,7 @@ const stupaStops = [
     nav: '基',
     title: '九山八海',
     subtitle: '塔基 · Base',
-    body: '须弥座的束腰部分以海水、龙、亭台楼榭等图像组织空间，呼应佛教宇宙观中的九山八海。塔基让信仰获得可承托的世界结构。',
+    body: '须弥座的束腰部分以海水、瑞龙与托塔力士、亭台楼榭等图像组织空间，呼应佛教宇宙观中的九山八海。塔基让信仰获得可承托的世界结构。',
     mode: 'lens' as const,
     marker: { x: '42%', y: '66%' },
     lensImage: '/章节1图片素材/塔基与须弥座.webp',
@@ -134,12 +134,11 @@ function stopProgress(index: number) {
 ============================================================ */
 interface TimelineHallProps {
   onDeepRead?: (nodeId: string) => void
-  onAssetsProgress?: (progress: number) => void
-  onAssetsReady?: () => void
+  onNextChapter?: () => void
   isPaused?: boolean
 }
 
-export function TimelineHall({ onDeepRead, onAssetsProgress, onAssetsReady, isPaused }: TimelineHallProps) {
+export function TimelineHall({ onDeepRead, onNextChapter, isPaused }: TimelineHallProps) {
   // ---- 核心状态 ----
   const [currentStop, setCurrentStop] = useState(0)
   const [isAnimating, setIsAnimating] = useState(false)
@@ -496,8 +495,6 @@ export function TimelineHall({ onDeepRead, onAssetsProgress, onAssetsReady, isPa
       {/* 3D 模型场景 */}
       <GrottoModelScene
         ref={modelRef}
-        onLoadProgress={onAssetsProgress}
-        onSceneReady={onAssetsReady}
       />
       <div className="intro-film-grain" aria-hidden="true" />
 
@@ -621,13 +618,38 @@ export function TimelineHall({ onDeepRead, onAssetsProgress, onAssetsReady, isPa
               <h2>{stop.title}</h2>
               <i aria-hidden="true" />
               <p>{stop.body}</p>
-              <button
-                className="stupa-deep-read-btn interactive"
-                onClick={() => onDeepRead?.(stop.id)}
-              >
-                阅读全卷
-                <span className="arrow" aria-hidden="true">→</span>
-              </button>
+              <div className="stupa-story-actions">
+                <button
+                  className="stupa-deep-read-btn interactive"
+                  onClick={() => onDeepRead?.(stop.id)}
+                >
+                  阅读全卷
+                  <span className="arrow" aria-hidden="true">→</span>
+                </button>
+
+                {/* 进入下一章按钮组（分离互换式交互） */}
+                <div
+                  className="next-chapter-group interactive"
+                  onClick={() => onNextChapter?.()}
+                  role="button"
+                  tabIndex={0}
+                  aria-label="进入第二章"
+                  onKeyDown={(e) => { if (e.key === 'Enter') onNextChapter?.() }}
+                >
+                  {/* 胶囊形主按钮 */}
+                  <span className="next-pill">
+                    <span className="next-pill-bg"></span>
+                    <span className="next-pill-text">进入下一章</span>
+                  </span>
+                  
+                  {/* 圆形图标按钮 */}
+                  <span className="next-icon" aria-hidden="true">
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                      <path d="M1 1L13 13M13 13H3M13 13V3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </span>
+                </div>
+              </div>
             </article>
           </div>
         )}

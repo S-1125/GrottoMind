@@ -30,7 +30,7 @@ const nodeContentMap: Record<string, GalleryCard[]> = {
   'finial': [
     { type: 'hero', title: '仰望天际\n的信仰', subtitle: 'THE FINIAL' },
     { type: 'image', src: '/章节1图片素材/塔刹.webp', caption: '舍利塔最顶端的塔刹由六重石头叠置而成', width: '25vw', colors: [{ hex: '#8B4513', name: '铁赭', percentage: 60 }, { hex: '#D4AF37', name: '真金', percentage: 25 }, { hex: '#2F4F4F', name: '墨石', percentage: 15 }] },
-    { type: 'text', kicker: 'STRUCTURE', title: '重构的宇宙之轴', body: '塔刹顶端的相轮暗指诸天与三宝，贯穿其中的伞柱则象征着宇宙之轴。但据梁思成考证，现存塔刹实际为1930年修葺后的形制。南唐初建时，这根直指天际的信仰之轴究竟是何模样，已随着千年的风霜化为历史的谜团。', reference: '[1-3] 印度窣堵波源流考 / 梁思成《中国建筑史》'}
+    { type: 'text', kicker: 'STRUCTURE', title: '重构的宇宙之轴', body: '塔刹顶端的相轮暗指诸天与三宝，贯穿其中的伞柱则象征着宇宙之轴。但据梁思成考证，现存塔刹实际为民国时期（1930年）重修后的形制，并非南唐原貌。南唐初建时，这根直指天际的信仰之轴究竟是何模样，已随着千年的风霜化为历史的谜团。', note: '注：现存塔刹为民国十九年（1930年）修葺时重做，非南唐原构。', reference: '[1-3] 印度窣堵波源流考 / 梁思成《中国建筑史》'}
   ],
 
   // ---- 2. 密檐 ----
@@ -44,7 +44,6 @@ const nodeContentMap: Record<string, GalleryCard[]> = {
   'niche': [
     { type: 'hero', title: '凝石为法：\n塔身佛龛', subtitle: 'THE NICHES' },
     { type: 'image', src: '/章节1图片素材/佛龛.webp', caption: '塔身佛龛以层级方式分布', width: '28vw', colors: [{ hex: '#E39B77', name: '肉色', percentage: 40 }, { hex: '#4A8F79', name: '铜绿', percentage: 30 }, { hex: '#C85A17', name: '雄黄', percentage: 20 }, { hex: '#EAE5D9', name: '铅白', percentage: 10 }] },
-    { type: 'image', src: '/章节1图片素材/飞天2.webp', caption: '佛龛两侧的浮雕飞天', width: '20vw' },
     { type: 'text', kicker: 'ART', title: '秀骨清像与盛唐遗风', body: '造像身躯呈现出东晋南北朝时期典型的"褒衣博带、秀骨清像"风格，衣带飞舞间如"春蚕吐丝"。但南唐匠人并未照搬魏晋的消瘦，而是赋予了佛像丰腴饱满的晚唐面相。这种躯体与面相的跨时代融合，折射出南唐力图"复兴唐祚"的强烈时代审美诉求。', reference: '[7-9] 五代石刻艺术风格演变与审美张力'}
   ],
 
@@ -74,6 +73,7 @@ const nodeContentMap: Record<string, GalleryCard[]> = {
     { type: 'hero', title: '六牙白象\n与佚失的大智', subtitle: 'BODHISATTVAS' },
     { type: 'image', src: '/章节1图片素材/普贤菩萨.webp', caption: '普贤菩萨跏趺坐于六牙白象背负的莲台上', width: '38vw', align: 'center', colors: [{ hex: '#F5F5DC', name: '蛤粉', percentage: 55 }, { hex: '#E6C687', name: '泥金', percentage: 25 }, { hex: '#C1392B', name: '朱砂', percentage: 15 }, { hex: '#4A8F79', name: '石绿', percentage: 5 }] },
     { type: 'text', kicker: 'COMPASSION', title: '幸存的经典', body: '位于西面的普贤菩萨相对完好。菩萨神态宁静，左手持经函；身旁站立着面颊丰腴的昆仑奴，正当胸紧握缰绳牵引白象，展现了南唐极具特征的造像样式。', reference: '[4] 栖霞山造像残存细节考'},
+    { type: 'image', src: '/章节1图片素材/飞天2.webp', caption: '菩萨造像旁的浮雕飞天', width: '20vw', align: 'end' },
     { type: 'image', src: '/章节1图片素材/文殊菩萨-已缺失.webp', caption: '东面文殊菩萨现已佚失，仅留残痕', width: '24vw', align: 'start' },
     { type: 'text', kicker: 'WISDOM', title: '战火中的大智之殇', body: '令人扼腕的是，原本坐镇东面的文殊菩萨在南宋时期遭遇金兵焚掠，惨遭毁坏殆尽。学界推测其原貌为极具西域风情的"新样文殊"——由头戴冠冕的于阗国王牵引雄狮。这铺遗失的金碧绝唱，正是数字复原工作的核心初衷。', reference: '[1-3] 南宋金兵毁佛与新样文殊图像考'}
   ],
@@ -83,7 +83,22 @@ const nodeContentMap: Record<string, GalleryCard[]> = {
     { type: 'hero', title: '海浪与瑞兽\n的交响', subtitle: 'SUMERU THRONE AND BASE' },
     { type: 'image', src: '/章节1图片素材/塔基与须弥座.webp', caption: '束腰处大面积浮雕了翻滚的海水与瑞兽', width: '42vw', align: 'center', colors: [{ hex: '#5F9EA0', name: '花青', percentage: 45 }, { hex: '#FFF8DC', name: '云母', percentage: 30 }, { hex: '#34495E', name: '深青', percentage: 15 }, { hex: '#C1392B', name: '朱红', percentage: 10 }] },
     { type: 'text', kicker: 'WATER & BEAST', title: '翻涌的基石', body: '南唐工匠在束腰处大面积浮雕了翻滚的海水与神异的瑞兽。水纹波涛汹涌，与上方端庄肃穆的佛国世界形成了强烈的动静对比。', reference: '等待 NotebookLM 数据注入...'},
-    { type: 'image', src: '/章节1图片素材/龙.webp', caption: '腾出水面的瑞龙浮雕', width: '22vw', align: 'end' },
+    { type: 'gallery', kicker: 'DRAGON', title: '瑞龙浮雕', intro: '须弥座束腰处的瑞龙腾跃于翻涌的海水之间，龙身蜿蜒有力，鳞片刻画入微，是南唐石雕瑞兽题材的杰出代表。', align: 'center',
+      items: [
+        { image: '/章节1图片素材/瑞龙1.webp', label: '瑞龙一', desc: '龙首昂扬，破浪而出' },
+        { image: '/章节1图片素材/瑞龙2.webp', label: '瑞龙二', desc: '龙身蜿蜒，穿行波涛' },
+        { image: '/章节1图片素材/瑞龙3.webp', label: '瑞龙三', desc: '龙爪刚劲，攫云翻浪' },
+        { image: '/章节1图片素材/瑞龙4.webp', label: '瑞龙四', desc: '龙尾卷曲，没入水纹' },
+      ]
+    },
+    { type: 'gallery', kicker: 'ATLAS', title: '托塔力士', intro: '须弥座转角处的托塔力士以蹲踞姿态承托塔身，肌肉虬结、神情刚毅，展现了南唐匠人对力量与信仰守护的精妙表达。', align: 'center',
+      items: [
+        { image: '/章节1图片素材/托塔力士1.webp', label: '力士一', desc: '双臂撑举，筋骨毕露' },
+        { image: '/章节1图片素材/托塔力士2.webp', label: '力士二', desc: '怒目圆睁，守护塔基' },
+        { image: '/章节1图片素材/托塔力士3.webp', label: '力士三', desc: '蹲踞承重，稳如磐石' },
+        { image: '/章节1图片素材/托塔力士4.webp', label: '力士四', desc: '体魄雄健，威风凛凛' },
+      ]
+    },
     { type: 'image', src: '/章节1图片素材/题记.webp', caption: '刻于塔身的经文与偈颂', width: '9vw', align: 'start' },
     { type: 'text', kicker: 'INSCRIPTION', title: '断代悬案与历史拼图', body: '令人惊讶的是，塔身并未留下任何纪年铭文，其刻有的经文因保留了"六朝别字"习惯，曾误导早年学者将其断代为隋。现代学者是通过考证南唐官员高越与将领林仁肇的履历交集，才如解谜般将建塔年代精确定位于公元945至965年间。', reference: '[1, 2] 梁思成考察报告 / [4, 5] 徐永利等关于南唐人物履历交叉推断考'}
   ],
@@ -361,16 +376,11 @@ function renderCard(card: GalleryCard) {
         </div>
       )
 
-    case 'gallery':
+    case 'gallery': {
+      const colsClass = card.items.length <= 4 ? 'cols-4' : 'cols-8'
       return (
         <div className="card-gallery">
-          <div className="card-text gallery-intro-text">
-            <span className="card-kicker">{card.kicker}</span>
-            <h2 className="card-title">{card.title}</h2>
-            <div className="card-divider" />
-            <p className="card-body">{card.intro}</p>
-          </div>
-          <div className="card-gallery-grid">
+          <div className={`card-gallery-grid ${colsClass}`}>
             {card.items.map((item, j) => (
               <figure key={j} className="grid-item">
                 <div className="card-image-frame">
@@ -383,8 +393,15 @@ function renderCard(card: GalleryCard) {
               </figure>
             ))}
           </div>
+          <div className="card-text gallery-intro-text">
+            <span className="card-kicker">{card.kicker}</span>
+            <h2 className="card-title">{card.title}</h2>
+            <div className="card-divider" />
+            <p className="card-body">{card.intro}</p>
+          </div>
         </div>
       )
+    }
 
     default:
       return null

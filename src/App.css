@@ -1288,66 +1288,15 @@ html.large-text {
 /* ==========================================================================
    进入后的展览骨架
    ========================================================================== */
+/* 序章 → 第一章 纯黑幕过渡遮罩 */
 .experience-veil {
   position: fixed;
   inset: 0;
   z-index: 2000;
   pointer-events: none;
   opacity: 0;
-  background: #232227;
-  transition: opacity 0.8s ease-in-out;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* 曼陀罗加载动画 - 与序章 loader 完全一致 */
-.veil-loader {
-  position: relative;
-  width: min(180px, 20vw);
-  height: min(180px, 20vw);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transform: scale(0.85);
-  transition: opacity 0.6s ease, transform 0.6s ease;
-}
-
-.app-root.is-veiling .veil-loader {
-  opacity: 1;
-  transform: scale(1);
-}
-
-.veil-ornament {
-  position: absolute;
-  inset: -23%;
-  width: auto;
-  height: auto;
-  background-color: var(--c-gold);
-  opacity: 0.8;
-  animation: mandala-spin 40s linear infinite;
-  -webkit-mask-image: url('/assets/ornament.png');
-  -webkit-mask-position: center;
-  -webkit-mask-repeat: no-repeat;
-  -webkit-mask-size: contain;
-  mask-image: url('/assets/ornament.png');
-  mask-position: center;
-  mask-repeat: no-repeat;
-  mask-size: contain;
-}
-
-.veil-progress-text {
-  position: relative;
-  z-index: 2;
-  color: var(--c-gold);
-  font-family: var(--font-loader);
-  font-size: clamp(36px, 4.5vw, 56px);
-  font-weight: 400;
-  line-height: 0.9;
-  letter-spacing: 0.015em;
-  text-shadow: 0 0 16px rgba(246, 206, 160, 0.1);
-  transform: translateY(2px);
+  background: #0a0a0a;
+  transition: opacity 0.6s ease-in-out;
 }
 
 .app-root.is-veiling .experience-veil {
@@ -2253,6 +2202,140 @@ html.large-text {
   right: clamp(120px, 14vw, 240px);
   width: min(560px, 38vw);
 }
+
+/* 故事模式操作区：深度阅读 + 进入下一章 水平排列 */
+.stupa-story-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.stupa-story-actions .stupa-deep-read-btn {
+  margin-top: 0;
+}
+
+/* ==========================================================================
+   进入下一章按钮组 — 胶囊 + 圆形图标 (严格复刻分离互换参考图)
+   ========================================================================== */
+.next-chapter-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px; /* 默认状态：胶囊和圆圈之间有间隙 */
+  cursor: pointer;
+  border: none !important;
+  background: none !important;
+  padding: 0 !important;
+  margin-top: 0 !important;
+  overflow: visible !important;
+}
+
+/* 禁用父级可能存在的伪元素干扰 */
+.next-chapter-group::before {
+  display: none !important;
+}
+
+/* ---- 胶囊形主按钮 ---- */
+.next-pill {
+  position: relative;
+  width: 124px;
+  height: 48px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: all 400ms cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1;
+}
+
+/* 参考图2：从下往上填充的哑光金背景 */
+.next-pill-bg {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 0%;
+  background: #C1AD7D;
+  transition: height 400ms cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 0;
+}
+
+.next-pill-text {
+  position: relative;
+  z-index: 1;
+  color: #fff;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  transition: color 400ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ---- 圆形图标 ---- */
+.next-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #fff;
+  color: #111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 400ms cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 2;
+}
+
+.next-icon svg {
+  transition: transform 400ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============ Hover 交互动效 ============ */
+
+/* Hover 触发：当鼠标悬浮在整个 group 时 */
+
+/* 1. 胶囊：边框变色，向右平移（留出图标的位置，产生贴合感） */
+/* 计算：胶囊左侧边缘需要贴着图标的右侧。图标宽度48px，我们希望它们稍微交叠一点点(4px)让接缝完美，所以移动 48-4 = 44px */
+.next-chapter-group:hover .next-pill,
+.next-chapter-group:focus-visible .next-pill {
+  border-color: #C1AD7D;
+  transform: translateX(44px);
+}
+
+/* 2. 胶囊背景：从底部长满 */
+.next-chapter-group:hover .next-pill-bg,
+.next-chapter-group:focus-visible .next-pill-bg {
+  height: 100%;
+}
+
+/* 3. 胶囊文字：变黑 */
+.next-chapter-group:hover .next-pill-text,
+.next-chapter-group:focus-visible .next-pill-text {
+  color: #111;
+}
+
+/* 4. 圆形图标：变色，从右侧飞到最左侧 */
+/* 计算：图标原始在右侧，相隔了 胶囊宽(124) + 间隙(12) = 136px。
+   要回到左侧0点，需平移 -136px。 */
+.next-chapter-group:hover .next-icon,
+.next-chapter-group:focus-visible .next-icon {
+  background: #C1AD7D;
+  transform: translateX(-136px);
+}
+
+/* 5. 箭头：旋转 45° (↘ 变成 →) */
+.next-chapter-group:hover .next-icon svg,
+.next-chapter-group:focus-visible .next-icon svg {
+  transform: rotate(-45deg);
+}
+
+/* Focus 可见状态增强 */
+.next-chapter-group:focus-visible {
+  outline: 2px solid rgba(193, 173, 125, 0.6);
+  outline-offset: 4px;
+}
+
 
 .stupa-deep-view {
   position: fixed;
@@ -3409,11 +3492,23 @@ html.large-text {
 
 .card-gallery-grid {
   display: grid;
+  gap: 16px;
+}
+
+/* 默认：4张图单行横排 */
+.card-gallery-grid.cols-4 {
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: 1fr;
+  width: 50vw;
+  max-height: 35vh;
+}
+
+/* 8张图：4x2 网格 */
+.card-gallery-grid.cols-8 {
   grid-template-columns: repeat(4, 1fr);
   grid-template-rows: repeat(2, 1fr);
-  gap: 16px;
-  height: 100%;
   width: 70vw;
+  height: 100%;
 }
 
 .grid-item {
@@ -3425,6 +3520,14 @@ html.large-text {
 .grid-item .card-image-frame {
   height: 100%;
   border-radius: 0;
+}
+
+/* 防止低分辨率图片被过度拉伸 */
+.card-gallery-grid.cols-4 .grid-item .card-image-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: auto;
 }
 
 .grid-item figcaption {
