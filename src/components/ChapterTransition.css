@@ -1,0 +1,151 @@
+.chapter-transition-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 100; /* 高层级，覆盖整个应用 */
+  background-color: #040404;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  opacity: 1;
+  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.chapter-transition-screen.is-fading-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   背景图层：飞天壁画底纹处理
+   参考图效果：极暗的背景中透出精致的白色/灰色线稿
+   ========================================================================== */
+.transition-bg-layer {
+  position: absolute;
+  inset: -5%; /* 轻微放大，方便做视差或呼吸呼吸动画，如果不做就填满 */
+  width: 110%;
+  height: 110%;
+  background-position: center bottom; /* 参考图中云纹在底部 */
+  background-size: cover;
+  background-repeat: no-repeat;
+  
+  /* 色调处理：
+     假设原图是黑底白线，或白底黑线。
+     这里使用 invert(1) 将白底黑线反转为黑底白线（如果原图已经是黑底，可以去掉 invert）。
+     使用 opacity 降低不透明度，使其成为暗纹。
+     使用 contrast 增加线条对比度。
+  */
+  filter: invert(1) grayscale(1) contrast(1.2) brightness(0.8) opacity(0.25);
+  mix-blend-mode: screen; /* 让线条自然融入黑底 */
+  
+  /* 缓慢的上升/放大动画，增加史诗感 */
+  animation: bg-drifting 20s ease-out forwards;
+}
+
+@keyframes bg-drifting {
+  0% { transform: scale(1) translateY(2%); }
+  100% { transform: scale(1.05) translateY(-2%); }
+}
+
+.transition-noise {
+  position: absolute;
+  inset: 0;
+  background-image: url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)"/%3E%3C/svg%3E');
+  opacity: 0.03;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   内容区排版
+   ========================================================================== */
+.transition-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  padding: 12vh 0 8vh; /* 上下留白 */
+  width: 100%;
+}
+
+.transition-text-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 18vh;
+}
+
+/* Subtitle 类似参考图的 Lumen Artspace 花体字 */
+.transition-subtitle {
+  font-family: 'Cormorant Garamond', 'Noto Serif SC', serif;
+  font-style: italic;
+  font-size: clamp(18px, 2vw, 24px);
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.08em;
+  margin-bottom: 24px;
+  font-weight: 300;
+}
+
+/* Title 类似参考图的 HERITAGE IN ART 大衬线字 */
+.transition-title {
+  font-family: 'ZiXinFangMengHuanGeTeTi', 'Ma Shan Zheng', 'Noto Serif SC', serif;
+  font-size: clamp(60px, 8vw, 110px);
+  color: #ffffff;
+  line-height: 1.1;
+  letter-spacing: 0.06em;
+  text-align: center;
+  margin: 0;
+  font-weight: normal;
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+}
+
+.transition-en-title {
+  font-family: 'Cormorant Garamond', 'Cinzel', serif;
+  font-size: clamp(32px, 4vw, 56px);
+  color: #ffffff;
+  letter-spacing: 0.05em;
+  margin-top: 4px;
+  text-transform: uppercase;
+}
+
+/* ==========================================================================
+   底部极简进度条
+   ========================================================================== */
+.transition-loader-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 400px;
+  gap: 16px;
+  margin-bottom: 2vh;
+}
+
+.loader-track {
+  width: 100%;
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.loader-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background-color: #ffffff;
+  /* 不使用 CSS transition width，因为 React state 结合 requestAnimationFrame 更新够快，避免卡顿感 */
+  will-change: width;
+}
+
+.loader-percentage {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.8);
+  letter-spacing: 0.25em;
+  font-weight: 300;
+}
