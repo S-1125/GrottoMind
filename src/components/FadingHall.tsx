@@ -695,7 +695,7 @@ export function FadingHall({ onBack }: FadingHallProps) {
         {/* Footer */}
         <footer className="fh-footer">
           <div className="fh-container">
-            <p className="fh-footer__copyright">© 2025 Lumen Artspace</p>
+            <p className="fh-footer__copyright">© 2026 GrottoMind Team</p>
           </div>
         </footer>
       </div>
