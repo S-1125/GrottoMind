@@ -25,8 +25,92 @@ export function FadingHall({ onBack }: FadingHallProps) {
   const [navVisible, setNavVisible] = useState(false)
   const [navScrolled, setNavScrolled] = useState(false)
   const [heroVisible, setHeroVisible] = useState(false)
-  const [showcaseVisible, setShowcaseVisible] = useState(false)
+  const [isColorRevealed, setIsColorRevealed] = useState(false)
+  
+  /* ---- 复彩推演过程状态 ---- */
+  const [recolorPhase, setRecolorPhase] = useState(0)
+  const phaseRefs = useRef<(HTMLDivElement | null)[]>([])
+  // 卡片槽位系统：索引 = 卡片ID，值 = 槽位（0=left, 1=center, 2=right）
+  const [cardSlots, setCardSlots] = useState<number[]>([0, 1, 2])
+  const slotNames = ['left', 'center', 'right'] as const
+
+  // 点击侧边卡片时，与中央卡片交换位置
+  const handleCardClick = useCallback((cardIndex: number) => {
+    if (recolorPhase !== 3) return
+    const currentSlot = cardSlots[cardIndex]
+    if (currentSlot === 1) return // 已在中央，不动
+    // 找到当前在中央的卡片
+    const centerCard = cardSlots.indexOf(1)
+    setCardSlots(prev => {
+      const next = [...prev]
+      next[cardIndex] = 1           // 被点击的卡片去中央
+      next[centerCard] = currentSlot // 原中央卡片去被点击卡片原来的位置
+      return next
+    })
+  }, [recolorPhase, cardSlots])
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  /* ---- 3D 倾斜 hover 效果（展开态卡片专用） ---- */
+  const tiltState = useRef<Map<HTMLDivElement, { 
+    currentX: number; currentY: number; 
+    targetX: number; targetY: number;
+    raf: number | null 
+  }>>(new Map())
+
+  const animateTilt = useCallback((card: HTMLDivElement) => {
+    const state = tiltState.current.get(card)
+    if (!state) return
+    
+    const lerp = 0.08
+    state.currentX += (state.targetX - state.currentX) * lerp
+    state.currentY += (state.targetY - state.currentY) * lerp
+    
+    card.style.setProperty('--tilt-x', `${state.currentX}deg`)
+    card.style.setProperty('--tilt-y', `${state.currentY}deg`)
+
+    if (Math.abs(state.targetX - state.currentX) > 0.01 || Math.abs(state.targetY - state.currentY) > 0.01) {
+      state.raf = requestAnimationFrame(() => animateTilt(card))
+    } else {
+      state.raf = null
+    }
+  }, [])
+
+  const handleCardMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (recolorPhase !== 3) return
+    const card = e.currentTarget
+    const rect = card.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+    const centerX = rect.width / 2
+    const centerY = rect.height / 2
+    const tiltY = ((x - centerX) / centerX) * 18
+    const tiltX = ((centerY - y) / centerY) * 12
+    
+    let state = tiltState.current.get(card)
+    if (!state) {
+      state = { currentX: 0, currentY: 0, targetX: 0, targetY: 0, raf: null }
+      tiltState.current.set(card, state)
+    }
+    state.targetX = tiltX
+    state.targetY = tiltY
+    
+    if (!state.raf) {
+      state.raf = requestAnimationFrame(() => animateTilt(card))
+    }
+  }, [recolorPhase, animateTilt])
+
+  const handleCardMouseLeave = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const card = e.currentTarget
+    const state = tiltState.current.get(card)
+    if (state) {
+      state.targetX = 0
+      state.targetY = 0
+      if (!state.raf) {
+        state.raf = requestAnimationFrame(() => animateTilt(card))
+      }
+    }
+  }, [animateTilt])
 
   /* 图片预览（鼠标跟随） */
   const [previewSrc, setPreviewSrc] = useState('')
@@ -76,12 +160,8 @@ export function FadingHall({ onBack }: FadingHallProps) {
     }
   }, [])
 
-  /* ---- 点击"进入"：幕布过渡（线上暂禁用） ---- */
+  /* ---- 点击"进入"：幕布过渡 ---- */
   const handleEnter = useCallback(() => {
-    // 线上暂不开放第二章内容，直接 return
-    return
-
-    // eslint-disable-next-line no-unreachable
     setCtaVisible(false)
     setTimeout(() => setLoaderFading(true), 200)
     setTimeout(() => setCurtainActive(true), 400)
@@ -90,7 +170,7 @@ export function FadingHall({ onBack }: FadingHallProps) {
       setMainVisible(true)
       setNavVisible(true)
       setHeroVisible(true)
-      setShowcaseVisible(true)
+
     }, 1000)
     setTimeout(() => setLoaderHidden(true), 2000)
   }, [])
@@ -195,6 +275,43 @@ export function FadingHall({ onBack }: FadingHallProps) {
     }
   }, [])
 
+  /* ---- 复彩推演过程滚动监听 ---- */
+  useEffect(() => {
+    if (!mainVisible) return
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const target = entry.target as HTMLDivElement
+          const index = phaseRefs.current.indexOf(target)
+          if (index !== -1) {
+            setRecolorPhase(prev => {
+              // 离开展开态时重置卡片槽位
+              if (prev === 3 && index !== 3) {
+                setCardSlots([0, 1, 2])
+              }
+              return index
+            })
+          }
+        }
+      })
+    }, {
+      root: null,
+      rootMargin: '-50% 0px -50% 0px',
+      threshold: 0
+    })
+
+    const currentRefs = phaseRefs.current
+    currentRefs.forEach(ref => {
+      if (ref) observer.observe(ref)
+    })
+
+    return () => {
+      currentRefs.forEach(ref => {
+        if (ref) observer.unobserve(ref)
+      })
+    }
+  }, [mainVisible])
+
   return (
     <div className="fading-hall" ref={mainRef}>
 
@@ -273,13 +390,13 @@ export function FadingHall({ onBack }: FadingHallProps) {
                 </svg>
                 <span>返回上一章</span>
               </button>
-              <a href="#" className="fh-nav__link fh-nav__link--active">Home</a>
-              <a href="#" className="fh-nav__link">About</a>
-              <a href="#" className="fh-nav__link">Gallery</a>
+              <a href="#" className="fh-nav__link fh-nav__link--active">复彩实验</a>
+              <a href="#" className="fh-nav__link">颜料考古</a>
+              <a href="#" className="fh-nav__link">观影</a>
             </div>
             <div className="fh-nav__logo">
-              <div className="fh-nav__logo-mark">LA</div>
-              <span className="fh-nav__year">20 | 25</span>
+              <img src="/assets/wenku-logo-final.png" alt="Wenku" className="fh-nav__logo-mark" />
+              <img src="/assets/logo.png" alt="Logo" className="fh-nav__year" />
             </div>
             <a href="#" className="fh-nav__contact">Contact</a>
             <button
@@ -302,42 +419,179 @@ export function FadingHall({ onBack }: FadingHallProps) {
           </div>
         </div>
 
-        {/* Hero Section */}
+        {/* Hero Landing（参考图版式：大图居中 + 散布小图 + 底部大标题） */}
         <section className="fh-hero">
-          <div className={`fh-hero__inner ${heroVisible ? 'fh-hero__inner--visible' : ''}`}>
-            <p className="fh-hero__brand fh-script-text">Lumen Artspace</p>
-            <h1 className="fh-hero__title">
-              <span className="fh-hero__line">Heritage</span>
-              <span className="fh-hero__line">In Art</span>
-            </h1>
-            <div className="fh-hero__decoration">
-              <svg className="fh-hero__clouds" viewBox="0 0 1440 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M0 100C200 150 400 50 600 100C800 150 1000 50 1200 100C1400 150 1440 100 1440 100V200H0V100Z" fill="rgba(255,255,255,0.03)" />
-                <path d="M0 120C300 80 500 140 800 100C1100 60 1300 120 1440 100V200H0V120Z" fill="rgba(255,255,255,0.02)" />
-              </svg>
-            </div>
-          </div>
+          {/* 背景纹理 */}
           <div className="fh-hero__bg">
             <img
-              src="https://cdn.prod.website-files.com/6734928e2af1829d3c568460/67474474ad8257aab934d534_bg-overlay.avif"
+              src="/章节2素材/石窟壁面抽象背景16比9.jpg"
               alt=""
               className="fh-hero__texture"
               aria-hidden="true"
             />
           </div>
+          <div className={`fh-hero__inner ${heroVisible ? 'fh-hero__inner--visible' : ''}`}>
+
+            {/* 中间主图（InkReveal 流体显影，硬边缘） */}
+            <div className="fh-hero__featured">
+              <InkReveal
+                grayImageUrl="/章节2素材/缺损.png"
+                colorImageUrl="/章节2素材/上色.png"
+                className="fh-hero__featured-img"
+                hardEdge={true}
+                radius={0.25}
+                dissipation={0.95}
+              />
+              {/* 全彩覆盖层，点击按钮后淡入 */}
+              <img 
+                src="/章节2素材/上色.png" 
+                alt="Full Color Overlay" 
+                className={`fh-hero__featured-overlay ${isColorRevealed ? 'fh-hero__featured-overlay--visible' : ''}`}
+                aria-hidden="true"
+              />
+            </div>
+
+            {/* 底部大标题 */}
+            <h1 className="fh-hero__title">
+              Awaken <span className="fh-hero__title-word--italic">The</span> Color
+            </h1>
+
+            {/* 左侧文案区 */}
+            <div className="fh-hero__desc">
+              <p className="fh-hero__desc-text">
+                滑动鼠标探索中央的石窟造像。<br />
+                跟随数字流体交互的轨迹，<br />
+                亲手唤醒被岁月侵蚀的原始色彩。
+              </p>
+              <button 
+                className="fh-hero__cta"
+                onClick={() => setIsColorRevealed(!isColorRevealed)}
+              >
+                <span className="fh-hero__cta-icon">
+                  {isColorRevealed ? (
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 12L12 4M4 4L12 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  ) : (
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M3 13L13 3M13 3H5M13 3V11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  )}
+                </span>
+                <span>{isColorRevealed ? '关闭复彩' : '唤醒颜色'}</span>
+              </button>
+            </div>
+
+            {/* 左侧小图 */}
+            <div className="fh-hero__thumb fh-hero__thumb--left">
+              <img src="/章节2素材/菩萨细节图/extreme-close-up-detail-shot-of-manjusri-bodhisatt (1).png" alt="Detail 1" />
+            </div>
+
+            {/* 右上小图 */}
+            <div className="fh-hero__thumb fh-hero__thumb--rt">
+              <img src="/章节2素材/菩萨细节图/extreme-close-up-detail-shot-of-the-crown-and-hair.png" alt="Detail 2" />
+            </div>
+
+            {/* 右下小图 */}
+            <div className="fh-hero__thumb fh-hero__thumb--rb">
+              <img src="/章节2素材/菩萨细节图/extreme-close-up-detail-shot-of-the-lotus-throne-p.png" alt="Detail 3" />
+            </div>
+
+            {/* Scroll 提示 */}
+            <div className="fh-hero__scroll">
+              <span>向下滑动</span>
+              <span className="fh-hero__scroll-arrow">↓</span>
+            </div>
+          </div>
+
+
         </section>
 
-        {/* Artwork Showcase */}
-        <section className="fh-showcase">
-          <div className="fh-showcase__grid">
-            <div className={`fh-showcase__item fh-showcase__item--left ${showcaseVisible ? 'fh-showcase__item--visible' : ''}`}>
-              <img src="https://cdn.prod.website-files.com/67862174a33a316e969b0659/67877b2a334e5d497b8029e0_untitled-3.avif" alt="Artwork" className="fh-showcase__image" />
+        {/* ============================================
+             RECOLOR PROCESS (视差吸顶渐变 + 3D展开)
+        ============================================ */}
+        <section className={`fh-recolor-process ${recolorPhase === 3 ? 'fh-recolor-process--spread' : ''}`}>
+          {/* 左侧：吸顶图片 + 进度指示 */}
+          <div className="fh-recolor-process__sticky">
+            {/* 进度线（展开时隐藏） */}
+            <div className={`fh-recolor-process__progress ${recolorPhase === 3 ? 'fh-recolor-process__progress--hidden' : ''}`}>
+              {[0, 1, 2].map(i => (
+                <div key={i} className={`fh-recolor-process__dot ${recolorPhase >= i ? 'fh-recolor-process__dot--active' : ''}`}>
+                  <span className="fh-recolor-process__dot-label">
+                    {['线稿', '石刻', '复彩'][i]}
+                  </span>
+                </div>
+              ))}
             </div>
-            <div className={`fh-showcase__item fh-showcase__item--center ${showcaseVisible ? 'fh-showcase__item--visible' : ''}`}>
-              <img src="https://cdn.prod.website-files.com/67862174a33a316e969b0659/678769a2ebfab8e3dfcc3ae6_main-img.avif" alt="Featured Artwork" className="fh-showcase__image fh-showcase__image--center" />
+            {/* 图片容器：3D 空间 */}
+            <div className="fh-recolor-process__img-wrap">
+              {/* 卡片 0：线稿 */}
+              <div 
+                className={`fh-recolor-process__card fh-recolor-process__card--0 fh-recolor-process__slot--${slotNames[cardSlots[0]]} ${recolorPhase >= 0 ? 'fh-recolor-process__card--active' : ''}`}
+                onMouseMove={handleCardMouseMove}
+                onMouseLeave={handleCardMouseLeave}
+                onClick={() => handleCardClick(0)}
+              >
+                <img src="/章节2素材/文殊造像复原/文殊线稿_cropped.png" alt="线稿提取" className="fh-recolor-process__img" />
+                <div className="fh-recolor-process__card-label">线稿提取</div>
+              </div>
+              {/* 卡片 1：石刻 */}
+              <div 
+                className={`fh-recolor-process__card fh-recolor-process__card--1 fh-recolor-process__slot--${slotNames[cardSlots[1]]} ${recolorPhase >= 1 ? 'fh-recolor-process__card--active' : ''}`}
+                onMouseMove={handleCardMouseMove}
+                onMouseLeave={handleCardMouseLeave}
+                onClick={() => handleCardClick(1)}
+              >
+                <img src="/章节2素材/文殊造像复原/无色彩石刻复原.jpg" alt="石刻复原" className="fh-recolor-process__img" />
+                <div className="fh-recolor-process__card-label">肌理重塑</div>
+              </div>
+              {/* 卡片 2：复彩 */}
+              <div 
+                className={`fh-recolor-process__card fh-recolor-process__card--2 fh-recolor-process__slot--${slotNames[cardSlots[2]]} ${recolorPhase >= 2 ? 'fh-recolor-process__card--active' : ''}`}
+                onMouseMove={handleCardMouseMove}
+                onMouseLeave={handleCardMouseLeave}
+                onClick={() => handleCardClick(2)}
+              >
+                <img src="/章节2素材/文殊造像复原/复彩后.jpg" alt="数字复彩" className="fh-recolor-process__img" />
+                <div className="fh-recolor-process__card-label">数字复彩</div>
+              </div>
             </div>
-            <div className={`fh-showcase__item fh-showcase__item--right ${showcaseVisible ? 'fh-showcase__item--visible' : ''}`}>
-              <img src="https://cdn.prod.website-files.com/67862174a33a316e969b0659/67877b1274fe16d98dc88948_untitled-1.avif" alt="Artwork" className="fh-showcase__image" />
+          </div>
+          
+          {/* 右侧：滚动文案 */}
+          <div className={`fh-recolor-process__content ${recolorPhase === 3 ? 'fh-recolor-process__content--hidden' : ''}`}>
+            {/* Phase 0 */}
+            <div className="fh-recolor-process__phase" ref={el => { phaseRefs.current[0] = el }}>
+              <div className="fh-recolor-process__text-card">
+                <div className="fh-recolor-process__step">01</div>
+                <h3 className="fh-recolor-process__title">线稿生成</h3>
+                <p className="fh-recolor-process__subtitle">Wireframe Synthesis</p>
+                <p className="fh-recolor-process__desc">
+                  前期搜集了大量文殊菩萨造像的图像资料，将其全部转化为标准化线稿数据集。通过 AI 模型对线稿特征进行学习与分析，最终生成出高精度的造像轮廓线稿。
+                </p>
+              </div>
+            </div>
+            {/* Phase 1 */}
+            <div className="fh-recolor-process__phase" ref={el => { phaseRefs.current[1] = el }}>
+              <div className="fh-recolor-process__text-card">
+                <div className="fh-recolor-process__step">02</div>
+                <h3 className="fh-recolor-process__title">石刻复原</h3>
+                <p className="fh-recolor-process__subtitle">Stone Carving Reconstruction</p>
+                <p className="fh-recolor-process__desc">
+                  以生成的线稿为基底，使用 AI 图像生成模型还原石刻造像的三维体量与岩面肌理，在数字空间中重现造像未经风化侵蚀前的石质原貌。
+                </p>
+              </div>
+            </div>
+            {/* Phase 2 */}
+            <div className="fh-recolor-process__phase" ref={el => { phaseRefs.current[2] = el }}>
+              <div className="fh-recolor-process__text-card">
+                <div className="fh-recolor-process__step">03</div>
+                <h3 className="fh-recolor-process__title">数字复彩</h3>
+                <p className="fh-recolor-process__subtitle">AI-Driven Recoloring</p>
+                <p className="fh-recolor-process__desc">
+                  搭建 RAG 知识库对历史文献与矿物颜料数据进行精准检索分析，提取色彩参数后构建提示词，驱动生图模型在石刻表面完成最终的数字复彩推演。
+                </p>
+              </div>
+            </div>
+            {/* Phase 3：触发 3D 展开的空白缓冲区域 */}
+            <div className="fh-recolor-process__phase fh-recolor-process__phase--end" ref={el => { phaseRefs.current[3] = el }}>
+              {/* 此区域留白，高度用于触发最后的三图展开状态 */}
             </div>
           </div>
         </section>
@@ -370,7 +624,7 @@ export function FadingHall({ onBack }: FadingHallProps) {
           <div className="fh-marquee">
             <div className="fh-marquee__inner">
               {Array(6).fill(null).map((_, i) => (
-                <span className="fh-marquee__text" key={i}>Lumen Artspace</span>
+                <span className="fh-marquee__text" key={i}>数字复彩 ✦ 矿物颜料 ✦ 算法推演 ✦ 历史肌理 ✦ 时空对话 ✦ </span>
               ))}
             </div>
           </div>
