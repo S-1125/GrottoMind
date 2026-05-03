@@ -31,6 +31,7 @@ uniform vec2 uSplatDelta;
 uniform float uRadius;
 uniform vec2 uAspect;
 uniform float uTime;
+uniform float uHardEdge;
 varying vec2 vUv;
 
 // 简化 2D hash noise
@@ -64,8 +65,14 @@ void main() {
   // noise 扰动半径：0.45~1.28 倍原始半径的随机波动
   float noisyRadius = uRadius * (0.45 + n * 1.0);
   
-  // 撕纸效果：边缘过渡非常窄（几乎硬切），但内部平滑
-  float falloff = 1.0 - smoothstep(noisyRadius * 0.7, noisyRadius, dist);
+  float falloff = 0.0;
+  if (uHardEdge > 0.5) {
+    // 纯硬边缘（直接 step）
+    falloff = step(dist, uRadius);
+  } else {
+    // 撕纸效果：边缘过渡窄，但有噪波扰动
+    falloff = 1.0 - smoothstep(noisyRadius * 0.7, noisyRadius, dist);
+  }
   
   vec4 base = texture2D(uTarget, vUv);
   base.xy += uSplatDelta * falloff;
@@ -145,9 +152,12 @@ interface InkRevealProps {
   grayImageUrl: string
   colorImageUrl: string
   className?: string
+  hardEdge?: boolean
+  radius?: number
+  dissipation?: number
 }
 
-export function InkReveal({ grayImageUrl, colorImageUrl, className = '' }: InkRevealProps) {
+export function InkReveal({ grayImageUrl, colorImageUrl, className = '', hardEdge = false, radius = 0.6, dissipation = 0.985 }: InkRevealProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const stateRef = useRef<{
     renderer: THREE.WebGLRenderer
@@ -208,6 +218,7 @@ export function InkReveal({ grayImageUrl, colorImageUrl, className = '' }: InkRe
         uRadius: { value: 0.025 },
         uAspect: { value: new THREE.Vector2(w / h, 1.0) },
         uTime: { value: 0 },
+        uHardEdge: { value: hardEdge ? 1.0 : 0.0 }
       },
       vertexShader: FULLSCREEN_VERT,
       fragmentShader: SPLAT_FRAG,
@@ -305,7 +316,7 @@ export function InkReveal({ grayImageUrl, colorImageUrl, className = '' }: InkRe
         st.splatMat.uniforms.uTarget.value = st.dye.read.texture
         st.splatMat.uniforms.uPoint.value.set(mouse.x, mouse.y)
         st.splatMat.uniforms.uSplatDelta.value.set(0.12, 0.12)
-        st.splatMat.uniforms.uRadius.value = 0.8
+        st.splatMat.uniforms.uRadius.value = radius
         renderPass(st.splatMat, st.dye.write)
         st.dye.swap()
       }
@@ -320,7 +331,7 @@ export function InkReveal({ grayImageUrl, colorImageUrl, className = '' }: InkRe
       // --- 3. Advect 墨场 ---
       st.advectMat.uniforms.uVelocity.value = st.velocity.read.texture
       st.advectMat.uniforms.uSource.value = st.dye.read.texture
-      st.advectMat.uniforms.uDissipation.value = 0.985
+      st.advectMat.uniforms.uDissipation.value = dissipation
       renderPass(st.advectMat, st.dye.write)
       st.dye.swap()
 

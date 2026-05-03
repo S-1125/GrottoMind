@@ -4,6 +4,8 @@
 ============================================================ */
 
 .fading-hall {
+  /* 内容边距变量：窄屏 48px，宽屏随导航 max-width 居中 */
+  --fh-content-margin: max(48px, calc((100vw - 1400px) / 2));
   position: fixed;
   inset: 0;
   z-index: 10;
@@ -102,6 +104,7 @@
   position: relative;
   z-index: 2;
   text-align: center;
+  pointer-events: none;
   transition: all 1s cubic-bezier(0.65, 0, 0.35, 1);
 }
 .fh-loader__brand {
@@ -133,6 +136,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  pointer-events: none;
 }
 
 .fh-enter-btn-wrap {
@@ -325,7 +329,7 @@
   left: 0;
   right: 0;
   z-index: 100;
-  padding: 24px 48px;
+  padding: 24px var(--fh-content-margin);
   opacity: 0;
   transform: translateY(-20px);
   transition: opacity 0.8s ease 0.6s, transform 0.8s ease 0.6s, background 0.3s ease, backdrop-filter 0.3s ease;
@@ -342,8 +346,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  max-width: 1400px;
-  margin: 0 auto;
+  /* max-width 已经通过 --fh-content-margin 变量控制，不再需要单独居中 */
 }
 .fh-nav__links {
   display: flex;
@@ -354,9 +357,9 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-family: 'Inter', sans-serif;
-  font-size: 12px;
-  font-weight: 500;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 400;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.6);
@@ -380,9 +383,9 @@
   transform: translateX(-3px);
 }
 .fh-nav__link {
-  font-family: 'Inter', sans-serif;
-  font-size: 12px;
-  font-weight: 500;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 400;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: #ffffff;
@@ -412,28 +415,21 @@
   gap: 16px;
 }
 .fh-nav__logo-mark {
-  width: 32px;
   height: 32px;
-  border: 1px solid #ffffff;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: 12px;
-  font-weight: 300;
+  width: auto;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
 }
 .fh-nav__year {
-  font-family: 'Inter', sans-serif;
-  font-size: 12px;
-  font-weight: 300;
-  letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.6);
+  height: 20px;
+  width: auto;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
 }
 .fh-nav__contact {
-  font-family: 'Inter', sans-serif;
-  font-size: 12px;
-  font-weight: 500;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 400;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   padding: 8px 16px;
@@ -490,54 +486,192 @@
 }
 
 /* ============================================
-   HERO
+   HERO LANDING
 ============================================ */
 .fh-hero {
   position: relative;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 100%;
+  height: 100vh;
   overflow: hidden;
   background: #0a0a0a;
 }
 .fh-hero__inner {
   position: relative;
   z-index: 2;
-  text-align: center;
-  padding: 80px 48px;
+  width: 100%;
+  height: 100%;
   opacity: 0;
-  transform: translateY(40px);
-  transition: opacity 1s ease 0.5s, transform 1s ease 0.5s;
+  transform: translateY(30px);
+  transition: opacity 1.2s ease 0.3s, transform 1.2s ease 0.3s;
 }
 .fh-hero__inner--visible {
   opacity: 1;
   transform: translateY(0);
 }
-.fh-hero__brand {
-  font-size: 32px;
-  color: #ffffff;
+
+
+/* 左侧文案 */
+.fh-hero__desc {
+  position: absolute;
+  top: 30%;
+  left: var(--fh-content-margin);
+  z-index: 3;
+  max-width: 280px;
+}
+.fh-hero__desc-text {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 300;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.55);
   margin-bottom: 24px;
 }
-.fh-hero__title {
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: clamp(64px, 10vw, 120px);
+.fh-hero__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 13px;
   font-weight: 300;
-  line-height: 1.0;
-  letter-spacing: -0.02em;
-  color: #ffffff;
-  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-decoration: none;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  outline: none;
 }
-.fh-hero__line { display: block; }
-.fh-hero__decoration {
+.fh-hero__cta-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transition: border-color 0.3s ease;
+}
+.fh-hero__cta:hover .fh-hero__cta-icon {
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+/* 中间主图 */
+.fh-hero__featured {
   position: absolute;
-  bottom: 15%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -55%);
+  width: min(1200px, 85vw);
+  z-index: 2;
+}
+.fh-hero__featured-img {
+  width: 100%;
+  aspect-ratio: 1331 / 749;
+  filter: drop-shadow(0 20px 60px rgba(0, 0, 0, 0.8));
+}
+.fh-hero__featured-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1331 / 749;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  z-index: 10;
+}
+.fh-hero__featured-overlay--visible {
+  opacity: 1;
+}
+
+/* 散布小图 */
+.fh-hero__thumb {
+  position: absolute;
+  z-index: 2;
+  overflow: hidden;
+}
+.fh-hero__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(1) brightness(0.75) contrast(1.1);
+  transform: scale(1.05);
+  transition: filter 0.8s cubic-bezier(0.25, 1, 0.5, 1), transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.fh-hero__thumb:hover img {
+  filter: grayscale(0) brightness(0.95) contrast(1.05);
+  transform: scale(1);
+}
+/* 左侧小图 */
+.fh-hero__thumb--left {
+  width: min(160px, 14vw);
+  aspect-ratio: 1 / 1;
+  top: 55%;
+  left: var(--fh-content-margin);
+}
+/* 右上小图（在右下图的基础上向左错开一个图宽） */
+.fh-hero__thumb--rt {
+  width: min(130px, 11vw);
+  aspect-ratio: 1 / 1;
+  top: 28%;
+  right: calc(var(--fh-content-margin) + min(160px, 13vw) + 12px);
+}
+/* 右下小图 */
+.fh-hero__thumb--rb {
+  width: min(160px, 13vw);
+  aspect-ratio: 1 / 1;
+  top: 45%;
+  right: var(--fh-content-margin);
+}
+
+/* 底部大标题：绝对定位居中 */
+.fh-hero__title {
+  position: absolute;
+  bottom: 3%;
   left: 0;
   right: 0;
-  pointer-events: none;
-  opacity: 0.05;
+  z-index: 3;
+  text-align: center;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(76px, 13vw, 210px);
+  font-weight: 300;
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  color: #ffffff;
+  white-space: nowrap;
+  padding: 0;
 }
-.fh-hero__clouds { width: 100%; height: auto; }
+.fh-hero__title-word--italic {
+  font-style: italic;
+}
+
+/* 右下 Scroll 指示 */
+.fh-hero__scroll {
+  position: absolute;
+  top: calc(45% + min(160px, 13vw) + 16px);
+  right: var(--fh-content-margin);
+  z-index: 3;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 300;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.fh-hero__scroll-arrow {
+  font-size: 16px;
+  animation: fh-scroll-bounce 2s ease-in-out infinite;
+}
+@keyframes fh-scroll-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(4px); }
+}
+/* 背景纹理 */
 .fh-hero__bg {
   position: absolute;
   inset: 0;
@@ -547,48 +681,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.3;
-}
-
-/* ============================================
-   SHOWCASE
-============================================ */
-.fh-showcase {
-  position: relative;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 80px 48px;
-}
-.fh-showcase__grid {
-  display: grid;
-  grid-template-columns: 1fr 2fr 1fr;
-  gap: 32px;
-  align-items: center;
-  max-width: 1200px;
-  width: 100%;
-}
-.fh-showcase__item {
-  position: relative;
-  opacity: 0;
-  transform: scale(0.85);
-  transition: opacity 1s cubic-bezier(0.65, 0, 0.35, 1), transform 1s cubic-bezier(0.65, 0, 0.35, 1);
-}
-.fh-showcase__item--visible {
-  opacity: 1;
-  transform: scale(1);
-}
-.fh-showcase__item--left { transition-delay: 0.4s; }
-.fh-showcase__item--center { transition-delay: 0.3s; }
-.fh-showcase__item--right { transition-delay: 0.5s; }
-.fh-showcase__image {
-  width: 100%;
-  aspect-ratio: 3/4;
-  object-fit: cover;
-}
-.fh-showcase__image--center {
-  aspect-ratio: 4/5;
+  opacity: 0.25;
 }
 
 /* ============================================
@@ -819,6 +912,249 @@
 }
 
 /* ============================================
+   RECOLOR PROCESS (推演过程衔接)
+============================================ */
+.fh-recolor-process {
+  position: relative;
+  width: 100%;
+  background: #050505;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  z-index: 10;
+}
+
+.fh-recolor-process__sticky {
+  position: sticky;
+  top: 0;
+  width: 60vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  background: #050505;
+}
+
+/* 进度指示器 */
+.fh-recolor-process__progress {
+  position: absolute;
+  left: var(--fh-content-margin, 48px);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  z-index: 5;
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.fh-recolor-process__progress--hidden {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.fh-recolor-process__dot {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  margin: 20px 0;
+  transition: background 0.6s ease, box-shadow 0.6s ease;
+}
+
+.fh-recolor-process__dot--active {
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+}
+
+.fh-recolor-process__dot-label {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 300;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.35);
+  transition: color 0.6s ease;
+}
+
+.fh-recolor-process__dot--active .fh-recolor-process__dot-label {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* 图片容器 (3D 空间) */
+.fh-recolor-process__img-wrap {
+  position: relative;
+  width: 55%;
+  max-height: 70vh;
+  aspect-ratio: 939 / 1682;
+  perspective: 2000px;
+  perspective-origin: 50% 50%;
+  transition: perspective-origin 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+  pointer-events: none; /* 防止父容器的 Z=0 表面拦截被推入 Z<0 深度的子卡片事件 */
+}
+
+.fh-recolor-process--spread .fh-recolor-process__img-wrap {
+  perspective-origin: calc(50% + 20vw) 50%;
+  transform-style: preserve-3d; /* 仅在展开态启用 3D 穿插深度排序 */
+}
+
+/* 卡片层叠逻辑 */
+.fh-recolor-process__card {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  --tilt-x: 0deg;
+  --tilt-y: 0deg;
+  transform-origin: center center;
+  transform: translateX(0) translateZ(0) rotateY(0deg);
+  transition: opacity 1s ease, transform 1.2s cubic-bezier(0.25, 1, 0.5, 1), filter 1s ease, z-index 0s;
+}
+
+.fh-recolor-process__card--active {
+  opacity: 1;
+}
+
+/* 默认层叠顺序（收回时彩色图始终在最上层） */
+.fh-recolor-process__card--0 { z-index: 1; }
+.fh-recolor-process__card--1 { z-index: 2; }
+.fh-recolor-process__card--2 { z-index: 3; }
+
+/* 3D 展开状态 */
+.fh-recolor-process--spread .fh-recolor-process__card {
+  cursor: pointer;
+  pointer-events: all;
+  /* 保留 transform 过渡，让展开/收回/交换都有丝滑动画 */
+  transition: opacity 1s ease, transform 1.2s cubic-bezier(0.25, 1, 0.5, 1), filter 1s ease, z-index 0s 0.3s;
+}
+
+/* hover 时提升层级，确保鼠标事件能抵达任意卡片 */
+.fh-recolor-process--spread .fh-recolor-process__slot--left:hover,
+.fh-recolor-process--spread .fh-recolor-process__slot--right:hover {
+  z-index: 20;
+}
+
+/* 槽位定位（展开态） */
+.fh-recolor-process--spread .fh-recolor-process__slot--left {
+  transform: translateX(-12vw) translateZ(-150px) rotateX(var(--tilt-x)) rotateY(calc(15deg + var(--tilt-y)));
+  opacity: 1;
+  z-index: 10;
+}
+
+.fh-recolor-process--spread .fh-recolor-process__slot--center {
+  transform: translateX(20vw) translateZ(50px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
+  opacity: 1;
+  z-index: 12;
+  filter: drop-shadow(0 30px 60px rgba(0,0,0,0.8));
+}
+
+.fh-recolor-process--spread .fh-recolor-process__slot--right {
+  transform: translateX(52vw) translateZ(-150px) rotateX(var(--tilt-x)) rotateY(calc(-15deg + var(--tilt-y)));
+  opacity: 1;
+  z-index: 10;
+}
+
+/* 内部图片 */
+.fh-recolor-process__img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none; /* 事件透传到父级 card div */
+  user-select: none;
+}
+
+/* 卡片底部的标签 */
+.fh-recolor-process__card-label {
+  position: absolute;
+  bottom: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.6);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.2em;
+  opacity: 0;
+  white-space: nowrap;
+  pointer-events: none;
+  transition: opacity 0.8s ease 0.6s;
+}
+
+.fh-recolor-process--spread .fh-recolor-process__card-label {
+  opacity: 1;
+}
+
+/* 右侧文案区 */
+.fh-recolor-process__content {
+  width: 40vw;
+  display: flex;
+  flex-direction: column;
+  transition: opacity 0.8s ease;
+}
+
+.fh-recolor-process__content--hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.fh-recolor-process__phase {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0 10vw 0 2vw;
+}
+
+.fh-recolor-process__text-card {
+  max-width: 380px;
+}
+
+.fh-recolor-process__step {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 48px;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.12);
+  line-height: 1;
+  margin-bottom: 20px;
+}
+
+.fh-recolor-process__title {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  line-height: 1.4;
+  color: #ffffff;
+  margin-bottom: 8px;
+}
+
+.fh-recolor-process__subtitle {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 14px;
+  font-weight: 300;
+  font-style: italic;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.35);
+  margin-bottom: 24px;
+}
+
+.fh-recolor-process__desc {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 300;
+  line-height: 1.9;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* ============================================
    ANIMATIONS
 ============================================ */
 .fh-fade-in {
@@ -850,9 +1186,9 @@
 @media (max-width: 1024px) {
   .fh-intro__grid { grid-template-columns: 1fr; gap: 48px; }
   .fh-intro__images { height: 400px; }
-  .fh-showcase__grid { grid-template-columns: 1fr; }
-  .fh-showcase__item--left,
-  .fh-showcase__item--right { display: none; }
+  .fh-hero__thumb { display: none; }
+  .fh-hero__desc { display: none; }
+  .fh-hero__featured { width: min(320px, 60vw); }
 }
 
 @media (max-width: 768px) {
