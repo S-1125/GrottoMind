@@ -504,6 +504,27 @@ export function TimelineHall({ onDeepRead, onNextChapter, isPaused }: TimelineHa
         <div className="site-logo-img-en" />
       </div>
 
+      {/* 右上角快捷入口（移动到此处以修复 z-index 遮挡全屏预览的 bug） */}
+      <div
+        className="next-chapter-group interactive"
+        onClick={() => onNextChapter?.()}
+        role="button"
+        tabIndex={0}
+        aria-label="进入第二章"
+        onKeyDown={(e) => { if (e.key === 'Enter') onNextChapter?.() }}
+        style={{ position: 'fixed', top: 20, right: 20, zIndex: 999 }}
+      >
+        <span className="next-pill">
+          <span className="next-pill-bg"></span>
+          <span className="next-pill-text">进入下一章</span>
+        </span>
+        <span className="next-icon" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M1 1L13 13M13 13H3M13 13V3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </span>
+      </div>
+
       {/* ============================================================
           序章全屏居中标题 — 独立于 fadeGroup，GSAP 控制淡入→停留→淡出
       ============================================================ */}

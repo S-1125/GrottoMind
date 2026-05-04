@@ -49,28 +49,7 @@ export function Exhibition({}: ExhibitionProps) {
         />
       )}
 
-      {/* 测试用：右上角快捷入口（与末尾按钮组完全一致） */}
-      {activeChapter === 'ch1' && !activeDeepReadId && (
-        <div
-          className="next-chapter-group interactive"
-          onClick={handleNextChapter}
-          role="button"
-          tabIndex={0}
-          aria-label="进入第二章"
-          onKeyDown={(e) => { if (e.key === 'Enter') handleNextChapter() }}
-          style={{ position: 'fixed', top: 20, right: 20, zIndex: 999 }}
-        >
-          <span className="next-pill">
-            <span className="next-pill-bg"></span>
-            <span className="next-pill-text">进入下一章</span>
-          </span>
-          <span className="next-icon" aria-hidden="true">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M1 1L13 13M13 13H3M13 13V3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </span>
-        </div>
-      )}
+
 
       {activeChapter === 'ch2' && (
         <FadingHall onBack={() => {
