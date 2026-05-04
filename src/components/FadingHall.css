@@ -737,14 +737,39 @@
 }
 .fh-intro__img {
   position: absolute;
-  width: 200px;
-  height: 250px;
   object-fit: cover;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  transition: z-index 0s, transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.5s ease;
+  cursor: pointer;
 }
-.fh-intro__img--1 { top: 0; left: 0; z-index: 1; }
-.fh-intro__img--2 { top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; width: 240px; height: 300px; }
-.fh-intro__img--3 { bottom: 0; right: 0; z-index: 1; }
+.fh-intro__img:hover {
+  z-index: 10;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8);
+}
+
+/* 第一张：左上，较小的正方形 */
+.fh-intro__img--1 {
+  top: 0; left: 10%;
+  width: 180px; height: 180px;
+  z-index: 1;
+}
+.fh-intro__img--1:hover { transform: scale(1.06); }
+
+/* 第二张：居中偏右，最大，作为视觉重心 */
+.fh-intro__img--2 {
+  top: 80px; left: 35%;
+  width: 280px; height: 320px;
+  z-index: 2;
+}
+.fh-intro__img--2:hover { transform: scale(1.04); }
+
+/* 第三张：右下角，中等大小 */
+.fh-intro__img--3 {
+  bottom: 20px; right: 0;
+  width: 200px; height: 240px;
+  z-index: 1;
+}
+.fh-intro__img--3:hover { transform: scale(1.06); }
 
 /* ============================================
    MARQUEE
@@ -762,7 +787,7 @@
   animation: fh-marquee-scroll 30s linear infinite;
 }
 .fh-marquee__text {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: 'ZiXinFangMengHuanGeTeTi', 'Ma Shan Zheng', 'Noto Serif SC', cursive;
   font-size: clamp(48px, 8vw, 80px);
   font-weight: 300;
   color: #ffffff;
@@ -876,33 +901,40 @@
 
 /* ---- 褪色颜料卡片特殊样式 (Faded/Corrupted) ---- */
 .fh-pigment-gallery__mineral-card--faded {
-  background: rgba(15, 15, 15, 0.3);
-  border: 1px dashed rgba(255, 255, 255, 0.15);
+  background: transparent;
+  border: none;
+  border-top: 1px dashed rgba(255, 255, 255, 0.15);
 }
 
 .fh-pigment-gallery__mineral-card--faded .fh-pigment-gallery__mineral-name,
 .fh-pigment-gallery__mineral-card--faded .fh-pigment-gallery__mineral-formula,
 .fh-pigment-gallery__mineral-card--faded .fh-pigment-gallery__mineral-desc {
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.25);
 }
 
 .fh-pigment-gallery__spectrum--faded {
-  background: repeating-linear-gradient(90deg, rgba(255,255,255,0.05), rgba(255,255,255,0.05) 4px, transparent 4px, transparent 8px) !important;
-  border: 1px solid rgba(255,255,255,0.05);
+  background: repeating-linear-gradient(90deg, rgba(255,255,255,0.1), rgba(255,255,255,0.1) 2px, transparent 2px, transparent 6px) !important;
+  border: none;
+  height: 1px;
+}
+
+.fh-pigment-gallery__spectrum--faded::after {
+  display: none;
 }
 
 /* 状态标签 (Tags) */
 .fh-mineral-tag {
   display: inline-block;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', monospace;
   font-size: 9px;
-  font-weight: 500;
+  font-weight: 400;
   letter-spacing: 0.1em;
-  padding: 2px 6px;
-  border-radius: 2px;
+  padding: 3px 6px;
+  border-radius: 0;
+  border: 1px solid currentColor;
   margin-left: 12px;
   vertical-align: middle;
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
 .fh-mineral-tag--corrupted {
@@ -1281,7 +1313,7 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  background-color: #050505;
+  background-color: #000;
   overflow: hidden;
   padding: 120px 24px;
 }
@@ -1289,9 +1321,11 @@
 .fh-transition-quote__bg {
   position: absolute;
   inset: 0;
+  z-index: 1;
   background-image: url('/章节2素材/栖霞山石窟艺术海报.jpg');
   background-size: cover;
   background-position: center center;
+  opacity: 1;
 }
 
 .fh-transition-quote__container {
@@ -1334,7 +1368,7 @@
 ============================================ */
 .fh-pigment-gallery {
   position: relative;
-  background: #050505;
+  background: transparent;
   overflow: hidden;
 }
 
@@ -1361,6 +1395,48 @@
   padding: 10vh 2vw;
   z-index: 1;
 }
+
+/* 入场动画：初始隐藏，添加 class 后淡入 */
+.fh-gallery-group .fh-gallery-item--tl,
+.fh-gallery-group .fh-gallery-item--tr {
+  opacity: 0;
+  transform: translateY(40px);
+}
+.fh-gallery-group .fh-gallery-item--bc {
+  opacity: 0;
+  transform: translateX(-50%) translateY(40px);
+}
+.fh-gallery-group.fh-gallery-visible .fh-gallery-item--tl,
+.fh-gallery-group.fh-gallery-visible .fh-gallery-item--tr {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 1.2s cubic-bezier(0.19, 1, 0.22, 1), transform 1.2s cubic-bezier(0.19, 1, 0.22, 1);
+}
+.fh-gallery-group.fh-gallery-visible .fh-gallery-item--bc {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  transition: opacity 1.2s cubic-bezier(0.19, 1, 0.22, 1), transform 1.2s cubic-bezier(0.19, 1, 0.22, 1);
+}
+/* 交错延迟 */
+.fh-gallery-group.fh-gallery-visible .fh-gallery-item--tl { transition-delay: 0s; }
+.fh-gallery-group.fh-gallery-visible .fh-gallery-item--tr { transition-delay: 0.15s; }
+.fh-gallery-group.fh-gallery-visible .fh-gallery-item--bc { transition-delay: 0.3s; }
+
+/* 矿物版块入场 */
+.fh-mineral-section .fh-pigment-gallery__mineral-card {
+  opacity: 0;
+  transform: translateY(30px);
+}
+.fh-mineral-section.fh-gallery-visible .fh-pigment-gallery__mineral-card {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.9s ease-out, transform 0.9s ease-out;
+}
+.fh-mineral-section.fh-gallery-visible .fh-pigment-gallery__mineral-card:nth-child(1) { transition-delay: 0s; }
+.fh-mineral-section.fh-gallery-visible .fh-pigment-gallery__mineral-card:nth-child(2) { transition-delay: 0.1s; }
+.fh-mineral-section.fh-gallery-visible .fh-pigment-gallery__mineral-card:nth-child(3) { transition-delay: 0.2s; }
+.fh-mineral-section.fh-gallery-visible .fh-pigment-gallery__mineral-card:nth-child(4) { transition-delay: 0.3s; }
+.fh-mineral-section.fh-gallery-visible .fh-pigment-gallery__mineral-card:nth-child(5) { transition-delay: 0.4s; }
 
 /* 单个画廊卡片的基础状态（默认全亮，绝对定位） */
 .fh-gallery-item {
@@ -1465,8 +1541,8 @@
 ---------------------------------- */
 .fh-mineral-section {
   position: relative;
-  background: #000;
-  padding: 100px 0 160px;
+  padding: 15vh 4vw 20vh;
+  background: transparent;
   z-index: 2;
 }
 
@@ -1476,7 +1552,7 @@
   font-weight: 300;
   text-transform: uppercase;
   letter-spacing: 0.15em;
-  color: rgba(255,255,255,0.4);
+  color: #fff;
   text-align: center;
   margin-bottom: 80px;
 }
@@ -1493,50 +1569,53 @@
 .fh-pigment-gallery__mineral-card {
   flex: 0 0 calc(33.333% - 22px);
   position: relative;
-  padding: 32px;
-  background: rgba(15, 15, 15, 0.8);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 4px;
-  transition: transform 0.4s ease, border-color 0.4s ease;
+  padding: 32px 16px 16px 0;
+  background: transparent;
+  border: none;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  border-radius: 0;
+  transition: transform 0.4s ease, border-top-color 0.4s ease;
 }
 
 .fh-pigment-gallery__mineral-card:hover {
   transform: translateY(-8px);
+  border-top-color: rgba(255,255,255,0.3);
 }
 
 .fh-pigment-gallery__mineral-card--red {
-  border-color: rgba(192, 57, 43, 0.3);
-  box-shadow: 0 0 40px rgba(192, 57, 43, 0.08);
+  border-top-color: rgba(192, 57, 43, 0.4);
 }
 .fh-pigment-gallery__mineral-card--green {
-  border-color: rgba(26, 188, 156, 0.3);
-  box-shadow: 0 0 40px rgba(26, 188, 156, 0.08);
+  border-top-color: rgba(26, 188, 156, 0.4);
 }
 .fh-pigment-gallery__mineral-card--yellow {
-  border-color: rgba(212, 160, 23, 0.3);
-  box-shadow: 0 0 40px rgba(212, 160, 23, 0.08);
+  border-top-color: rgba(212, 160, 23, 0.4);
 }
 
 .fh-pigment-gallery__mineral-header {
   display: flex;
-  align-items: baseline;
-  gap: 12px;
-  margin-bottom: 12px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 24px;
 }
 
 .fh-pigment-gallery__mineral-formula {
   font-family: 'Inter', monospace;
-  font-size: 22px;
-  font-weight: 600;
-  color: rgba(255,255,255,0.85);
+  font-size: 32px;
+  font-weight: 300;
+  color: rgba(255,255,255,0.9);
+  letter-spacing: 0.02em;
 }
 
 .fh-pigment-gallery__mineral-name {
   font-family: 'Inter', sans-serif;
-  font-size: 12px;
-  font-weight: 300;
-  color: rgba(255,255,255,0.4);
+  font-size: 13px;
+  font-weight: 400;
+  color: rgba(255,255,255,0.5);
   letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
 }
 
 .fh-pigment-gallery__mineral-desc {
@@ -1544,21 +1623,193 @@
   font-size: 13px;
   font-weight: 300;
   line-height: 1.8;
-  color: rgba(255,255,255,0.5);
-  margin: 0 0 16px 0;
+  color: rgba(255,255,255,0.4);
+  margin: 0 0 32px 0;
 }
 
-/* 光谱色条 */
+/* 光谱色条 - 极简档案线 */
 .fh-pigment-gallery__spectrum {
-  height: 4px;
-  border-radius: 2px;
-  margin-bottom: 6px;
+  height: 1px;
+  border-radius: 0;
+  margin-bottom: 8px;
+  position: relative;
+}
+
+.fh-pigment-gallery__spectrum::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 6px #fff;
 }
 
 .fh-pigment-gallery__spectrum-label {
   font-family: 'Inter', monospace;
   font-size: 10px;
   font-weight: 400;
-  color: rgba(255,255,255,0.3);
+  color: rgba(255,255,255,0.25);
   letter-spacing: 0.05em;
+  text-transform: uppercase;
+  display: block;
+  text-align: right;
+}
+
+/* ============================================
+   VIDEO SECTION (Split Layout)
+============================================ */
+.fh-video-section {
+  padding: 120px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.fh-video-section__inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 100px;
+  align-items: center;
+}
+
+.fh-video-text-header {
+  margin-bottom: 48px;
+}
+
+.fh-video-badge {
+  display: inline-block;
+  font-family: 'Inter', monospace;
+  font-size: 11px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 4px 10px;
+  border-radius: 2px;
+  letter-spacing: 0.1em;
+  margin-bottom: 24px;
+}
+
+.fh-video-section__text .fh-section-title {
+  margin-bottom: 8px;
+}
+
+.fh-video-section__subtitle {
+  font-family: 'Inter', sans-serif;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.1em;
+  font-size: 14px;
+  text-transform: uppercase;
+}
+
+.fh-video-section__desc {
+  padding-left: 24px;
+  border-left: 2px solid rgba(255, 255, 255, 0.2);
+  margin-bottom: 48px;
+  max-width: 480px;
+}
+
+.fh-video-section__desc p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 15px;
+  line-height: 2;
+  margin-bottom: 20px;
+  font-weight: 300;
+  text-align: justify;
+}
+.fh-video-section__desc p:last-child { margin-bottom: 0; }
+
+.fh-video-stats {
+  list-style: none;
+  padding: 32px 0 0 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  max-width: 520px;
+}
+
+.fh-video-stats li {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fh-video-stats__label {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.fh-video-stats__val {
+  font-family: 'Inter', monospace;
+  font-size: 16px;
+  color: #fff;
+  letter-spacing: 0.02em;
+}
+
+.fh-video-section__media {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.fh-video-wrapper {
+  width: 100%;
+  max-width: 560px;
+  background: #121212; /* 深色画框底板（卡纸） */
+  padding: 24px 24px 32px 24px; /* 底部刻意留宽，模拟真实画框比例 */
+  border-radius: 4px;
+  box-shadow: 
+    0 40px 100px rgba(0, 0, 0, 0.9), /* 整体投射的深沉阴影 */
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1), /* 外侧极细的金属质感高光边 */
+    inset 0 0 30px rgba(0, 0, 0, 0.8); /* 画框内部暗角 */
+  position: relative;
+}
+
+/* 装饰性角标 */
+.fh-video-ui {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  pointer-events: none;
+}
+.fh-video-ui--tl { top: 12px; left: 12px; border-right: none; border-bottom: none; }
+.fh-video-ui--tr { top: 12px; right: 12px; border-left: none; border-bottom: none; }
+.fh-video-ui--bl { bottom: 16px; left: 12px; border-right: none; border-top: none; }
+.fh-video-ui--br { bottom: 16px; right: 12px; border-left: none; border-top: none; }
+
+/* 装饰性标签 */
+.fh-video-label, .fh-video-data {
+  position: absolute;
+  font-family: 'Inter', monospace;
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 0.1em;
+  pointer-events: none;
+}
+.fh-video-label { top: 10px; left: 32px; }
+.fh-video-data { bottom: 14px; right: 32px; }
+
+/* 用伪元素给视频表面叠加一点点内阴影，模拟嵌入卡纸里的纵深感 */
+.fh-video-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 24px; left: 24px; right: 24px; bottom: 32px;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.6);
+  pointer-events: none;
+  border-radius: 2px;
+}
+
+.fh-video-element {
+  width: 100%;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  display: block;
+  border-radius: 2px;
+  /* 卡纸内侧边缘的切割立体感 */
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.9), 0 4px 12px rgba(0,0,0,0.5);
 }

@@ -24,6 +24,7 @@ export function FadingHall({ onBack }: FadingHallProps) {
   const [mainVisible, setMainVisible] = useState(false)
   const [navVisible, setNavVisible] = useState(false)
   const [navScrolled, setNavScrolled] = useState(false)
+  const [activeSection, setActiveSection] = useState('hero')
   const [heroVisible, setHeroVisible] = useState(false)
   const [isColorRevealed, setIsColorRevealed] = useState(false)
   
@@ -181,7 +182,19 @@ export function FadingHall({ onBack }: FadingHallProps) {
     if (!container) return
 
     const onScroll = () => {
-      setNavScrolled(container.scrollTop > 50)
+      const top = container.scrollTop
+      setNavScrolled(top > 50)
+
+      // 滚动监听联动导航栏 active 状态
+      const sections = ['hero', 'pigment-archaeology', 'digital-resurrection']
+      let current = 'hero'
+      for (const id of sections) {
+        const el = document.getElementById(id)
+        if (el && el.offsetTop <= top + window.innerHeight / 3) {
+          current = id
+        }
+      }
+      setActiveSection(current)
     }
     container.addEventListener('scroll', onScroll, { passive: true })
     return () => container.removeEventListener('scroll', onScroll)
@@ -312,6 +325,28 @@ export function FadingHall({ onBack }: FadingHallProps) {
     }
   }, [mainVisible])
 
+  /* ---- 画廊入场动画 (IntersectionObserver + CSS) ---- */
+  useEffect(() => {
+    if (!mainVisible) return
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('fh-gallery-visible')
+          observer.unobserve(entry.target) // 只触发一次
+        }
+      })
+    }, { threshold: 0.1 })
+
+    // 观察每个倒三角组
+    document.querySelectorAll('.fh-gallery-group').forEach(el => observer.observe(el))
+    // 观察矿物版块
+    const mineralSection = document.querySelector('.fh-mineral-section')
+    if (mineralSection) observer.observe(mineralSection)
+
+    return () => observer.disconnect()
+  }, [mainVisible])
+
   return (
     <div className="fading-hall" ref={mainRef}>
 
@@ -390,10 +425,19 @@ export function FadingHall({ onBack }: FadingHallProps) {
                 </svg>
                 <span>返回上一章</span>
               </button>
-              <a href="#" className="fh-nav__link fh-nav__link--active">复彩实验</a>
+              <a 
+                href="#hero" 
+                className={`fh-nav__link ${activeSection === 'hero' ? 'fh-nav__link--active' : ''}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.querySelector('#hero')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
+                复彩实验
+              </a>
               <a 
                 href="#pigment-archaeology" 
-                className="fh-nav__link"
+                className={`fh-nav__link ${activeSection === 'pigment-archaeology' ? 'fh-nav__link--active' : ''}`}
                 onClick={(e) => {
                   e.preventDefault();
                   document.querySelector('#pigment-archaeology')?.scrollIntoView({ behavior: 'smooth' });
@@ -401,7 +445,16 @@ export function FadingHall({ onBack }: FadingHallProps) {
               >
                 颜料考古
               </a>
-              <a href="#" className="fh-nav__link">观影</a>
+              <a 
+                href="#digital-resurrection" 
+                className={`fh-nav__link ${activeSection === 'digital-resurrection' ? 'fh-nav__link--active' : ''}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.querySelector('#digital-resurrection')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
+                观影
+              </a>
             </div>
             <div className="fh-nav__logo">
               <img src="/assets/wenku-logo-final.png" alt="Wenku" className="fh-nav__logo-mark" />
@@ -429,7 +482,7 @@ export function FadingHall({ onBack }: FadingHallProps) {
         </div>
 
         {/* Hero Landing（参考图版式：大图居中 + 散布小图 + 底部大标题） */}
-        <section className="fh-hero">
+        <section id="hero" className="fh-hero">
           {/* 背景纹理 */}
           <div className="fh-hero__bg">
             <img
@@ -628,6 +681,9 @@ export function FadingHall({ onBack }: FadingHallProps) {
              参考 Lumen Artspace 错落画廊排版
         ============================================ */}
         <section className="fh-pigment-gallery">
+          {/* 暗色纹理背景 */}
+          <div className="fh-pigment-gallery__bg"></div>
+
           {/* ============================================
                PIGMENT GROUPS - TRIANGLE LAYOUT
           ============================================ */}
@@ -808,23 +864,23 @@ export function FadingHall({ onBack }: FadingHallProps) {
         </section>
 
         {/* Introduction Section */}
-        <section className="fh-intro">
+        <section id="digital-resurrection" className="fh-intro">
           <div className="fh-container">
             <div className="fh-intro__grid">
               <div className="fh-intro__content fh-fade-in">
                 <h2 className="fh-intro__title">
-                  A <span className="fh-script-text">(Journey)</span><br />
-                  Thr<span className="fh-script-text">o</span>ugh Time
+                  数字<span className="fh-script-text">焕颜</span><br />
+                  Digital <span className="fh-script-text">Resurrection</span>
                 </h2>
                 <p className="fh-intro__text">
-                  Step into a world where tradition meets artistry. Here, you are invited to explore a personal collection of Vietnamese artworks, where each piece reveals layers of Vietnamese history, meticulous craftsmanship, and the enduring beauty of heritage.
+                  借助前沿的光谱扫描与AI图生图算法，我们将栖霞山石窟中风化剥落的造像细节进行像素级重建。从宝冠纹理到青狮鬃毛，每一处修复都经过了严谨的历史考证与算法推演，让沉睡千年的石刻重焕生机。
                 </p>
-                <a href="#" className="fh-intro__link">About Us</a>
+                <a href="#" className="fh-intro__link">探索算法溯源</a>
               </div>
               <div className="fh-intro__images">
-                <img src="https://cdn.prod.website-files.com/6734928e2af1829d3c568460/6746f266179eba53bc511bf2_home_intro_img-2.avif" alt="Lacquer painting detail" className="fh-intro__img fh-intro__img--1 fh-fade-in" />
-                <img src="https://cdn.prod.website-files.com/6734928e2af1829d3c568460/6746f266f64158298731e48d_home_intro_img-1.avif" alt="Lacquer painting detail" className="fh-intro__img fh-intro__img--2 fh-fade-in" />
-                <img src="https://cdn.prod.website-files.com/6734928e2af1829d3c568460/6746f2668a26a1778c11750a_home_intro_img-3.avif" alt="Lacquer painting detail" className="fh-intro__img fh-intro__img--3 fh-fade-in" />
+                <img src="/章节2素材/TD粒子截图/截屏2026-04-17 22.30.49.png" alt="TD粒子造像-金" className="fh-intro__img fh-intro__img--1 fh-fade-in" />
+                <img src="/章节2素材/TD粒子截图/截屏2026-04-18 17.02.48.png" alt="TD粒子点云" className="fh-intro__img fh-intro__img--2 fh-fade-in" />
+                <img src="/章节2素材/TD粒子截图/截屏2026-04-17 22.56.20.png" alt="TD粒子造像" className="fh-intro__img fh-intro__img--3 fh-fade-in" />
               </div>
             </div>
           </div>
@@ -845,40 +901,55 @@ export function FadingHall({ onBack }: FadingHallProps) {
         <section className="fh-gallery-preview">
           <div className="fh-container">
             <div className="fh-gallery-preview__header">
-              <h2 className="fh-section-title fh-section-title--medium">Impressions<br />Of Heritage</h2>
-              <p className="fh-gallery-preview__subtitle">Timeless Masterpieces</p>
-              <p className="fh-gallery-preview__desc">Each piece exhibited at Lumen Artspace embodies both the visual allure and the spirit of lacquer art.</p>
+              <h2 className="fh-section-title fh-section-title--medium">粒子<br />复彩实验</h2>
+              <p className="fh-gallery-preview__subtitle">Particle Reconstruction</p>
+              <p className="fh-gallery-preview__desc">在 TouchDesigner 中，我们将三维扫描点云数据转化为可交互的粒子系统。每一颗粒子承载着原始造像的空间坐标与色彩信息，通过流体力场驱动，在虚拟空间中完成从灰度石刻到矿物色彩的动态复现。</p>
             </div>
 
             <div className="fh-artwork-list fh-stagger-children">
               {[
                 {
-                  slug: 'u-1',
-                  img: 'https://cdn.prod.website-files.com/67862174a33a316e969b0659/678779fbbebddb19b16be359_untitle-4.avif',
-                  title: 'Untitled 1',
-                  material: 'Lacquer on Wood',
-                  size: '80x80cm',
+                  slug: 'td-detail-1',
+                  img: '/章节2素材/TD粒子截图/截屏2026-05-04 16.22.14.png',
+                  title: '宝冠与面容局部解析',
+                  material: '高精度扫描与光谱比对',
+                  size: '检出泥金(95%)、赭石(91%)、石绿',
+                  objectPosition: 'right center',
                 },
                 {
-                  slug: 'u-2',
-                  img: 'https://cdn.prod.website-files.com/67862174a33a316e969b0659/678769a2ebfab8e3dfcc3ae6_main-img.avif',
-                  title: 'Untitled 2',
-                  material: 'Lacquer on Wood',
-                  size: '100x100cm',
+                  slug: 'td-detail-2',
+                  img: '/章节2素材/TD粒子截图/截屏2026-05-04 16.22.25.png',
+                  title: '袈裟衣褶的粒子场模拟',
+                  material: '点云流体力学渲染',
+                  size: '测定石青(86%)与局部朱砂残留',
                 },
                 {
-                  slug: 'hue-traces-ii',
-                  img: 'https://cdn.prod.website-files.com/67862174a33a316e969b0659/67877443f7e26549e71733d7_main-img.avif',
-                  title: 'Hue Traces II',
-                  material: 'Lacquer on Wood',
-                  size: '80x80cm',
+                  slug: 'td-detail-3',
+                  img: '/章节2素材/TD粒子截图/截屏2026-05-04 16.22.35.png',
+                  title: '下摆垂幔与结跏趺坐姿',
+                  material: '高密度红色素富集区',
+                  size: '测定高纯度朱砂(94%)分布带',
                 },
                 {
-                  slug: 'hue-traces-iii',
-                  img: 'https://cdn.prod.website-files.com/67862174a33a316e969b0659/67877afaf7e26549e71f98bc_Hue%20traces%20III.avif',
-                  title: 'Hue Traces III',
-                  material: 'Lacquer on Wood',
-                  size: '80x80cm',
+                  slug: 'td-detail-4',
+                  img: '/章节2素材/TD粒子截图/截屏2026-05-04 16.22.45.png',
+                  title: '仰覆莲座三维结构重建',
+                  material: '花瓣彩绘层的空间测绘',
+                  size: '底层石青与表层泥金(87%)交织',
+                },
+                {
+                  slug: 'td-detail-5',
+                  img: '/章节2素材/TD粒子截图/截屏2026-05-04 16.22.54.png',
+                  title: '须弥座底座几何纹样',
+                  material: '多层复合彩绘剖面分析',
+                  size: '检出泥金(91%)与赭石(85%)叠加',
+                },
+                {
+                  slug: 'td-detail-6',
+                  img: '/章节2素材/TD粒子截图/796393d81933e0e487037c34f2e66562.png',
+                  title: '造像色彩全息复原推演',
+                  material: '多通道光谱数据映射合成',
+                  size: '三维点云空间下的量子化显影',
                 },
               ].map((art) => (
                 <a
@@ -889,7 +960,12 @@ export function FadingHall({ onBack }: FadingHallProps) {
                   onMouseLeave={stopPreview}
                   onMouseMove={handlePreviewMove}
                 >
-                  <img src={art.img} alt={art.title} className="fh-artwork-list__thumb" />
+                  <img 
+                    src={art.img} 
+                    alt={art.title} 
+                    className="fh-artwork-list__thumb" 
+                    style={{ objectPosition: art.objectPosition || 'center' }}
+                  />
                   <span className="fh-artwork-list__title">{art.title}</span>
                   <span className="fh-artwork-list__meta">{art.material}</span>
                   <span className="fh-artwork-list__meta">{art.size}</span>
@@ -897,8 +973,60 @@ export function FadingHall({ onBack }: FadingHallProps) {
               ))}
             </div>
 
-            <div className="fh-gallery-preview__cta fh-fade-in">
-              <a href="#" className="fh-btn">View All Works</a>
+            <div className="fh-gallery-preview__cta fh-fade-in" style={{ marginTop: '40px' }}>
+            </div>
+          </div>
+        </section>
+
+        {/* Video Split Section */}
+        <section id="video-section" className="fh-video-section">
+          <div className="fh-container fh-video-section__inner">
+            <div className="fh-video-section__text">
+              <div className="fh-video-text-header">
+                <span className="fh-video-badge">数字修复 GrottoMind</span>
+                <h2 className="fh-section-title fh-section-title--medium">流体重构推演</h2>
+                <p className="fh-video-section__subtitle">Fluid Dynamics Simulation</p>
+              </div>
+              <div className="fh-video-section__desc">
+                <p>由于千年风化，造像表面的矿物颜料已极度稀薄。为了还原其原始的色彩空间，我们提取了残存像素的色值分布，并将其转化为可被重力与流体力场驱动的算法系统。</p>
+                <p>在这场数字重构实验中，数百万颗色彩粒子如星尘般凝聚、游走，最终精准附着于冰冷的石刻三维点云之上。这并非是对历史的机械复刻，而是一次跨越千年的数字生命焕颜。</p>
+              </div>
+              
+              <ul className="fh-video-stats">
+                <li>
+                  <span className="fh-video-stats__label">粒子散布密度</span>
+                  <span className="fh-video-stats__val">2,450,000+</span>
+                </li>
+                <li>
+                  <span className="fh-video-stats__label">物理演算力场</span>
+                  <span className="fh-video-stats__val">重力 / 涡流</span>
+                </li>
+                <li>
+                  <span className="fh-video-stats__label">光谱映射模式</span>
+                  <span className="fh-video-stats__val">四通道混合</span>
+                </li>
+              </ul>
+            </div>
+            
+            <div className="fh-video-section__media">
+              <div className="fh-video-wrapper">
+                {/* 赛博考古感装饰元素 */}
+                <div className="fh-video-ui fh-video-ui--tl"></div>
+                <div className="fh-video-ui fh-video-ui--tr"></div>
+                <div className="fh-video-ui fh-video-ui--bl"></div>
+                <div className="fh-video-ui fh-video-ui--br"></div>
+                <span className="fh-video-label">REC // TD_SIMULATION</span>
+                <span className="fh-video-data">1080P / 60FPS</span>
+
+                <video 
+                  src="/章节2素材/td视频.mp4" 
+                  className="fh-video-element"
+                  autoPlay 
+                  loop 
+                  muted 
+                  playsInline
+                />
+              </div>
             </div>
           </div>
         </section>
