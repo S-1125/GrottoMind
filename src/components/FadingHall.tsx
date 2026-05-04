@@ -391,7 +391,16 @@ export function FadingHall({ onBack }: FadingHallProps) {
                 <span>返回上一章</span>
               </button>
               <a href="#" className="fh-nav__link fh-nav__link--active">复彩实验</a>
-              <a href="#" className="fh-nav__link">颜料考古</a>
+              <a 
+                href="#pigment-archaeology" 
+                className="fh-nav__link"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.querySelector('#pigment-archaeology')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
+                颜料考古
+              </a>
               <a href="#" className="fh-nav__link">观影</a>
             </div>
             <div className="fh-nav__logo">
@@ -592,6 +601,208 @@ export function FadingHall({ onBack }: FadingHallProps) {
             {/* Phase 3：触发 3D 展开的空白缓冲区域 */}
             <div className="fh-recolor-process__phase fh-recolor-process__phase--end" ref={el => { phaseRefs.current[3] = el }}>
               {/* 此区域留白，高度用于触发最后的三图展开状态 */}
+            </div>
+          </div>
+        </section>
+
+        {/* ============================================
+             PIGMENT TRANSITION QUOTE
+        ============================================ */}
+        <section id="pigment-archaeology" className="fh-transition-quote">
+          <div className="fh-transition-quote__bg"></div>
+          <div className="fh-transition-quote__container">
+            <h2 className="fh-transition-quote__title">
+              <span className="fh-transition-quote__line">剥离时间的表层，</span>
+              <span className="fh-transition-quote__line">每一抹色彩，皆是大地的结晶。</span>
+            </h2>
+            <p className="fh-transition-quote__desc">
+              Beneath the surface of time, color is not merely a visual illusion, but a geological testament. 
+              Through algorithmic spectral analysis, we fracture the imagery to unearth the raw minerals 
+              that have breathed life into the stone for centuries.
+            </p>
+          </div>
+        </section>
+
+        {/* ============================================
+             PIGMENT ARCHAEOLOGY GALLERY
+             参考 Lumen Artspace 错落画廊排版
+        ============================================ */}
+        <section className="fh-pigment-gallery">
+          {/* ============================================
+               PIGMENT GROUPS - TRIANGLE LAYOUT
+          ============================================ */}
+
+          {/* ---- 第一组：朱砂 Cinnabar ---- */}
+          <div className="fh-gallery-group">
+            <div className="fh-gallery-item fh-gallery-item--tl">
+              <div className="fh-pigment-gallery__img-wrap">
+                <img src="/章节2素材/色彩/栖霞山千佛岩.jpg" alt="千佛岩朱砂残留" />
+              </div>
+              <div className="fh-pigment-gallery__meta">
+                <h3 className="fh-pigment-gallery__title">千佛岩</h3>
+                <p className="fh-pigment-gallery__info">朱砂涂层 · 佛龛背壁<br/>南齐永明二年 (484)</p>
+              </div>
+            </div>
+
+            <div className="fh-gallery-item fh-gallery-item--tr">
+              <div className="fh-pigment-gallery__img-wrap">
+                <img src="/章节2素材/色彩/小龛.jpg" alt="小龛朱砂" />
+              </div>
+              <div className="fh-pigment-gallery__meta">
+                <h3 className="fh-pigment-gallery__title">朱砂佛龛</h3>
+                <p className="fh-pigment-gallery__info">朱砂涂层 · 龛壁拱顶<br/>南朝至隋代</p>
+              </div>
+            </div>
+
+            <div className="fh-gallery-item fh-gallery-item--bc">
+              <div className="fh-pigment-gallery__img-wrap">
+                <img src="/章节2素材/色彩/飞天壁画.png" alt="飞天壁画朱砂底" />
+              </div>
+              <div className="fh-pigment-gallery__meta">
+                <h3 className="fh-pigment-gallery__title">飞天壁画</h3>
+                <p className="fh-pigment-gallery__info">朱砂底彩 · 中国最东飞天<br/>隋末唐初</p>
+              </div>
+            </div>
+          </div>
+
+          {/* ---- 第二组：石绿 Malachite ---- */}
+          <div className="fh-gallery-group">
+            <div className="fh-gallery-item fh-gallery-item--tl">
+              <div className="fh-pigment-gallery__img-wrap">
+                <img src="/章节2素材/色彩/空心佛.jpg" alt="空心佛铜绿" />
+              </div>
+              <div className="fh-pigment-gallery__meta">
+                <h3 className="fh-pigment-gallery__title">空心佛</h3>
+                <p className="fh-pigment-gallery__info">铜绿残留 · 佛身衣褶<br/>南朝梁代</p>
+              </div>
+            </div>
+
+            <div className="fh-gallery-item fh-gallery-item--tr">
+              <div className="fh-pigment-gallery__img-wrap">
+                <img src="/章节2素材/色彩/栖霞飞天，南京栖霞山唯一完整的隋末壁画_2_Keep walking_来自小红书网页版.jpg" alt="飞天龛边石绿" />
+              </div>
+              <div className="fh-pigment-gallery__meta">
+                <h3 className="fh-pigment-gallery__title">佛龛</h3>
+                <p className="fh-pigment-gallery__info">石绿残留 · 龛沿边缘<br/>隋末完整壁画</p>
+              </div>
+            </div>
+
+            <div className="fh-gallery-item fh-gallery-item--bc">
+              <div className="fh-pigment-gallery__img-wrap">
+                <img src="/章节2素材/色彩/中国最东边的飞天（南京栖霞山）_1_觉习猷成型君_来自小红书网页版.jpg" alt="飞天细节" />
+              </div>
+              <div className="fh-pigment-gallery__meta">
+                <h3 className="fh-pigment-gallery__title">飞天细节</h3>
+                <p className="fh-pigment-gallery__info">石绿与朱砂交叠 · 天衣飘带<br/>中国最东端飞天</p>
+              </div>
+            </div>
+          </div>
+
+          {/* ---- 第三组：赭黄 Ochre ---- */}
+          <div className="fh-gallery-group">
+            <div className="fh-gallery-item fh-gallery-item--tl">
+              <div className="fh-pigment-gallery__img-wrap">
+                <img src="/章节2素材/色彩/栖霞飞天壁画.jpg" alt="飞天壁画赭黄" />
+              </div>
+              <div className="fh-pigment-gallery__meta">
+                <h3 className="fh-pigment-gallery__title">飞天线描</h3>
+                <p className="fh-pigment-gallery__info">赭石底层 · 线描残影<br/>隋末唐初</p>
+              </div>
+            </div>
+
+            <div className="fh-gallery-item fh-gallery-item--tr">
+              <div className="fh-pigment-gallery__img-wrap">
+                <img src="/章节2素材/色彩/石刻.png" alt="民国石刻题记" />
+              </div>
+              <div className="fh-pigment-gallery__meta">
+                <h3 className="fh-pigment-gallery__title">摩崖题刻</h3>
+                <p className="fh-pigment-gallery__info">赭红石质 · 政府保护题记<br/>民国十七年 (1928)</p>
+              </div>
+            </div>
+
+            <div className="fh-gallery-item fh-gallery-item--bc">
+              <div className="fh-pigment-gallery__img-wrap">
+                <img src="/章节2素材/色彩/栖霞山摩崖石刻1.jpg" alt="独立佛龛" />
+              </div>
+              <div className="fh-pigment-gallery__meta">
+                <h3 className="fh-pigment-gallery__title">摩崖石刻</h3>
+                <p className="fh-pigment-gallery__info">赭黄基底 · 天然岩壁肌理<br/>千佛崖造像区</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ============================================
+             MINERAL ANALYSIS SECTION
+             单独平铺的矿物色彩分析卡片
+        ============================================ */}
+        <section className="fh-mineral-section">
+          <div className="fh-container">
+            <h2 className="fh-mineral-section__title">光谱溯源 Spectral Analysis</h2>
+            <div className="fh-mineral-grid">
+              
+              <div className="fh-pigment-gallery__mineral-card fh-pigment-gallery__mineral-card--red">
+                <div className="fh-pigment-gallery__mineral-header">
+                  <span className="fh-pigment-gallery__mineral-formula">HgS</span>
+                  <span className="fh-pigment-gallery__mineral-name">硫化汞</span>
+                </div>
+                <p className="fh-pigment-gallery__mineral-desc">
+                  朱砂是中国最古老的红色颜料，因其鲜艳持久的特性被广泛用于佛教造像的龛壁涂装。千佛崖的朱砂层历经 1500 余年风化，仍保留了可辨识的鲜红色调。
+                </p>
+                <div className="fh-pigment-gallery__spectrum" style={{ background: 'linear-gradient(90deg, #1a0000, #8b0000, #c0392b, #e74c3c, #f1948a, #fadbd8)' }}></div>
+                <span className="fh-pigment-gallery__spectrum-label">可见光吸收带 580-620nm</span>
+              </div>
+
+              <div className="fh-pigment-gallery__mineral-card fh-pigment-gallery__mineral-card--green">
+                <div className="fh-pigment-gallery__mineral-header">
+                  <span className="fh-pigment-gallery__mineral-formula">Cu₂(CO₃)(OH)₂</span>
+                  <span className="fh-pigment-gallery__mineral-name">碱式碳酸铜</span>
+                </div>
+                <p className="fh-pigment-gallery__mineral-desc">
+                  石绿（孔雀石）是古代最常用的绿色矿物，需研磨极细后以胶调和。栖霞山石窟中的石绿多见于衣褶，历经风化后与铜锈融合，呈现独特的青铜绿色调。
+                </p>
+                <div className="fh-pigment-gallery__spectrum" style={{ background: 'linear-gradient(90deg, #0a2e26, #0e6655, #1abc9c, #48c9b0, #a3e4d7, #d5f5e3)' }}></div>
+                <span className="fh-pigment-gallery__spectrum-label">可见光吸收带 470-520nm</span>
+              </div>
+
+              <div className="fh-pigment-gallery__mineral-card fh-pigment-gallery__mineral-card--yellow">
+                <div className="fh-pigment-gallery__mineral-header">
+                  <span className="fh-pigment-gallery__mineral-formula">Fe₂O₃</span>
+                  <span className="fh-pigment-gallery__mineral-name">三氧化二铁</span>
+                </div>
+                <p className="fh-pigment-gallery__mineral-desc">
+                  赭石是最丰富的颜料矿物之一，由土壤沉积形成。在栖霞山石窟中，赭黄色既来自人工涂装，也来自岩体自身的铁质风化，形成了天然交融的肌理。
+                </p>
+                <div className="fh-pigment-gallery__spectrum" style={{ background: 'linear-gradient(90deg, #1a1200, #7d6608, #d4a017, #f0c040, #f9e79f, #fef9e7)' }}></div>
+                <span className="fh-pigment-gallery__spectrum-label">可见光吸收带 550-590nm</span>
+              </div>
+
+              {/* ---- 褪去颜料：铅白 ---- */}
+              <div className="fh-pigment-gallery__mineral-card fh-pigment-gallery__mineral-card--faded">
+                <div className="fh-pigment-gallery__mineral-header">
+                  <span className="fh-pigment-gallery__mineral-formula">2PbCO₃·Pb(OH)₂</span>
+                  <span className="fh-pigment-gallery__mineral-name">碱式碳酸铅 (铅白) <span className="fh-mineral-tag fh-mineral-tag--corrupted">DATA CORRUPTED</span></span>
+                </div>
+                <p className="fh-pigment-gallery__mineral-desc">
+                  曾大面积涂抹于佛像面部与身体以迎合魏晋“敷粉”审美。因江南潮湿及微量硫化物反应，现已发生严重的不可逆“返铅”硫化变黑，原始白彩肉眼已不可见。
+                </p>
+                <div className="fh-pigment-gallery__spectrum fh-pigment-gallery__spectrum--faded"></div>
+                <span className="fh-pigment-gallery__spectrum-label">返铅变异光谱 (推断原色带 400-700nm)</span>
+              </div>
+
+              {/* ---- 褪去颜料：石青 ---- */}
+              <div className="fh-pigment-gallery__mineral-card fh-pigment-gallery__mineral-card--faded">
+                <div className="fh-pigment-gallery__mineral-header">
+                  <span className="fh-pigment-gallery__mineral-formula">Cu₃(CO₃)₂(OH)₂</span>
+                  <span className="fh-pigment-gallery__mineral-name">碱式碳酸铜 (石青) <span className="fh-mineral-tag fh-mineral-tag--reconstructed">RECONSTRUCTED</span></span>
+                </div>
+                <p className="fh-pigment-gallery__mineral-desc">
+                  曾大量施用于佛龛内部背光与华盖装饰。但在漫长的高湿与高二氧化碳环境下发生水化，逐渐向孔雀石（石绿）转化或直接发黑，深邃蓝彩已荡然无存。
+                </p>
+                <div className="fh-pigment-gallery__spectrum fh-pigment-gallery__spectrum--faded"></div>
+                <span className="fh-pigment-gallery__spectrum-label">高光谱模拟溯源吸收带 450-480nm</span>
+              </div>
+
             </div>
           </div>
         </section>
