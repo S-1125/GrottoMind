@@ -1,0 +1,407 @@
+{
+  "notebook_id": "27fdd704-1879-4191-acae-94be6cc9b245",
+  "notebook_title": "\u6d41\u5931\u7684\u6587\u7269\u8272\u5f69\uff1a\u5357\u4eac\u6816\u971e\u5c71\u77f3\u7a9f\u9020\u50cf\u6570\u5b57\u590d\u5f69\u4ea4\u4e92\u8bbe\u8ba1",
+  "sources": [
+    {
+      "index": 1,
+      "id": "bc043f35-786b-4773-8090-851e4cf26bc8",
+      "title": "2023-\u4e2d\u56fd\u4eba\u5de5\u667a\u80fd\u7cfb\u5217\u767d\u76ae\u4e66-AIArt.pdf",
+      "type": "SourceType.PDF",
+      "url": null,
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-16T13:12:26"
+    },
+    {
+      "index": 2,
+      "id": "8815f9cc-d766-4237-99d7-5724e4213223",
+      "title": "5276_12.--chjao.pdf",
+      "type": "SourceType.PDF",
+      "url": null,
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-16T13:12:15"
+    },
+    {
+      "index": 3,
+      "id": "74797f39-8baa-45f0-8aef-88381b1e6e37",
+      "title": "AIGC \u65f6\u4ee3\u7684\u6570\u5b57\u5a92\u4f53\u667a\u80fd\u8bbe\u8ba1",
+      "type": "SourceType.PDF",
+      "url": "http://www.idi.zju.edu.cn/wp-content/uploads/2025/06/Intelligent_Digital_Media_Design_in_the_Era_of_AIGC.pdf",
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-16T13:12:07"
+    },
+    {
+      "index": 4,
+      "id": "dfcc0a9d-f483-467e-8add-5db230370320",
+      "title": "Evaluating the Stability of Coloring Layers in Azurite and Malachite Used on Traditional Dancheong - \ud55c\uad6d\ud384\ud504\uc885\uc774\uacf5\ud559\ud68c",
+      "type": "SourceType.WEB_PAGE",
+      "url": "https://www.ktappi.kr/articles/article/RjbV/",
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-15T21:00:36"
+    },
+    {
+      "index": 5,
+      "id": "e363bac7-60ca-4144-8b4a-d1e6d33b0fc4",
+      "title": "From blue to green: A review of the use and alteration of azurite pigment in cultural heritage",
+      "type": "SourceType.WEB_PAGE",
+      "url": "https://www.researchgate.net/publication/394495724_From_blue_to_green_A_review_of_the_use_and_alteration_of_azurite_pigment_in_cultural_heritage",
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-15T21:00:36"
+    },
+    {
+      "index": 6,
+      "id": "32e97866-740f-4934-9fd8-b45aaffa3e64",
+      "title": "Heritage Building Information Management and Intelligent Querying by Multimodal Large Language Models and Knowledge Graph - EasyChair",
+      "type": "SourceType.PDF",
+      "url": "https://easychair.org/publications/paper/pMKB/open",
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-16T13:12:07"
+    },
+    {
+      "index": 7,
+      "id": "27d7e9e7-f84f-43be-a6d0-9b51da53edc0",
+      "title": "Intelligent Deduction and Historical Reconstruction an AIGC-Driven Exploration of the Main Hall Ruins at Gonghoulong Temple, Nin",
+      "type": "SourceType.PDF",
+      "url": "https://isprs-archives.copernicus.org/articles/XLVIII-M-9-2025/843/2025/isprs-archives-XLVIII-M-9-2025-843-2025.pdf",
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-16T13:12:07"
+    },
+    {
+      "index": 8,
+      "id": "e6b2a8e0-08a9-446a-99e4-e13655a33d4e",
+      "title": "Light-Induced Degradation of Cinnabar and Red Lead Paint Layers ...",
+      "type": "SourceType.WEB_PAGE",
+      "url": "https://www.researchgate.net/publication/397113396_Light-Induced_Degradation_of_Cinnabar_and_Red_Lead_Paint_Layers_in_Historical_Wall_Paintings_A_Quantitative_Evaluation_of_Light-Exposure_Limits",
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-15T21:00:36"
+    },
+    {
+      "index": 9,
+      "id": "b1f75aef-7bf9-4c0c-adbc-75c40ca508db",
+      "title": "MINERALOGICAL NOTES THERMAL STABILITY OF AZURITE AND MALACHITE Der,B R. StlrrsoN, Rrcn.q'nl Frsnon aNo Kenr' Ltnscu, Department",
+      "type": "SourceType.PDF",
+      "url": "http://www.minsocam.org/ammin/AM49/AM49_1111.pdf",
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-15T21:00:36"
+    },
+    {
+      "index": 10,
+      "id": "fa74b1af-f57c-49be-bdbb-d552643fc0f2",
+      "title": "OpenClaw-RL: Train Any Agent Simply by Talking - arXiv",
+      "type": "SourceType.PDF",
+      "url": "https://arxiv.org/pdf/2603.10165",
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-16T13:22:23"
+    },
+    {
+      "index": 11,
+      "id": "8b1fd133-dcdb-4faf-ab90-081d0d23aabb",
+      "title": "[2305.05902] Multi-stage Progressive Reasoning for Dunhuang Murals Inpainting",
+      "type": "SourceType.WEB_PAGE",
+      "url": "https://arxiv.org/abs/2305.05902",
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-15T22:11:45"
+    },
+    {
+      "index": 12,
+      "id": "0f86faa7-df19-435b-910b-0a3d649945ef",
+      "title": "[2402.16188] ARIN: Adaptive Resampling and Instance Normalization for Robust Blind Inpainting of Dunhuang Cave Paintings",
+      "type": "SourceType.WEB_PAGE",
+      "url": "https://arxiv.org/abs/2402.16188",
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-15T22:11:39"
+    },
+    {
+      "index": 13,
+      "id": "dd7f03f2-094f-4466-be9b-c74a063ab991",
+      "title": "[2402.19473] Retrieval-Augmented Generation for AI-Generated Content: A Survey",
+      "type": "SourceType.WEB_PAGE",
+      "url": "https://arxiv.org/abs/2402.19473",
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-15T21:44:01"
+    },
+    {
+      "index": 14,
+      "id": "6dc9933a-f13c-478c-93db-a4d62726dfd8",
+      "title": "[2405.16506] GRAG: Graph Retrieval-Augmented Generation",
+      "type": "SourceType.WEB_PAGE",
+      "url": "https://arxiv.org/abs/2405.16506",
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-15T21:44:17"
+    },
+    {
+      "index": 15,
+      "id": "acbe7076-2fcc-4251-8876-f814d99fac2a",
+      "title": "\u201cAI\u65f6\u4ee3\u4e2d\u56fd\u53e4\u5178\u5b66\u7684\u6311\u6218\u4e0e\u5c55\u671b\u201d\u5b66\u672f\u7814\u8ba8\u4f1a - \u5317\u4eac\u5927\u5b66\u4e2d\u6587\u7cfb",
+      "type": "SourceType.WEB_PAGE",
+      "url": "https://chinese.pku.edu.cn/xwgg/xwdt/9196262e0e614929bd19892a86d02345.htm",
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-16T13:12:07"
+    },
+    {
+      "index": 16,
+      "id": "73da9479-a855-4424-a305-ac635ff040dc",
+      "title": "\u4e91\u5188\u77f3\u7a9f\u5f69\u7ed8\u989c\u6599\u521d\u6b65\u5206\u6790_\u674e\u6d77.pdf",
+      "type": "SourceType.PDF",
+      "url": null,
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-15T22:23:04"
+    },
+    {
+      "index": 17,
+      "id": "3d88c355-5b67-4aca-87e0-fe47f30bc35f",
+      "title": "\u4eba\u5de5\u667a\u80fd\u8d4b\u80fd\u6587\u5316\u9057\u4ea7\u4fdd\u62a4\u4f20\u627f - \u5149\u660e\u7f51-\u7406\u8bba\u9891\u9053",
+      "type": "SourceType.WEB_PAGE",
+      "url": "https://theory.gmw.cn/2026-03/13/content_38646079.htm",
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-16T13:12:07"
+    },
+    {
+      "index": 18,
+      "id": "3bd09677-c066-4099-a983-02edebdf6697",
+      "title": "\u514b\u5b5c\u5c14\u77f3\u7a9f\u58c1\u753b\u989c\u6599\u7814\u7a76.pdf",
+      "type": "SourceType.PDF",
+      "url": null,
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-15T22:23:17"
+    },
+    {
+      "index": 19,
+      "id": "5f4c2969-3391-4d19-a6ef-13e0edf32b8d",
+      "title": "\u5357\u4eac\u6216\u6709\u7b2c3\u5ea7\u5357\u5510\u7687\u9675\u7591\u4e3a\"\u7435\u7436\u7687\u540e\"\u61ff\u9675 - \u4e2d\u56fd\u65b0\u95fb\u7f51",
+      "type": "SourceType.WEB_PAGE",
+      "url": "https://www.chinanews.com.cn/cul/2010/10-13/2582881.shtml",
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-15T21:00:36"
+    },
+    {
+      "index": 20,
+      "id": "56b2be31-e89e-4ed5-a3f9-907b28c22ec8",
+      "title": "\u5357\u4eac\u6816\u971e\u5bfa\u820d\u5229\u5854\u4e0e\u676d\u5dde\u95f8\u53e3\u767d\u5854\u3001\u7075\u9690\u5bfa\u53cc\u77f3\u5854\u9020\u50cf\u6bd4\u8f83\u7814\u7a76_\u8d75\u806a.pdf",
+      "type": "SourceType.PDF",
+      "url": null,
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-15T22:42:08"
+    },
+    {
+      "index": 21,
+      "id": "fa0dc38f-5ac7-4440-9f02-f4bddc404eab",
+      "title": "\u5357\u4eac\u6816\u971e\u5c71\u820d\u5229\u5854\u9020\u50cf\u6570\u5b57\u590d\u5f69\u4e0e\u4eba\u5de5\u667a\u80fd\u4ea4\u4e92\u7cfb\u7edf\u7814\u7a76\u62a5\u544a",
+      "type": "SourceType.MARKDOWN",
+      "url": null,
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-15T21:00:36"
+    },
+    {
+      "index": 22,
+      "id": "36b31e74-2b97-45a3-9da0-258933bcbaae",
+      "title": "\u5357\u5510\u4e8c\u9675\u53d1\u6398\u62a5\u544a (\u5357\u5510\u4e8c\u9675\u53d1\u6398\u62a5\u544a) (z-library.sk, 1lib.sk, z-lib.sk).pdf",
+      "type": "SourceType.PDF",
+      "url": null,
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-15T22:01:32"
+    },
+    {
+      "index": 23,
+      "id": "378b21ee-41cb-41f9-a50d-97c17222161e",
+      "title": "\u5357\u5510\u4e8c\u9675\uff1a\u5343\u5e74\u524d\u7684\u5386\u53f2\u60b2\u6b4c\uff5c\u8bbf\u53e4- \u7ecf\u6d4e\u89c2\u5bdf\u7f51\uff0d \u4e13\u4e1a\u8d22\u7ecf\u65b0\u95fb\u7f51\u7ad9",
+      "type": "SourceType.WEB_PAGE",
+      "url": "http://www.eeo.com.cn/2025/0627/734767.shtml",
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-15T21:00:36"
+    },
+    {
+      "index": 24,
+      "id": "4d153366-363f-4e9c-9667-f2ed24af9efb",
+      "title": "\u57fa\u4e8e\u6df1\u5ea6\u5b66\u4e60\u7684\u6566\u714c\u58c1\u753b\u671d\u4ee3\u8bc6\u522b\u4e0e\u8272\u5f69\u8fd8\u539f\u7814\u7a76_\u5218\u5764\u9526.pdf",
+      "type": "SourceType.PDF",
+      "url": null,
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-15T22:22:35"
+    },
+    {
+      "index": 25,
+      "id": "425ae90d-c029-4bdf-bcd9-cb7f861a8756",
+      "title": "\u5b8b\u97f5\u9057\u8e2a\uff1a\u676d\u5dde\u897f\u6e56\u98de\u6765\u5cf0\u9020\u50cf\u827a\u672f - \u57ce\u5e02\u5b66\u7814\u7a76\u7f51",
+      "type": "SourceType.WEB_PAGE",
+      "url": "http://www.urbanchina.org/content/content_8109024.html",
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-15T21:00:36"
+    },
+    {
+      "index": 26,
+      "id": "e61d5324-9e86-4b74-a742-68f0d108df8e",
+      "title": "\u5f15\u8a00",
+      "type": "SourceType.PDF",
+      "url": "https://www.edb.gov.hk/attachment/tc/curriculum-development/kla/pshe/references-and-resources/ethics-and-religious-studies/ch4.pdf",
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-15T21:00:36"
+    },
+    {
+      "index": 27,
+      "id": "3fc722d7-9fae-4e03-ae79-c97fc849bcbc",
+      "title": "\u6566\u714c\u83ab\u9ad8\u7a9f\u968b\u5510\u58c1\u753b.pdf",
+      "type": "SourceType.PDF",
+      "url": null,
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-15T22:24:17"
+    },
+    {
+      "index": 28,
+      "id": "4ee3c1b3-2d02-4e97-a36e-e494eb5fefac",
+      "title": "\u676d\u5dde\u98de\u6765\u5cf0\u9020\u50cf\u9762\u4e34\u98ce\u5316\u5f00\u88c2\u4fdd\u62a4\u540e\u80fd\u5ef6\u5bff50\u5e74 - \u4e2d\u56fd\u65b0\u95fb\u7f51",
+      "type": "SourceType.WEB_PAGE",
+      "url": "https://www.chinanews.com.cn/cul/2012/03-21/3760061.shtml",
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-15T21:00:36"
+    },
+    {
+      "index": 29,
+      "id": "50dbf2b2-439f-44c4-b804-b4fd2dbf257e",
+      "title": "\u6816\u971e\u5bfa\u820d\u5229\u5854- \u7ef4\u57fa\u767e\u79d1\uff0c\u81ea\u7531\u7684\u767e\u79d1\u5168\u4e66",
+      "type": "SourceType.WEB_PAGE",
+      "url": "https://zh.wikipedia.org/zh-cn/%E6%A0%96%E9%9C%9E%E5%AF%BA%E8%88%8D%E5%88%A9%E5%A1%94",
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-15T21:00:36"
+    },
+    {
+      "index": 30,
+      "id": "c9b26d31-2bdd-4abd-a405-bce56d571e76",
+      "title": "\u6986\u6797\u7a9f\u5143\u4ee3\u58c1\u753b\u9ec4\u8272\u989c\u6599\u521d\u6b65\u7814\u7a76_\u4e8e\u5b97\u4ec1.pdf",
+      "type": "SourceType.PDF",
+      "url": null,
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-15T22:23:59"
+    },
+    {
+      "index": 31,
+      "id": "0c10cb4e-19c3-4d94-9dd6-f4c09f594597",
+      "title": "\u6986\u6797\u7a9f\u897f\u590f\u7b2c3\u7a9f\u4e3b\u5ba4\u897f\u58c1\u5357\u4fa7\u666e\u8d24\u83e9\u8428\u670d\u9970_\u5218\u5143\u98ce.pdf",
+      "type": "SourceType.PDF",
+      "url": null,
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-15T22:24:10"
+    },
+    {
+      "index": 32,
+      "id": "cc032308-dda9-427b-ab9d-9c9faf6dd0e0",
+      "title": "\u6c5f\u82cf\u5357\u4eac\u53d1\u73b0\u5357\u5510\u201c\u7b2c\u4e09\u9675\u201d \u5893\u4e3b\u7591\u4e3a\u5927\u5468\u540e",
+      "type": "SourceType.WEB_PAGE",
+      "url": "https://www.chinanews.com.cn/cul/2011/03-31/2944716.shtml",
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-15T21:00:36"
+    },
+    {
+      "index": 33,
+      "id": "2c86f8a3-5048-4cdb-9a92-e62300f5f49f",
+      "title": "\u6c5f\u82cf\u8bfb\u57ce\u00b7\u9605\u8bfb\u5efa\u7b51| \u8fd9\u5ea7\u5357\u4eac\u6700\u65e9\u7684\u53e4\u5854\uff0c\u4e3a\u4ec0\u4e48\u80fd\u8ba9\u6881\u601d\u6210\u70b9\u8d5e_ ...",
+      "type": "SourceType.WEB_PAGE",
+      "url": "https://jsnews.jschina.com.cn/jsyw/202505/t20250520_s682c82e7e4b0044ce9b6910e.shtml",
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-15T21:00:36"
+    },
+    {
+      "index": 34,
+      "id": "4b01b7fa-b7bc-42b1-bb65-da321821acbc",
+      "title": "\u6d59\u6c5f\u77f3\u7a9f\u9020\u50cf\u201c\u5927\u6478\u5e95\u201d \u4ee5\u4e94\u4ee3\u5434\u8d8a\u56fd\u3001\u5143\u4ee3\u6700\u591a",
+      "type": "SourceType.WEB_PAGE",
+      "url": "https://zj.ifeng.com/c/8FlhDF7HQa3",
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-15T21:00:36"
+    },
+    {
+      "index": 35,
+      "id": "a7f010d2-a0b4-45b2-8153-0b2e67a4cbf2",
+      "title": "\u71df\u9020\u6cd5\u5f0f/\u5377\u5341\u56db - \u7ef4\u57fa\u6587\u5e93\uff0c\u81ea\u7531\u7684\u56fe\u4e66\u9986",
+      "type": "SourceType.WEB_PAGE",
+      "url": "https://zh.wikisource.org/wiki/%E7%87%9F%E9%80%A0%E6%B3%95%E5%BC%8F/%E5%8D%B7%E5%8D%81%E5%9B%9B",
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-15T21:39:08"
+    },
+    {
+      "index": 36,
+      "id": "d35a1726-5604-40e3-9359-36c3169fcecc",
+      "title": "\u89c6\u89c9\u751f\u6210\u5de5\u4f5c\u6d41_\u8865\u5145\u8d44\u6599.md",
+      "type": "SourceType.MARKDOWN",
+      "url": null,
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-04-16T15:39:05"
+    },
+    {
+      "index": 37,
+      "id": "46294ef0-3462-49d0-9371-56654ec67dbd",
+      "title": "\u987b\u5f25\u5c71\u77f3\u7a9f48\u7a9f\u660e\u4ee3\u6ce5\u5851\u5f69\u7ed8\u5236\u4f5c\u6750\u8d28\u6210\u5206\u5206\u6790.pdf",
+      "type": "SourceType.PDF",
+      "url": null,
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-15T22:23:53"
+    },
+    {
+      "index": 38,
+      "id": "917c9b23-6f4d-41b4-8b2a-ae53e70fd975",
+      "title": "\u9a6c\u8e44\u5bfa\u3001\u5929\u68af\u5c71\u548c\u70b3\u7075\u5bfa\u77f3\u7a9f\u58c1\u753b\u989c\u6599\u5206\u6790_\u4e8e\u5b97\u4ec1.pdf",
+      "type": "SourceType.PDF",
+      "url": null,
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-15T22:24:05"
+    },
+    {
+      "index": 39,
+      "id": "f1f66d75-05e6-4e6e-8bd3-1287c492f786",
+      "title": "\u9ea6\u79ef\u5c71\u77f3\u7a9f\u58c1\u753b\u3001\u5f69\u5851\u65e0\u673a\u989c\u6599\u7684X\u5c04\u7ebf\u884d\u5c04\u5206\u6790_\u5468\u56fd\u4fe1.pdf",
+      "type": "SourceType.PDF",
+      "url": null,
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-15T22:23:23"
+    },
+    {
+      "index": 40,
+      "id": "fe741015-742a-4099-ad24-5aa3b0013285",
+      "title": "\u9f99\u95e8\u77f3\u7a9f\u5f69\u7ed8\u989c\u6599\u7684\u62c9\u66fc\u5149\u8c31\u3001X\u5c04\u7ebf\u8367\u5149\u548c\u626b\u63cf\u7535\u955c\u5206\u6790_\u9a6c\u671d\u9f99.pdf",
+      "type": "SourceType.PDF",
+      "url": null,
+      "status": "ready",
+      "status_id": 2,
+      "created_at": "2026-03-15T22:23:09"
+    }
+  ],
+  "count": 40
+}

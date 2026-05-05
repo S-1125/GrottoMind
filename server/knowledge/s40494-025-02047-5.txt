@@ -1,0 +1,470 @@
+npj | heritage science Article
+
+https://doi.org/10.1038/s40494-025-02047-5 Automated mural restoration via semi supervised segmentation and prompt guided diffusion inpainting
+
+Check for updates
+
+Zishan Xu1, Shaokai Hua1, Zilong Wang2, Wei Chen1 , Jueting Liu1, Tingting Xu1 & Zehua Wang1
+
+This study aims to address two major challenges in the digital restoration of murals: defect segmentation and large-scale defect repair. We propose a novel solution, combining the SAM- Adapter segmentation method with semi-supervised training and a Text-to-Inpainting strategy. In the aspect of defect segmentation, by introducing thresholding and semi-supervised training, we effectively enhanced the precision and applicability in handling sparse datasets. For large-scale defect repair, this study innovatively applies BPO (Black-box Prompt Optimization) technology, combined with GPT4V (ision) and Stable Diffusion, to achieve precise reconstruction of murals’ complex textures and structures through text-guided methods. Through extensive experimental validation, our method has demonstrated signiﬁcant effectiveness in defect segmentation and large-scale repair, providing new perspectives and tools for the digital preservation of murals, and is of great signiﬁcance for the protection of cultural heritage.
+
+Murals are an invaluable record of human history and culture, encapsu- lating diverse artistic styles and reﬂecting societal transformations across eras. Yet these fragile works steadily deteriorate under the combined impact of moisture ﬂuctuations, light exposure, and human activity. Digital restoration now provides a non-invasive, high-ﬁdelity route to conserve such paintings, safeguarding their aesthetic and historical value for future generations. Two technical bottlenecks, however, still limit practical deploy- ment. First, damage segmentation is hampered by complex brush- strokes, irregular textures, and-crucially-the scarcity of annotated mural-damage datasets. Second, large-area inpainting remains difﬁ- cult because severely eroded regions supply few visual cues; even state- of-the-art diffusion inpainting1 and LAMA2 degrade when the missing region is extensive. Related work. Traditional studies coupled conservators’ craft knowl- edge with digital pipelines: early efforts integrated manual practice and imagingsoftware3; morphological component analysis wasapplied to Tang- dynasty tomb paintings4; texture-synthesis and curvature-diffusion meth- ods were explored for Dunhuang murals5,6; non-texture techniques addressed Maijishan grottoes7; and Criminisi-style patch ﬁlling was reﬁned for Dunhuang8 and Wutai9 murals, then further optimized10. Deep learning expanded these capabilities: neural networks11, GANs12, adaptive local convolutions13, edge-guided dual-stage restorers14 and diffusion models for Dunhuang15,16 all improved quality, yet still struggled with heterogeneous styles or very large lacunae.
+
+In parallel, image segmentation advanced rapidly. The Segment Anything Model (SAM)17 and its medical derivatives18,19 offer strong cross- task generalization; SAM-Adapter20 boosts performance via task-adaptive layers.TransformerdesignssuchasMISSFormer21and TransCeption22,and semi-supervised frameworks like LViT23, In bridge structural-health mon- itoring, Bernardini et al. propose a DSF/DEI-based methodology that ﬁrst achieves a robust healthy-vs-damaged separation under scarce labels24, pushed accuracy further-yet mural damage segmentation remains chal- lenging because most methods rely on abundant labels25. Image-inpainting research ranges from PDE-based ﬁlling26 and exemplar synthesis27,28 to GAN or transformer variants. Siamese expansion networks29, memory-augmented restorers30,31, global-local completion32,33, partial or gated convolutions34,35, high-resolution patch synthesis35,36, edge- guided pipelines37, multi-modality guidance38,39 and wavelet self-attention GANs40 each target structural or textural realism, but often suffer style drift or local artefacts in very large holes. Meanwhile, multimodal learning and prompt optimization have matured. Advances include multi-task prompt frameworks (TRIPLET 41), robustness-oriented bottlenecks42, knowledge-guided storytelling43, cross- lingual retrieval44, hallucination suppression in LVLMs45 and two-stage visual-text translators46. Chain-of-thought prompting improves reasoning47,48; multi-view text descriptions aid zero-shot classiﬁcation49; iterative prompting reduces hallucinations50; attention-based facial- expression recognition51, knowledge-augmented CoT52, latent-space reasoning53 and implicit-sentiment CoT54 further demonstrate the power
+
+1China University of Mining and Technology, Beijing, China. 2Beijing Jiaotong University, Beijing, China. e-mail: chenwdavior@163.com
+
+npj Heritage Science |  (2025) 13:504  1
+
+1234567890():,;
+
+1234567890():,;
+
+![图 第1页-1](/static/images/s40494-025-02047-5/p0001_i01.png)
+
+
+of prompt engineering. Recently, Black-box Prompt Optimization (BPO)55
+
+offers a training-free route to align large models with task objectives. Our approach. Building on these insights, we present an integrated pipeline that tackles both segmentation and inpainting under data-scarce, large-damage conditions. For damage segmentation, we adopt a SAM- Adapter-based network20 and couple it with semi-supervised learning and threshold optimization so that reliable masks can be generated even when labeled data are limited. For large-area inpainting, we exploit the multi- modal understanding of GPT-4V (ision) and the generative power of Stable Diffusion to construct a specialized mural-description dataset. A BPO strategy then reﬁnes the text prompts that drive restoration, enabling the model not merely to ﬁll gaps but to reconstruct intricate details and stylistic coherence across wide losses. Through this combination of task-adapted segmentation, prompt- optimized diffusion, and multimodal guidance, our method delivers high- quality results even when signiﬁcant portions of a mural are missing. Extensive experiments conﬁrm superior performance in both segmentation and inpainting across a variety of mural styles, highlighting the framework’s potential for broad application in digital cultural-heritage preservation. Building on these insights, our contributions are threefold: • We propose a SAM-Adapter-based mural damage segmentation method, incorporating semi-supervised training to mitigate the challenge of limited labeled data and improve segmentation accuracy. • We introduce a text-to-image inpainting framework for large-area mural restoration, integrating BPO-based prompt optimization, GPT- 4V (ision), and Stable Diffusion to advance digital cultural heritage preservation. • Extensive experiments validate the effectiveness of our approach in both damage segmentation and large-area restoration, demonstrating its applicability across diverse mural styles.
+
+Methods This chapter provides a detailed introduction to our proposed mural restoration method. The overall framework of our approach is illustrated in Fig. 1 and can be divided into two key stages: (1) precise segmentation of damaged areas and (2) large-scale restoration guided by prompt optimization. First, the accurate segmentation of damaged areas serves as the foun- dation of the entire mural restoration task. We employ a semi-supervised SAM-Adapter model, which is trained by leveraging both annotated and unannotated data to effectively address data scarcity issues. During training,
+
+a thresholding strategy is used to enhance the reliability of the model’s predictions, ensuring high-precision segmentation masks. Second, we ﬁne-tune the Stable Diffusion model using LoRA to enable accurate inﬁlling of mural-speciﬁc artistic styles and textures. Additionally, weutilizeGPT-4VtogeneratepromptsforStableDiffusion.Toensurehigh- quality content generation, we further optimize the prompts using Black- box Prompt Optimization (BPO) techniques. In the following sections, we will provide a detailed explanation of the semi-supervised SAM-Adapter segmentation and the large-scale text-gui- ded mural restoration process.
+
+Semi-supervised training of the SAM-Adapter segmentation This section focuses on the SAM-Adapter model with semi-supervised training and its application in mural restoration. To more intuitively demonstrate the model’s workﬂow, we provide a ﬂowchart of the semi- supervised training process of the SAM-Adapter in Fig. 1, which includes model initialization, training process, and the application of semi- supervised learning and thresholding methods. Introduction to the SAM-Adapter Model: We use the SAM (Segment Anything Model) to process mural images for precise segmentation of damaged areas. The SAM model is equipped with an adapter (see Fig. 2), whichisalightweightmodelthatcanbetrainedwithasmallamountofdata. It is capable of injecting task-speciﬁc guidance information into the SAM network. This information is transmitted through visual cues, making the model efﬁcient and effective in a variety of downstream tasks. The image encoderof SAM uses the ViT-H/16 model, with a 14 × 14attention window and four global attention blocks. Between each transformer layer, we have addedanadaptermodule,consistingoftwomulti-layerperceptrons(MLPs) and an activation function. In the mask decoder of SAM, we deployed three adapters for processing cross-attention of image embeddings, and output the ﬁnal result through additional residual connections and layer normal- ization. This design allows the model to ﬂexibly adapt to the given data. Implementation of the Semi-Supervised Training Strategy: Selection of the Threshold Method: To effectively utilize unlabeled data without intro- ducing excessive noise, we introduced the threshold method as a key strategy. The implementation of this strategy involves the following key steps: • Model Output Conﬁdence Scores: When processing unlabeled data, the model ﬁrst infers each data point, generating predictive prob- abilities. These probabilities reﬂect the model’s conﬁdence in its pre- dictions. Speciﬁcally, for each data point, the model generates a
+
+Text to inpianting
+
+9KSO9'3 GJGVZKX
+
+Refill prompt
+
+ȔMan in white sits,  wooden table, green
+
+plants.ȕ
+
+ȔThe lower part of the mural shows a man in a traditional white outfit, sitting  next to a wooden table or stool. On the  lower left, a bright green plant with large  leaves and visible soil extends from above  to the bottom of the pictureȕ
+
+Description:Old-style mural of a  detailed swan in lime green and  brown, showing wear.
+
+Paired Detailed Description
+
+Description:two figures in  traditional dress, brown and blue,  expressive, soft background.
+
+Description:half-naked figure  in action, observer in red  costume, dynamic scene.
+
+Description:figures in  traditional dress, ceremony,  blue background, quaint tone.
+
+Description:Old-style mural of a  detailed swan in lime green and  brown, showing wear.
+
+Paired Detailed Description
+
+Description:two figures in  traditional dress, brown and blue,  expressive, soft background.
+
+Description:half-naked figure  in action, observer in red  costume, dynamic scene.
+
+Description:figures in  traditional dress, ceremony,  blue background, quaint tone.
+
+Description:Old-style mural of a  detailed swan in lime green and  brown, showing wear.
+
+Paired Detailed Description
+
+Description:two figures in  traditional dress, brown and blue,  expressive, soft background.
+
+Description:half-naked figure  in action, observer in red  costume, dynamic scene.
+
+Description:figures in  traditional dress, ceremony,  blue background, quaint tone.
+
+BpoGPT-polish- prompt
+
+Fig. 1 | Flowchart of semi-supervised training for SAM-Adapter. The end-to-end pipeline performs damage masking via semi-supervised SAM-Adapter, then restores large missing regions using a LoRA-tuned diffusion model guided by optimized prompts, yielding structurally and stylistically consistent results.
+
+https://doi.org/10.1038/s40494-025-02047-5 Article
+
+npj Heritage Science |  (2025) 13:504  2
+
+![图 第2页-1](/static/images/s40494-025-02047-5/p0002_i01.jpeg)
+
+
+probability score p as shown in Eq. (1):
+
+p ¼ σðmodel outputÞ ð1Þ
+
+Here, σ epresents the Sigmoid function, used to convert the model output into probability scores. • Application of Preset Threshold: We use a preset conﬁdence threshold θ to select predictions from unlabeled data for pseudo-labeling, expli- citly balancing pseudo-label precision and coverage. Semantic segmentation is a pixel-wise dense prediction task in whichboundaries and small objects are prone to over-conﬁdent noise: when θ is too low, noisy pseudo-labels are ampliﬁed; when θ is too high, the number of usable pixels shrinks and the training signal becomes insufﬁcient. We therefore search a moderately high range (0.75–0.85) and adopt θ = 0.8 as a compromise. The pseudo-label generation follows Eq. (2):
+
+ConfðxÞ ¼ 1; if PðxÞ > θ 0; otherwise
+
+ ð2Þ
+
+Here, P(x) denotes the model’s predicted conﬁdence for a pixel/ region x. Only predictions whose conﬁdence exceeds θ are treated as reliable and used for subsequent training. A systematic sensitivity study of θ is reported. • Adjustment of Loss Function: To maintain model performance while utilizingunlabeleddata,we made carefullydesigned adjustments to the
+
+loss function. Speciﬁcally, we employed a composite loss function, using a weighting strategy to balance the contributions of labeled and unlabeled data. The total loss function Ltotal is deﬁned as shown in equation (3):
+
+Ltotal ¼ αLsupervised þ βLsemisupervised ð3Þ
+
+Here, Lsupervised and Lsemisupervised represent the loss for labeled and unlabeled data, respectively, while α and β are weight coefﬁcients to balance these two parts. – Labeled Data Loss: Lsupervised: This part combines binary cross- entropy loss and Dice loss. Let y be the true label and p be the predicted probability, then the loss can be expressed as shown in equation (4):
+
+Lsupervised ¼  X ð y logð pÞ þ ð1  yÞ logð1  pÞÞ þ 1  2 P yp P y þ P p ð4Þ
+
+Here, the ﬁrst term is the binary cross-entropy loss, and the second term is the Dice loss, used to address the issue of class imbalance. – Unlabeled Data Loss: Lsemisupervised: This part uses the binary cross-entropy loss between the model prediction and pseudo- labels. Let y be the pseudo-label and p be the corresponding model prediction, then the loss can be expressed as shown in
+
+Transformer 1
+
+Transformer 2
+
+Transformer n
+
+Adaptor 1 Adaptor 2 Adaptor n
+
+Q&K
+
+MatMul Softmax
+
+MatMul
+
+Adapter
+
+Layer Norm
+
+MLP
+
+Adapter
+
+Scaling
+
+Q&K
+
+MatMul Softmax
+
+MatMul
+
+Adapter
+
+V
+
+Layer Norm
+
+Layer Norm
+
+Embedding
+
+Adaptive Segment Anything Model  (A-SAM)
+
+Encoder Dncoder Prompt  Engineering
+
+SAM Image Encoder Adaptive Decoder
+
+Input Mask Output
+
+Stable  Diffusion
+
+Prompt Optimizer
+
+Training
+
+inference
+
+Optimized rewrite prompt
+
+Optimized Mural  Prompt: p
+
+Optimizer  Simple Mural  Prompt: P
+
+Collect original/optimized Prompts pairing
+
+On top of training parameters of Prompt optimizer with
+
+Original Prompt: Old-style mural of a detailed  swan in lime green and brown, showing wear.
+
+Optimized Prompt: "Old-style mural of a detailed  swan in lime green and brown, showing wear."  Please expand this text with more detailed scene  descriptions, including the size and location of the  mural, the colors used, and any elements or details  that  could  be  included  to  enhance  the  description.And limit it to about 60 words
+
+GPT4.0
+
+Denoising U-Net
+
+Q K V
+
+Q K V
+
+Q K V
+
+Q K V
+
+Q KV CA Switch Jump  connection connection
+
+NN.Linear
+
+B A
+
+Tunable
+
+LoRA Query
+
+Vaule
+
+...
+
+Freeze Latent Space
+
+Text Encoder
+
+( ( ( ))) i up tune i Adaptor P MLP GRLU MLP F
+
+Fig. 2 | Method architecture diagram. Overview of key components: SAM-Adapter encodes mural-speciﬁc damage priors; semi-supervised losses combine labeled supervision with consistency; LoRA is injected into U-Net attention for style
+
+adaptation; prompt optimization cooperates with the text encoder to form the ﬁnal restoration prompt.
+
+https://doi.org/10.1038/s40494-025-02047-5 Article
+
+npj Heritage Science |  (2025) 13:504  3
+
+![图 第3页-1](/static/images/s40494-025-02047-5/p0003_i01.png)
+
+
+equation (5):
+
+Lsemisupervised ¼  X ðy logð pÞ þ ð1  yÞ logð1  pÞÞ ð5Þ
+
+– Weighting Strategy: We set α = 0.7 and β = 0.3 to privilege clean supervision while still leveraging unlabeled data. Under the θ = 0.8 pseudo-labeling scheme, larger β ampliﬁed early noise (e.g., boundary dilation and over-smoothing of hairline cracks); preliminary small-scale experiments indicated a stability plateau for β in [0.20, 0.35], so we ﬁx β = 0.3 for robustness and reproducibility.
+
+Through thisdesign, our modelcan effectivelyutilize a large amountof unlabeled data while maintaining high accuracy on labeled data. This bal- ancing mechanism ensures that the model can learn accurate patterns from labeled data and enhance its generalization ability through unlabeled data.
+
+Text-to-inpainting for large hole mural restoration In the ﬁeld of mural restoration, the challenge of handling large-scale damage is particularly daunting. Traditional inpainting techniques often have limited effectiveness in these scenarios, as they struggle to accurately reproduce the complex artistic styles and textures found in murals. To address this issue, we have combined the LoRA-trained Stable Diffusion model with the GPT4V (ision)-assisted BPO technology to achieve more precise and culturally sensitive mural restoration. LoRA Training of Stable Diffusion: In the process of training the Stable Diffusion model using LoRA (Low-Rank Adaptation), we have adopted an innovative approach to enhance the model’s performance, particularly in the ﬁeld of art and cultural heritage preservation, such as mural restoration. The crux of this process lies in the utilization of LoRA technology, a highly efﬁcientmethodforﬁne-tuninglargemodels,whichoptimizesperformance rapidly and effectively without compromising the model’s complexity and expressiveness. The following sections provide a detailed description of how we implemented this technology: • Fine-tuning Process: During the ﬁne-tuning of the Stable Diffusion model with LoRA technology, we integrated a relatively small LoRA model ﬁle (ranging from 1 MB to 200 MB) with the existing Stable Diffusion checkpoint models. This integration enabled us to introduce newthematic and stylistic concepts into the model, speciﬁcally tailored for the ﬁeld of muralrestoration.Sucha combination hasenhanced the model’s capability to generate images in line with these new concepts, making it more apt for this specialized application context. • LoRA Technology: Developed by researchers at Microsoft, LoRA technology represents a novel approach for efﬁciently ﬁne-tuning large language models. Its primary advantage is the ability to ﬁne-tune large models without the need for full retraining, thus saving considerable time and computational resources. In the ﬁne-tuning process of the Stable Diffusion model, the application of LoRA technology not only improved the model’s ability to accurately maintain the original style and texture of damaged murals but also its efﬁciency and user- friendliness allowed for the model to be easily customized to meet speciﬁc creative objectives and needs, thereby reducing the burden of technology and resources.
+
+This LoRA training methodology provides an effective and user- friendly solution for performance optimization of the Stable Diffusion model in speciﬁc application areas such as mural restoration, signiﬁcantly enhancing the model’s performance and adaptability. Prompt Engineering: Combining BPO Technology with GPT4V (ision): Inthis study, we ﬁrst simulate large-scale mural damage by applying random masks covering 30 to 50% of the original mural image, generating a damaged image. Next, the damaged image is input into Stable Diffusion for inpainting, and the quality of the inpainted result is evaluated by comparing the inpainted image with the ground truth using the PSNR (Peak Signal-to-
+
+Noise Ratio) and SSIM (Structural Similarity) metrics. For a given ground truth image IGT and the corresponding inpainted image Igen(P) (where PPP is the input prompt), the PSNR and SSIM are computed as follows (6) and (7):
+
+PSNR ¼ 10  log10
+
+MAX2 I MSEðIGT; IgenðPÞÞ
+
+!
+
+ð6Þ
+
+SSIM ¼
+
+ð2μIGTμIgen þ C1Þð2σIGT;Igen þ C2Þ
+
+ðμ2 IGT þ μ2 Igen þ C1Þðσ2 IGT þ σ2 Igen þ C2Þ ð7Þ
+
+Based on these metrics, the inpainting results are evaluated, and samples with high-quality inpainting are labeled as “High-Quality Samples" (HQS), while those with poor quality are labeled as “Low-Quality Samples" (LQS). For each mural image, we ﬁrst use GPT4V (ision) to generate an initial prompt Pinit. For example, GPT4V (ision) may generate the initial prompt: "Old-style mural of a detailed swan in lime green and brown, show- ing wear.” Subsequently, the initial prompt Pinit is used with Stable Diffusion to perform inpainting, and the resulting image is evaluated using the PSNR and SSIM scores. For samples where the inpainting quality is unsatisfactory (LQS), an expert constructs a reference optimization query Pquery_ref. For example, the reference query might be: "Old-style mural of a detailed swan in lime green and brown, showing wear. Please expand this text with more detailed scene descriptions, including the size and location of the mural, the colors used, and any elements or details that could be included to enhance the description. Limit the description to about 60 words.” Pquery_ref was entirely hand-written by domain experts, rather than automatically generated. Given the diversity of mural images and contexts, we deliberately allowed a high degree of annotator freedom: experts ﬁrst examined Pinit together with the visible damaged mural to identify aspects where Pinit was insufﬁcient; then, depending on the actual gaps of each sample, they selected 2–4 key dimensions to specify using “Include ...”, initiated the request with “Please expand ...”, and standardized the length with“Limitthedescriptionto about60words.”Whennecessary,theyadded “Based on: Pinit” at the end to ensure semantic alignment with Pinit and prevent over-extension. Based on a large set of (Pinit, Pquery_ref) sample pairs, we then ﬁne-tune a prompt optimization model using a sequence-to-sequence architecture based on the llama2-7b-chat model. The training objective is to generate an optimization query Pquery from the given initial prompt Xuser ≡Pinit so that, when this query is sent to GPT4V (ision), it generates an expanded and detailed prompt Popt. During training, the model is optimized using the standard cross- entropy loss (8):
+
+L ¼  1 N
+
+X N
+
+t¼1 log PðxtjXuser; x < tÞ ð8Þ
+
+where N is the length of the generated optimization query Pquery and xt represents the ttt-th token. In addition, a contrastive loss is employed based on the HQS and LQS sample pairs, ensuring that the generated Pquery leads to a detailed prompt Popt which signiﬁcantly improves the PSNR and SSIM scores of the inpainted image. In the application phase, the overall process is as follows: For the given mural image III, use GPT4V (ision) to generate the initial prompt Pinit. Input Pinit into the trained prompt optimization model (llama2-7b- chat) to generate the optimization query Pquery. Submit Pquery to GPT4V (ision) to obtain the expanded detailed prompt Popt. For example, GPT4V (ision) may produce:
+
+https://doi.org/10.1038/s40494-025-02047-5 Article
+
+npj Heritage Science |  (2025) 13:504  4
+
+An ancient wall mural depicting a beautifully detailed swan, painted in soft lime green and brown hues. The mural is weathered and worn, with some sections missing. The swan is surrounded by faded ﬂoral motifs, characteristic of traditional Chinese mural paintings from the Tang Dynasty. The image is framed by ornate borders, though parts of them are deteriorated. The mural is located on an ancient temple wall, partially illuminated by dim, golden light. Finally, use Popt as input for the LoRA ﬁne-tuned Stable Diffusion model to perform mural inpainting, yielding the ﬁnal restored image I0. This method, by constructing (Pinit, Pquery_ref) sample pairs and trainingthepromptoptimizationmodelaccordingly,enablesthegeneration of an effective optimization query. This query guides GPT4V (ision) to produce a detailed prompt that substantially improves the quality and artistic consistency of the inpainted image, and exhibits robust performance even under large-scale damage scenarios.
+
+Results In this section, we present the rationale for our experiments, aimed at demonstratingtheeffectivenessofour digitalmuralrestorationmethod.We began by comparing our blind restoration technique, integrating segmen- tation and inpainting, against other methods. In the segmentation phase,we evaluated our unique semi-supervised training strategy, including an abla- tion study for deeper insights. For the inpainting component, we ﬁrst conducted comparative experiments against other inpainting methods without the use of prompt engineering. This was followed by further experiments to assess the impact of incorporating prompt engineering. These sequential steps were pivotal in showcasing the comprehensive capabilitiesofourmethod,especiallyinthenuancedﬁeldofculturalheritage preservation.
+
+Dataset and experimental setup The mural dataset used in this experiment is based on our team’s previous work56 and encompasses mural images from various historical periods and grottoes in Dunhuang, ensuring diversity and representativeness. This dataset includes murals of different artistic styles, reﬂecting the evolution of mural art from the Northern Dynasties, Sui-Tang, to the Song-Yuan peri- ods. Therefore, it provides a comprehensive benchmark for evaluating the applicability of our restoration method across different mural styles. Additionally, the dataset has been standardized, with all mural images resized to a uniform resolution to ensure experimental consistency and comparability. The segmentation dataset consists of 1000 mural images, which are divided into a training set and a test set in an 8: 2 ratio. To simulate the real- world challenge of limited labeled data, 50% of the training images are annotated, while the remaining 50% are unlabeled. This setup closely aligns with practical application scenarios and allows us to assess the model’s performance in a semi-supervised learning environment. Quality labeling for prompt-optimization pairs. To construct training pairs for the prompt optimization model, quality labels were assigned via a two-stage protocol rather than purely automatic thresh- olds. First, under a ﬁxed mask ratio (30-50%) and identical generation settings per image, we computed PSNR/SSIM, performed z-score nor- malization within image groups, and assigned initial labels by quantiles (top-q →HQS, bottom-q →LQS), discarding the middle ≈40% uncertain band to avoid boundary noise. Second, two annotators with Dunhuang-mural background audited a concise perceptual checklist (boundary continuity, tone/material consistency, no new iconographic elements, minimal change) to correct or remove cases where metrics and perception diverged; samples with annotator disagreement were dis- carded. The cleaned set comprised 2000 samples (1600 train/400 vali- dation) used to train the Llama2-7B prompt optimizer. All experiments were conducted on 4xA100 GPUs to ensure compu- tational efﬁciency and stability for large-scale mural restoration tasks. Running experiments and tests on this dataset enables a thorough evalua- tion of the model’s adaptability across various mural styles. Furthermore, by
+
+comparing different training strategies, we validate the proposed method’s performance under varying levels of data availability. LoRA ﬁne-tuning details. We LoRA-tune the Stable Diffusion U-Net whilefreezingallothercomponents.Concretely,LoRAadaptersareinserted only into the attention-related linear layers of every SpatialTransformer/ Attention block across down_blocks, mid_block, and up_blockscovering both self-attention and cross-attention projections to_q, to_k, to_v, to_out. Weuserankr = 8,LoRAα = 16(scaling),andLoRAdropout = 0.1.Training is performed at 512 × 512, batch size = 8 with gradient accumulation = 2 (effective batch = 16), using AdamW (Ir = 2 × 10−4, β = (0.9, 0.999), weight decay = 0.01) for 30 epochs (≈7.5 k optimizer steps via repeated sampling). We apply a 500-step linear warm-up, followed by cosine decay to 1 × 10−5; EMA is disabled, and the checkpoint with best validation SSIM is selected.
+
+Comparative analysis of blind restoration methods The main goal of this experiment was to assess and compare our proposed automated mural blind restoration method with existing technologies in handling mural damage. Through this assessment, we validated the effec- tiveness of our method and explored its potential application in complex cultural heritage preservation tasks. We examined three methods: the IA method57, which combined the SAM segmentation algorithm and Lama inpainting technology for detecting and ﬁlling damaged areas; the Bring Old58 method, which used Unet segmentation, suitable for general image processing tasks; and our method, which combined advanced image seg- mentation techniques and a text-based inpainting strategy, aiming to more accurately understand and repair damage on murals. In the implementation process, each method ﬁrst identiﬁed and seg- mented the damaged areas of the mural images, a prerequisite for successful restoration. Subsequently, their respective inpainting techniques were applied to repair these areas. During the restoration process, we particularly focused on whetherthe methodscould preserve the original style and details of the murals. The restored images were jointly evaluated by art restoration experts and image processing specialists, with evaluation criteria including the consistency of the repaired area with the original image, the degree of detail preservation, and the overall aesthetic effect. Although the IA method performed well in general image processing tasks, it had limitations in speciﬁc mural damage recognition, especially when dealing with subtle damages close to the background colors. The Unet segmentation of the Bring Old method worked well for obvious damages, butitsprecisiondecreasedwhendealingwithcomplexorirregulardamages, and sometimes it produced stylistically inconsistent results. In contrast, our method showed higher accuracy in the damage recognition stage, especially in identifying subtle damages, and was able to maintain the style and details of the original murals during the repair process, thereby receiving high praise from experts in terms of artistic integrity. These experimental results emphasized that in cultural heritage pre- servation, especially in complex and precious mural restoration tasks, tra- ditional image processing methods may not meet the high standards of restoration needs. Our method, by combining advanced segmentation techniques and a text-based inpainting strategy, demonstrated outstanding capabilities in handling complex mural damages.
+
+SAM-Adapter segmentation: comparative results The purpose of this section’s experiment was to thoroughly evaluate and compare our developed semi-supervised SAM-Adapter segmentation method with other existing advanced image segmentation techniques in the task of mural defect segmentation. To ensure the comprehensiveness and fairness of the experiment, we selected the latest image segmentation technologies, including MISSFormer21 and MSTransception22, and con- ducted a detailed comparison with our SAM-Adapter model. Additionally, considering the emerging trend of semi-supervised learning, we speciﬁcally focused on the performance of the novel semi-supervised learning method LViT in the ﬁeld of mural segmentation. Moreover, to more accurately assess the impact of the semi-supervised training strategy, we included a non-semi-supervised training version of SAM-Adapter as a control group.
+
+https://doi.org/10.1038/s40494-025-02047-5 Article
+
+npj Heritage Science |  (2025) 13:504  5
+
+During the experiment, all models were trained and evaluated on the same training and test sets. To ensure fairness in comparison, each method was operated under similar training conditions and hyperparameter set- tings. For performance evaluation, we used the IOU metric to examine the comprehensive performance of each method in the mural defect segmen- tation task. Speciﬁc comparison results and performance analysis are pre- sented in Fig. 3 and Table 1, providing a visual representation. The experimental results (Fig. 4) showed that, although MISSFormer and MSTransception performed well in general image segmentation tasks, their accuracy signiﬁcantly decreased when dealing with the complex
+
+texturesandirregulardamagesspeciﬁctomurals.Thisﬁndingindicatesthat even the most advanced image segmentation techniques may face chal- lenges in speciﬁc application areas. Similarly, while LViT showed certain advantages in handling limited labeled data, it still had limitations in overall performance for mural segmentation. This further proves that traditional fully supervised learning methods may not fully meet the needs in spe- ciﬁc tasks. In contrast, our semi-supervised SAM-Adapter method demonstrated outstanding performance in multiple aspects. It not only excelled with labeled data but also showed good generalization capabilities on unlabeled data. This result validates the efﬁciency and effectiveness of the semi- supervised learning strategy in handling scarce labeleddata, especially in the ﬁeld of cultural heritage preservation. Considering the complexity of cul- tural heritage and the scarcity of labeled data, our method exhibited unique advantages in dealing with complex and atypical mural damages. In summary, this experiment not only emphasizes the importance of semi-supervised learning in the task of mural defect segmentation but also reveals the limitations of traditional segmentation techniques in speciﬁc tasks. The excellent performance of our semi-supervised SAM-Adapter method in this challenging task highlights the necessity of customized methods for speciﬁc applications, especially in the sensitive and complex ﬁeld of cultural heritage preservation.
+
+：
+
+：
+
+Fig. 3 | Performance display of different segmentation techniques in mural defect tasks. Qualitative comparison between representative segmentation methods and the proposed SAM-Adapter on real mural damages, highlighting mask quality and boundary ﬁdelity.
+
+Table 1 | Performance evaluation metrics for mural defect segmentation techniques
+
+Method Semi Our Semi IOU
+
+Misformer 0.0520
+
+MSTransception 0.0560
+
+SAM-adapter 0.1944
+
+SAM-adapter ✓ 0.1713
+
+SAM-adapter ✓ 0.2237
+
+Bold indicates the best value in each column. Higher mIoU is better.
+
+https://doi.org/10.1038/s40494-025-02047-5 Article
+
+npj Heritage Science |  (2025) 13:504  6
+
+![图 第6页-1](/static/images/s40494-025-02047-5/p0006_i01.jpeg)
+
+
+Comparative results of inpainting method experiments This experiment aimed to deeply compare our developed inpainting method with current popular techniques in handling large-scale mural defect repair. We carefully selected 40 representative mural images and simulated 40–50% large-scale defects for eachimage, to mimic the common
+
+types and ranges of damage seen in actual damaged murals. The methods comparedincludedDSI59, ICT60, Repaint61, and Lama2, speciﬁcally designed for large-scale damages. Afterrestoration,weevaluate usingPSNR,SSIM,and LPIPS,which are presented in Table 2, where LPIPS serves as a perceptual full-reference
+
+Fig. 4 | Comparison of efﬁcacy with other blind image restoration techniques. On the same damaged inputs, the proposed text-guided diffusion inpainting produces fewer artifacts, improved structural continuity, and better mural-style ﬁdelity than generic blind restoration.
+
+https://doi.org/10.1038/s40494-025-02047-5 Article
+
+npj Heritage Science |  (2025) 13:504  7
+
+![图 第7页-1](/static/images/s40494-025-02047-5/p0007_i01.jpeg)
+
+
+complement to signal- and structure-based metrics. We do not report FID or CLIP here. FID is a distribution-level metric that requires a large sample size for stable and comparable estimates, while our setting (full-reference, local inpainting with a modest dataset) does not meet that scale. CLIP-based scores are more appropriate for no-reference evaluation–e.g., in our team’s prior works62,63–whereas in this paper we operate in a full-reference regime with pixel-level ground truth, so we rely on PSNR/SSIM and LPIPS. The experimental results (Fig. 5) revealed the limitations of techniques such as DSI, ICT, and Repaint in handling large-scale mural defects, par- ticularly in maintaining the original style and texture of the murals. In contrast, although the Lama method performed better in dealing with extensive damage, it sometimes fell short in maintaining color and texture consistency. Our inpainting technique, however, showed signiﬁcant advantages in this aspect, especially in handling complex and delicate
+
+artworks, as conﬁrmed by expert evaluation results. Our method surpassed other techniques in both restoration quality and artistic consistency. These experimental results underscore the importance of maintaining the original artistic style when repairing large-scale mural defects. By effectively integrating advanced image processing technologies and a deep understanding of mural art characteristics, our method provides a reliable solution for the restoration of extensively damaged cultural heritage. Moreover, the results also reveal the limitations that existing popular technologies may face when dealing with speciﬁc types of artworks, emphasizing the importance of customizing restoration strategies based on the speciﬁc characteristics of the artworks.
+
+Prompt engineering ablation experiment This experiment aims to evaluate the impact of different types of Prompt Engineering on mural restoration quality, particularly when applying the BPO optimization strategy in conjunction with GPT4V (ision)-generated detailedpromptsforinpaintingtasks.TheexperimentemploysaLoRAﬁne- tuned Stable Diffusion model for restoration, ensuring fair comparisons underidenticalhyperparametersettingsacrossdifferentpromptconditions. Model Training: To train the prompt optimization model, we con- structed a dataset comprising 2000 mural restoration samples, with 80% (1600 samples) used for training and 20% (400 samples) for validation, ensuring that the model effectively learns the pattern of prompt generation. Each sample consists of an initial prompt Pinit and an optimized query Pquery, where the latter is trained using human-curated reference optimi- zation queries Pquery_ref. During training, we used the AdamW optimizer with an initial learning rate of 2e-5, applying a linear decay schedule. The
+
+Table 2 | Restoration quality evaluation for different inpainting techniques
+
+Method/Indicator Average PSNR Average SSIM LPIPS
+
+ICT 17.5188 0.5337 0.44
+
+Repaint 16.8747 0.5559 0.43
+
+Lama 18.4133 0.5465 0.42
+
+Ours 18.0141 0.6139 0.39
+
+Bold indicates the best value in each column. Higher is better for PSNR/SSIM; lower is better for LPIPS.
+
+Fig. 5 | Comparative effect of inpainting techniques in large-scale mural restoration. Evaluation on challenging cases with large holes and extended cracks shows more consistent boundary connections and material-texture reconstruction, with stable detail recovery.
+
+https://doi.org/10.1038/s40494-025-02047-5 Article
+
+npj Heritage Science |  (2025) 13:504  8
+
+![图 第8页-1](/static/images/s40494-025-02047-5/p0008_i01.jpeg)
+
+
+model was trained for 5 epochs to ensure convergence and the generation of high-quality optimized queries Pquery. All training data underwent PSNR and SSIM quality ﬁltering to ensure that the optimized prompts contributed to improved restoration results. Model Testing and Inference: During the model testing phase, we applied a 50% ﬁxed mask to all test images, ensuring that all samples in different prompt settings retained the same damaged regions for fair comparison. The experiment considered three different prompt conditions: • No Prompt (Baseline Inpainting): The restoration process relies entirely on the intrinsic inpainting capability of Stable Diffusion without any textual guidance. • Simple Prompt (Simple Prompt): Corresponding to Pinit as described in the methods section, where the initial prompt generated by GPT4V (ision) is directly used as input. • Optimized Prompt (Reﬁll Prompt-Ours): Corresponding to Popt from the methods section, where the BPO-trained llama2-7b-chat prompt optimization model generates an optimized query, which is then passed to GPT4V (ision) to generate a more detailed and informative prompt for guiding Stable Diffusion restoration.
+
+All prompt conditions were evaluatedusing the same LoRA ﬁne-tuned Stable Diffusion model, ensuring consistency across experiments. The restoration quality was assessed using quantitative metrics, including PSNR (Peak Signal-to-Noise Ratio) and SSIM (Structural Similarity Index), which measure the sharpness of the restored images and their similarity to the original mural. The experimental results (Table 3) show that both the No Prompt and Simple Prompt conditions yield lower PSNR and SSIM scores, indicating that the restored images lack ﬁne detail and stylistic accuracy. In contrast, the Optimized Prompt condition signiﬁcantly improves the restoration quality, demonstrating that optimized prompts can better guide Stable Diffusion in generating restorations that align more closely with the original mural’s artistic style. These results highlight the critical role of Prompt Engineering in mural restoration tasks. The optimized prompt provides more comprehensive textual guidance, allowing the inpainting process to reconstruct missing regions with greater precision while preserving the artistic characteristics of the original mural. This experiment validates the effectiveness of the BPO- trained prompt optimization model combined with GPT4V (ision)-gen- erated detailed prompts, proving that this approach enhances Stable Dif- fusion’s performance in mural restoration and exhibits strong robustness in large-scale damage restoration and artistic style preservation.
+
+Extended experiments and generalization analysis of the method To comprehensively evaluate the generalization ability of our proposed restoration method across different mural styles, cultural backgrounds, and related tasks, we conducted additional experiments. These include restoration tests on murals from diverse cultural backgrounds, analysis of the results of the LoRA model, examination of restoration diversity, and old photo restoration tasks. These experiments further validate the adaptability of our method and highlight its broader application potential in cultural heritage preservation. Generalization to Murals from Different Cultural Backgrounds: We selected images of ancient Egyptian murals, Spanish Altamira cave paint- ings, and Pompeii murals to test our trained model. Since there are no
+
+systematically collected public datasets for these types of murals, we were unable toperformadditional training or ﬁne-tuning on them. Therefore, we directly applied our pre-trained model for inference without any additional adaptation or training. As shown in Fig. 6, since these murals have already suffered natural deterioration, our restoration task falls under the category of reference-free image restoration, meaning that standard evaluation metrics such as PSNR and SSIM cannot be calculated. However, qualitative analysis indicates that our damage segmentation model performs well on these murals, accurately detecting scratches, missing areas, and eroded regions, achieving results comparable to those obtained on our dataset. This suggests that our model exhibits strong generalization capabilities in damage detection across dif- ferent cultural mural styles. However, the inpainting results are comparatively weaker, mainly due to a substantial style domain shift from the training corpus and the fact that most external masks are small to medium-under such conditions, local visualcontextalreadyconstrainsgeneration,sotheadvantageofourtext-to- inpainting design is not fully triggered. With the Pinit →Pquery →Popt pipeline and prompt protocol kept ﬁxed, minor rewordings had only a modest inﬂuence. Future improvements could leverage style-aware LoRA adaptation or few-shot ﬁne-tuning to bridge the style gap and enhance cross-cultural adaptability. Performance Analysis of the LoRA Model: Training conﬁguration of the LoRA model. Unless otherwise stated, the LoRA-tuned Stable Diffusion uses rank r = 8, LoRA α = 16, LoRA dropout = 0.1, with adapters inserted into to_q/to_k/to_v/to_out of all self- and cross-attention layers in the U- Net’s down/mid/up blocks; the VAE and text encoder remain frozen. We train at 512 × 512, batch 8 with 2 × accumulation (effective 16), AdamW (Ir 2 × 10−4,β = (0.9,0.999),wd0.01),for30epochs(~7.5ksteps),with500-step warm-up and cosine decay to 1 × 10−5, EMA off, selecting the best-SSIM checkpoint for evaluation63. To enhance the model’s adaptability to various mural styles, we care- fully selected 200 high-quality mural images as LoRA training data. These images encompass representative artworks from different historical periods and caves of Dunhuang murals, ensuring that the model can adequately learn the stylistic characteristics of various murals during training. Figure 7 presents the restoration results of our LoRA-trained model in thetext-to-inpaintingtask.TheexperimentalresultsindicatethattheLoRA- enhanced Stable Diffusion model demonstrates strong style adaptability in mural restoration, preserving the original artistic style of murals while generating historically coherent restoration outputs. This suggests that targeteddata selectionand ﬁne-tuningenableourLoRAmodelto effectively handle restoration tasks involving different mural styles, improving both adaptability and robustness. Diversity Analysis of Restoration Results: This experiment further examines the diversity of restoration results produced under different random seeds (see Fig. 8). By simply changing the seed, our method can generate restorations with varied styles and details–an ability rarely found in traditional (non-Stable Diffusion-based) approaches. In practical mural conservation, such diversity is not noise but a valuable “choice space”: it enables experts to select the most suitable restoration among candidates and better accommodates the complexity and indi- viduality of murals, thereby improving both accuracy and ﬂexibility. To make this advantage operational, we retain seed-induced diversity and adopt a human-in-the-loop selection strategy guided by conservation ethics of minimal intervention, traceability, and historical-aesthetic consistency. For non-expert users, the recommended practice is to choose the candidate that introduces no new iconographic elements and appears most natural in boundary continuity and overall tone; if uncertain, select the version with the smallest modiﬁcation. For pro- fessional conservators, we provide a quick 0/1/2 scoring rubric (total 0–10) across ﬁve criteria–boundary coherence, tone/material con- sistency (avoiding “modern gloss/lighting”), pattern/composition conservation, minimal-change priority, and aesthetic/historical consonance–and select the highest-scoring candidate; in the case of a
+
+Table 3 | Restoration effectiveness evaluation under prompt engineering conditions
+
+Method/Indicator Average PSNR Average SSIM LPIPS
+
+Witout prompt 16.9962 0.5804 0.42
+
+Simple prompt 16.6034 0.5928 0.41
+
+Reﬁil prompt 17.0593 0.6025 0.37
+
+Bold indicates the best value in each column. Higher is better forPSNR/SSIM; lower is better for LPIPS.
+
+https://doi.org/10.1038/s40494-025-02047-5 Article
+
+npj Heritage Science |  (2025) 13:504  9
+
+Man
+
+Bodhisattva
+
+flying Apsara
+
+Palace
+
+Text Stable  diffusion Ours Lora
+
+Fig. 7 | Performance of the LoRA Model.
+
+Ancient  Egyptian  mural
+
+Altamira Cave Mural, Spain
+
+Pompeii mural Old Photo
+
+Fig. 6 | Zero-shot generalization across cultures and scenes.
+
+https://doi.org/10.1038/s40494-025-02047-5 Article
+
+npj Heritage Science |  (2025) 13:504  10
+
+![图 第10页-1](/static/images/s40494-025-02047-5/p0010_i01.jpeg)
+
+![图 第10页-2](/static/images/s40494-025-02047-5/p0010_i02.jpeg)
+
+
+tie, preference is given to the option with the least addition and best continuity. This human-guided selection requires no extra training or experiments and aligns directly with the diversity illustrated in Fig. 8. Old Photo Restoration Task: Additionally, we tested our method on old photo restoration. We selected a set of severely damaged old photographs containing scratches and faded areas and applied our model for restoration. The experimental results (shown in Fig. 6) indicate that our segmentation model accurately detects scratches and surface damage, while the inpainting module generates coherent and natural restoration outcomes when ﬁlling in damaged regions. This suggests that our method is not only applicable to mural restoration but also holds potential for old photo restoration. The experiments in this section further verify the generalization capability of our method, its potential for data augmentation, and the diversity of restoration results. The damage segmentation module demonstrates strong cross-cultural adaptability, performing well in damage detection tasks across different types of murals and old photos. However, the performance of the inpainting task remains highly dependent on training data, and when confronted with unseen artistic styles, restoration results may exhibit discrepancies. Future research could focus on constructing mural datasets encompassing diverse styles and integrating adaptive generative models to improve restoration quality, making the method applicable to a wider range of cultural heritage preservation scenarios. Sensitivity to the conﬁdence threshold θ: To quantify the impact of the pseudo-label threshold, we vary θ ∈{0.60, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95} under the same training conﬁguration as the main experiments; all other hyperparameters (e.g., supervised/unsupervised loss weights α = 0.7,β = 0.3, optimizer and learning rate, early-stopping) remain ﬁxed. Test mIoU is reported in Table4.Performanceformsa plateau inthe0.75–0.85range and peaks at θ = 0.8, supporting our choice. This aligns with the anticipated
+
+trade-off: lower thresholds amplify noisy pseudo-labels, whereas higher thresholds reduce usable pixels and weaken the training signal.
+
+Discussion This study presents an integrated pipeline that tackles two long-standing obstacles in digital mural restoration-damage segmentation and large-area inpainting-by coupling a semi-supervised SAM-Adapter network with a BPO-optimized, GPT-4V-guided Stable Diffusion framework. Extensive experiments across multiple mural styles conﬁrm that the proposed approach delivers higher mask accuracy under limited labels and markedly better visual ﬁdelity when reconstructing wide lacunae, thus offering a practical route for large-scale heritage digitization. Despite these advances, several issues merit further investigation. Data scarcity and diversity remain a fundamental constraint: the model’s per- formance is still bounded by the quality and quantity of available annota- tions, and its accuracy drops when confronted with extremely rare or idiosyncraticstyles.Computationalaccessibilityisanotherconcern,Undera typical single-image setting (512 × 512, batch = 1) on an A100-40GB with mixedprecision—usingSAM-Adapter(ViT-H),Llama-2-7B,alocalLoRA- tuned Stable Diffusion with 30 steps, and one GPT-4V expansion—the end- to-end latency is ≈6.2 s (with ≈5.0 s local compute). The dominant bot- tleneck is the diffusion denoising loop (~78% of local time), followed by VAE encode/decode (~10%). As the current pipeline relies on high-capacity visual-language models and diffusion generators; deploying such resources may be prohibitive for some conservation institutions. Aesthetic integrity alsoposesanopenchallenge-fullyrespectingtheoriginalartisticintentwhile performing algorithmic reconstructions requires deeper collaboration between technologists and art historians. Finally, although our method handles large gaps better than prior work, cases of extreme loss, where virtually no contextual cues survive, continue to test the limits of automated inpainting.
+
+Table 4 | Sensitivity of segmentation mIoU to pseudo-label threshold
+
+Threshold θ 0.60 0.70 0.75 0.80 0.85 0.90 0.95
+
+mIoU 0.2112 0.2190 0.2220 0.2237 0.2230 0.2180 0.2060
+
+Fig. 8 | Diversity via random seeds. Input Mask Output_1 Output_2 Output_3
+
+https://doi.org/10.1038/s40494-025-02047-5 Article
+
+npj Heritage Science |  (2025) 13:504  11
+
+![图 第11页-1](/static/images/s40494-025-02047-5/p0011_i01.jpeg)
+
+
+Future work will therefore focus on three directions: (i) enlarging and diversifying labeled datasets through active learning and crowdsourcing to improve generalization on understudied mural traditions; (ii) distilling the pipeline into lighter models or cloud-assisted services to reduce computa- tional overhead; and (iii) incorporating art-historical priors and style-aware constraints into the diffusion process to strengthen cultural ﬁdelity, espe- cially under severe degradation. Addressing these challenges will further extend the applicability of automated restoration tools, fostering broader adoption in the preservation of the world’s mural heritage.
+
+Data availability No datasets were generated or analysed during the current study.
+
+Received: 7 July 2025; Accepted: 14 September 2025;
+
+References 1. Rombach, R., Blattmann, A., Lorenz, D., Esser, P. & Ommer, B. High- resolution image synthesis with latent diffusion models. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR). 10674-10685 (New Orleans, LA, USA: IEEE Computer SOC, 2022). 2. Zhao, S. et al. Large-scale image completion via co-modulated generative adversarial networks. arXiv https://doi.org/10.48550/ arXiv.2103.10428 (2021). 3. Pan, X. et al. Digital protection and restoration of Dunhuang mural. J. Syst. Simul. 15, 310–314 (2003). 4. Shen, J. N. et al. Tang Dynasty tomb murals inpainting algorithm of MCA decomposition. J. Front. Comput. Sci. Technol. 11, 1826 (2017). 5. Chen, Y., Chen, J. & Ai, Y. P. Dunhuang mural inpainting algorithm based on sequential similarity detection and cuckoo optimization. Laser Optoelectron. Prog. 57, 201020 (2020). 6. Chen, W. et al. Inpainting algorithm for Dunhuang mural based on improved curvature-driven diffusion model. J. Comput. Aided Des. Comput. Graph. 32, 787–796 (2020). 7. Zhang, X. et al. Research on disease extraction and inpainting algorithm of digital grotto murals. Appl. Res. Comput. 38, 2495–2504 (2021). 8. Yang, J. et al. Dunhuang mural inpainting in intricate disrepaired region based on improvement of priority algorithm. J. Comput. Aided Des. Comput. Graph. 23, 284–289 (2011). 9. Jiao, L. et al. Wutai Mountain mural inpainting based on improved block matching algorithm. J. Comput. Aided Des. Comput. Graph. 31, 118–125 (2019). 10. Zhang, Y. et al. Research on inpainting algorithm of digital murals based on enhanced structural information. J. Syst. Simul. 34, 1524 (2022). 11. Ren,D.et al. Muralsinpaintingbasedon generalizedregressionneural network. Comput. Sci. Eng. 34, 1524 (2022). 12. Xu, Z. et al. Digital mural inpainting method based on feature perception. Comput. Sci. 49, 217–223 (2022). 13. Wang, N. et al. Thanka mural inpainting based on multi-scale adaptive partial convolution and stroke-like mask. IEEE Trans. Image Process. 30, 3720–3733 (2021). 14. Li, L. et al. Line drawing guided progressive inpainting of mural damage. arXiv https://doi.org/10.48550/arXiv.2211.06649 (2024). 15. Xu, Z. et al. Restoration of Dunhuang murals on large-scale pretraining. In Proceedings of the 2023 6th International Conference on Signal Processing and Machine Learning (CONF-SPML). 106–111 (Tianjin, China: Association for Computing Machinery, 2023). 16. Xu, Z. et al. Muraldiff: diffusion for ancient murals restoration on large- scale pre-training. IEEE Trans. Emerg. Top. Comput. Intell. 8, 1–12 (2024). 17. Kirillov, A. et al. Segment anything. In Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV). 3992-4003 (Paris, France: IEEE Computer SOC, 2023).
+
+18. Ma, J. & Wang, B. Segment anything in medical images. Nat. Commun. 15, 654 (2024). 19. Zhang, K., & Liu, D. Customized segment anything model for medical image segmentation. Preprintat https://doi.org/10.48550/arXiv.2304. 13785 (2023). 20. Chen, T. et al. SAM fails to segment anything? –SAM-adapter: adapting SAM in underperformed scenes: camouﬂage, shadow, and more. Preprint at https://doi.org/10.48550/arXiv.2304.09148 (2023). 21. Huang,X.etal.Missformer:aneffectivetransformerfor2Dmedicalimage segmentation. IEEE Trans. Med. Imaging 42, 1484–1494 (2023). 22. Azad, R. et al. Enhancing medical image segmentation with TransCeption: a multi-scale feature fusion approach. Preprint at https://doi.org/10.48550/arXiv.2301.10847 (2023). 23. Li, Z. et al. Lvit: language meets vision transformer in medical image segmentation. IEEE Trans. Med. Imaging 42, 1–12 (2023). 24. Bernardini, L. et al. A new methodology to detect corrosion on steel truss railway bridges exploiting local strain gauges: analytical, numerical, and experimental validation. Measurement 253, 117456 (2025). 25. Xu, Z. et al. MuralRescue: advancing blind mural restoration via SAM- adapter enhanced damage segmentation and integrated restoration techniques. In International Conference on Intelligent Computing 456–463 (Springer, 2024). 26. Bertalmio, M. et al. Image inpainting. In Proceedings of the 27th Annual Conference on Computer Graphics and Interactive Techniques (SIGGRAPH). 417–424 (New York, NY, USA: ACM Press/ Addison-Wesley Publishing Co., 2000). 27. Criminisi, A., Perez, P. & Toyama, K. Region ﬁlling and object removal by exemplar-based image inpainting. IEEE Trans. Image Process. 13, 1200–1212 (2004). 28. Shen, J. & Chan, T. F. Mathematical models for local nontexture inpaintings. SIAM J. Appl. Math. 62, 1019–1043 (2002). 29. Zhang, X. et al. Sienet: Siamese expansion network for image extrapolation. IEEE Signal Process. Lett. 27, 1590–1594 (2020). 30. Zhang, X. et al. SpA-former: an effective and lightweight transformer for image shadow removal. In 2023 International Joint Conference on Neural Networks (IJCNN) 1–8 (2023). 31. Zhang,X. F.,Gu,C.C., & Zhu,S.Y. Memoryaugmentisallyouneedfor image restoration. Preprint at https://doi.org/10.48550/arXiv.2309. 01377 (2023). 32. Pathak, D. et al. Context encoders: feature learning by inpainting. In Proc. IEEE Conference on Computer Vision and Pattern Recognition. 2536–2544 (IEEE, 2016). 33. Iizuka, S., Simo-Serra, E. & Ishikawa, H. Globally and locally consistent image completion. ACM Trans. Graph. 36, 1–14 (2017). 34. Liu, G. et al. Image inpainting for irregular holes using partial convolutions. In Proc. European conference on computer vision (ECCV) 85–100 (2018). 35. Yang, C. et al. High-resolution image inpainting using multi-scale neural patch synthesis. In Proc. IEEE conference on computer vision and pattern recognition. 6721–6729 (IEEE, 2017). 36. Zeng, Y. et al. Learning pyramid-context encoder network for high- quality image inpainting. In Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. 1486–1494 (IEEE, 2019). 37. Nazeri, K. et al. Edgeconnect: structure guided image inpainting using edge prediction. In Proc. IEEE/CVF international conference on computer vision workshops. 3265–3274 (IEEE, 2019). 38. Yu, Y. et al. Unbiased multi-modality guidance for image inpainting. In European Conference on Computer Vision 64–80 (Springer, 2022). 39. Zheng, C., Cham, T.-J. & Cai, J. Pluralistic image completion. In Proc. IEEE/CVF conference on computer vision and pattern recognition. 1438–1447 (IEEE, 2019). 40. Shen, L. et al. Wavelet-based self-attention GAN with collaborative feature fusion for image inpainting. IEEE Trans. Emerg. Top. Comput. Intell. 7, 1–12 (2023).
+
+https://doi.org/10.1038/s40494-025-02047-5 Article
+
+npj Heritage Science |  (2025) 13:504  12
+
+![图 第12页-1](/static/images/s40494-025-02047-5/p0012_i01.png)
+
+
+41. Qian, Y. et al. Decouple before interact: multi-modal prompt learning for continual visual question answering. In Proc. IEEE/CVF International Conference on Computer Vision. 2490–2502 (IEEE, 2023). 42. Jiang, H. et al. Correlation information bottleneck: towards adapting pretrained multimodal models for robust visual question answering. Int. J. Comput. Vis. 132, 185–207 (2024). 43. Xu, W. et al. Imagine, reason and write: visual storytelling with graph knowledge and relational reasoning. Artif. Intell. 35, 1–15 (2021). 44. Wang, Y. et al. Multimodal LLM enhanced cross-lingual cross-modal retrieval. In Proceedings of the 32nd ACM International Conference on Multimedia. 8296-8305 (Melbourne, VIC, Australia: Association for Computing Machinery, 2024). 45. Gunjal, A. et al. Detecting and preventing hallucinations in large vision language models. Artif. Intell. 38, 1–15 (2024). 46. Gupta, S. et al. CLIPTrans: transferring visual knowledge with pre- trained models for multimodal machine translation. In Proc. IEEE/CVF international conference on computer vision. 2380–2392 (IEEE, 2023). 47. Wei, J. et al. Chain of thought prompting elicits reasoning in large language models. Adv. Neural Inform. Process. Syst. 35, 24824–24837 (2022). 48. Kojima, T. et al. Large language models are zero-shot reasoners. Adv. Neural Inf. Process. Syst. 35, 22199–22213 (2022). 49. Naeem, M. F. et al. I2MVFormer: large language model generated multi-view document supervision for zero-shot image classiﬁcation. In Proc. IEEE/CVF Conference on Computer Vision and Pattern Recognition. 15169–15179 (IEEE, 2023). 50. Jha, S. et al. Dehallucinating large language models using formal methods guided iterative prompting. In 2023 IEEE International Conference on Assured Autonomy (ICAA). (ICAA) 149–152 (IEEE, 2023). 51. Li,Y.,Lu,G., Li,J.,Zhang,Z.& Zhang,D.Facialexpression recognition in the wild using multi-level features and attention mechanisms. IEEE Trans. Affect. Comput. 14, 451–462 (2020). 52. Mondal, D. et al. Kam-cot: knowledge augmented multimodal chain- of-thoughts reasoning. Proc. AAAI Conf. Artif. Intell. 38, 18798–18806 (2024). 53. Hao, S. et al. Training large language models to reason in a continuous latent space. Preprint at https://doi.org/10.48550/arXiv.2412.06769 (2024). 54. Fei, H. et al. Reasoning implicit sentiment with chain-of-thought prompting. In Proceedings of the 61st Annual Meeting of the the Association-for-Computational-Linguistics (ACL) 2, 1171-1182 (Toronto, Canada:Assoc Computational Linguistics, 2023). 55. Cheng, J. et al. Black-box prompt optimization: aligning large language models without model training. In Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics 1, 3201-3219 (Bangkok, Thailand: Assoc Computational Linguistics, 2024). 56. Xu, Z. et al. A comprehensive dataset for digital restoration of Dunhuang murals. Sci. Data 11, 955 (2024). 57. Yu, T. et al. Inpaint anything: segment anything meets image inpainting. Preprint at https://doi.org/10.48550/arXiv.2304.06790 (2023). 58. Wan, Z. et al. Bringing old photos back to life. In Proc. IEEE/CVF conference on computer vision and pattern recognition. 2747–2757 (IEEE, 2020). 59. Peng, J. et al. Generating diverse structure for image inpainting with hierarchical VQ-VAE. In Proc. IEEE/CVF conference on computer vision and pattern recognition. 10775–10784 (IEEE, 2021). 60. Wan, Z. et al. High-ﬁdelity pluralistic image completion with transformers. In Proc. IEEE/CVF international conference on computer vision. 4692–4701 (IEEE, 2021). 61. Lugmayr, A. et al. Repaint: inpainting using denoising diffusion probabilistic models. In Proc. IEEE/CVF conference on computer vision and pattern recognition. 11461–11471 (IEEE, 2022).
+
+62. Xu, Z. et al. MuralAgent: enhancing ancient mural outpainting withRAG-based texts and multimodal integration. ACM Trans. Multimed. Comput. Commun. Appl. 21, 1–17 (2025). 63. Xu, Z. et al. Echoes of the past: no-reference evaluation in digital restoration of ancient murals. In International Conference on Intelligent Computing. 77–87 (Singapore: Springer, 2025).
+
+Acknowledgements This work was supported by the National Natural Science Foundation of China (Grant Nos. 52274160, 51874300); the Jiangsu Distinguished Professor project in Jiangsu Province (Grant No. 140923070); the Fundamental Research Funds for the Central Universities (Grant No. 2023QN1079); the Joint Funds of the National Natural Science Foundation of China and the Shanxi Provincial People’s Government for the “Coal Base and Low Carbon Development” project (Grant No. U1510115); and the Jiangsu Graduate Student Research Innovation Program (Grant No. KYCX25_3057).
+
+Author contributions Z.X.conceived and led the study,designed the methodology, carried out the key experiments, and drafted the initial manuscript text. S.H. assisted with algorithm implementation, performed validation experiments, and prepared Figures 1–3. Z.W. (Zilong) conducted data analysis, generated evaluation metrics, and prepared Figures 4–5. J.L. curated the mural dataset and provided cultural-heritage domain expertise. T.X. performed statistical analyses and contributed to writing and revising the Results and Discussion sections. Z.W. (Zehua) coordinated project administration and provided resources. W.C. supervised the research, secured funding, and critically revised the manuscript; W.C. is the corresponding author. All authors reviewed and approved the ﬁnal version of the manuscript and agree to be accountable for the work as published.
+
+Competing interests The authors declare no competing interests.
+
+Additional information Correspondence and requests for materials should be addressed to Wei Chen.
+
+Reprints and permissions information is available at http://www.nature.com/reprints
+
+Publisher’s note Springer Nature remains neutral withregardtojurisdictional claims in published maps and institutional afﬁliations.
+
+Open Access This article is licensed under a Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License, which permits any non-commercial use, sharing, distribution and reproduction in any medium or format, as long as you give appropriate credit to the original author(s) and the source, provide a link to the Creative Commons licence, and indicate if you modiﬁed the licensed material. You do not have permission under this licence to share adapted material derived from this article or parts of it. The images or other third party material in this article are included in the article’s Creative Commons licence, unless indicated otherwise in a credit line to the material. If material isnot includedin thearticle’s CreativeCommons licenceandyour intended use is not permitted by statutory regulation or exceeds the permitted use, you will need to obtain permission directly from the copyright holder. To view a copy of this licence, visit http://creativecommons.org/licenses/by- nc-nd/4.0/.
+
+© The Author(s) 2025
+
+https://doi.org/10.1038/s40494-025-02047-5 Article
+
+npj Heritage Science |  (2025) 13:504  13
