@@ -10,6 +10,11 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     proxy: {
+      // Python FastAPI 后端（独立部署）
+      '/api/agent': 'http://localhost:8788',
+      '/api/literature': 'http://localhost:8788',
+      '/api/health': 'http://localhost:8788',
+      // Express / Vercel Serverless 后端
       '/api': 'http://localhost:8787',
     },
   },

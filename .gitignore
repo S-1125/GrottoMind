@@ -26,9 +26,33 @@ public/assets/qixia-model/*.obj
 
 # 临时脚本
 *.py
+!server/*.py
 
 # 环境变量
 .env
 .env.local
 
+# 敏感文件
+Geminiapi.md
+
+# 调试工具残留
+.playwright-mcp/
 .temp
+
+# 向量数据库（运行时生成）
+chroma_db/
+
+# 服务端日志
+server/*.log
+# 服务端静态资源（PDF 提取图片，运行时生成）
+server/static/
+
+# Python 缓存
+__pycache__/
+*.pyc
+
+# 临时测试脚本
+server/test_model.py
+
+# 色彩复原路径研究（非项目代码）
+色彩复原路径研究/

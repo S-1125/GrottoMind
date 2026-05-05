@@ -86,17 +86,25 @@
 | 动画        | GSAP 3 + ScrollTrigger            |
 | 平滑滚动    | Lenis                             |
 | 3D / 着色器 | Three.js（开场水墨雾气 + 粒子塔） |
-| 后端        | Express 5 + OpenAI API            |
+| 后端        | FastAPI (Python) + Google Gemini API |
+| 向量检索    | ChromaDB 或 FAISS (本地 RAG 构建)   |
 | 图片导出    | html-to-image                     |
 
 ## 本地运行
 
 ```bash
-# 安装依赖
+# 1. 前端依赖
 npm install
 
-# 启动开发服务器（前端 + 后端 API 同时启动）
+# 2. 后端依赖 (推荐使用 conda/venv)
+cd server
+pip install -r requirements.txt
+
+# 3. 启动开发服务器（前端 + 后端分别启动）
+# 终端 1:
 npm run dev
+# 终端 2:
+cd server && uvicorn main:app --reload --port 8787
 ```
 
 - 前端：Vite 提供的本地地址（默认 `http://localhost:5173`）
@@ -107,8 +115,7 @@ npm run dev
 复制 `.env.example` 为 `.env.local`，填入：
 
 ```bash
-OPENAI_API_KEY=你的密钥
-OPENAI_MODEL=gpt-5.4-mini
+GEMINI_API_KEY=你的密钥
 PORT=8787
 ```
 
@@ -137,7 +144,11 @@ PORT=8787
 │   ├── types.ts                    # API 类型定义
 │   └── main.tsx                    # 入口文件
 ├── server/
-│   └── index.ts                    # Express API（问窟 AI + 共创卡片）
+│   ├── main.py                     # FastAPI 应用入口
+│   ├── rag.py                      # 向量检索与文档切片逻辑
+│   ├── notebooklm_sync.py          # 调用 notebooklm-py 自动抓取逻辑
+│   ├── knowledge/                  # 抓取下来的文献数据及 ChromaDB 缓存
+│   └── requirements.txt            # Python 依赖清单
 ├── public/
 │   ├── assets/                     # 静态素材（视频、字体、Logo）
 │   └── 章节1图片素材/              # 舍利塔各部位高清图片（WebP）
@@ -148,9 +159,7 @@ PORT=8787
 ## 常用命令
 
 ```bash
-npm run dev          # 启动开发环境（前端 + API）
-npm run dev:client   # 仅启动前端
-npm run dev:api      # 仅启动后端 API
+npm run dev          # 启动前端开发环境
 npm run build        # 生产构建
 npm run lint         # 代码检查
 ```
