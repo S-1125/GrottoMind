@@ -221,15 +221,40 @@ export function GrottoHub({ onBack }: GrottoHubProps) {
             </div>
           )}
           {isStreaming && (() => {
-            const { cleanText } = parseColorCards(latestMessage?.role === 'assistant' ? latestMessage.content : '思考中…')
+            const assistantContent = latestMessage?.role === 'assistant' ? latestMessage.content : ''
+            // AI 尚未返回任何文本 — 显示等待动画
+            if (!assistantContent) {
+              return (
+                <div className="gh-thinking">
+                  <div className="gh-thinking-dots">
+                    <span /><span /><span />
+                  </div>
+                  <div className="gh-thinking-label">石壁显影中</div>
+                </div>
+              )
+            }
+            const { cleanText } = parseColorCards(assistantContent)
             return (
               <div className="gh-cinematic-ai gh-cinematic-ai--streaming">
                 <ReactMarkdown components={{
                   a: ({...props}) => {
-                    if (props.href?.startsWith('#来源:')) {
-                      const source = decodeURIComponent(props.href.replace('#来源:', ''))
-                      return <span className="citation-badge" title={source}>{props.children}</span>
+                    const decodedHref = props.href ? decodeURIComponent(props.href) : ''
+                    if (decodedHref.includes('来源:') || decodedHref.includes('来源：')) {
+                      const sourceTitle = decodedHref.replace(/^#/, '').replace(/^来源[:：]\s*/, '')
+                      return (
+                        <span
+                          className="ga-citation"
+                          data-tooltip={sourceTitle}
+                          onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            setPendingLiteratureNav({ title: sourceTitle })
+                            setView('literature')
+                          }}
+                        >{props.children}</span>
+                      )
                     }
+                    if (props.href?.startsWith('#')) return <span className="ga-citation-plain">{props.children}</span>
                     return <a {...props} />
                   }
                 }}>{cleanText}</ReactMarkdown>
@@ -243,10 +268,23 @@ export function GrottoHub({ onBack }: GrottoHubProps) {
                 <div className="gh-cinematic-ai">
                   <ReactMarkdown components={{
                     a: ({...props}) => {
-                      if (props.href?.startsWith('#来源:')) {
-                        const source = decodeURIComponent(props.href.replace('#来源:', ''))
-                        return <span className="citation-badge" title={source}>{props.children}</span>
+                      const decodedHref = props.href ? decodeURIComponent(props.href) : ''
+                      if (decodedHref.includes('来源:') || decodedHref.includes('来源：')) {
+                        const sourceTitle = decodedHref.replace(/^#/, '').replace(/^来源[:：]\s*/, '')
+                        return (
+                          <span
+                            className="ga-citation"
+                            data-tooltip={sourceTitle}
+                            onClick={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              setPendingLiteratureNav({ title: sourceTitle })
+                              setView('literature')
+                            }}
+                          >{props.children}</span>
+                        )
                       }
+                      if (props.href?.startsWith('#')) return <span className="ga-citation-plain">{props.children}</span>
                       return <a {...props} />
                     }
                   }}>{cleanText}</ReactMarkdown>
@@ -280,10 +318,24 @@ export function GrottoHub({ onBack }: GrottoHubProps) {
                         <div className="gh-manuscript-text">
                           <ReactMarkdown components={{
                             a: ({...props}) => {
-                              if (props.href?.startsWith('#来源:')) {
-                                const source = decodeURIComponent(props.href.replace('#来源:', ''))
-                                return <span className="citation-badge" title={source}>{props.children}</span>
+                              const decodedHref = props.href ? decodeURIComponent(props.href) : ''
+                              if (decodedHref.includes('来源:') || decodedHref.includes('来源：')) {
+                                const sourceTitle = decodedHref.replace(/^#/, '').replace(/^来源[:：]\s*/, '')
+                                return (
+                                  <span
+                                    className="ga-citation"
+                                    data-tooltip={sourceTitle}
+                                    onClick={(e) => {
+                                      e.preventDefault()
+                                      e.stopPropagation()
+                                      setShowHistory(false)
+                                      setPendingLiteratureNav({ title: sourceTitle })
+                                      setView('literature')
+                                    }}
+                                  >{props.children}</span>
+                                )
                               }
+                              if (props.href?.startsWith('#')) return <span className="ga-citation-plain">{props.children}</span>
                               return <a {...props} />
                             }
                           }}>{cleanText}</ReactMarkdown>
@@ -313,6 +365,16 @@ export function GrottoHub({ onBack }: GrottoHubProps) {
       {/* ——— 隐匿式底部交互栏 ——— */}
       <div className="gh-stealth-input-area">
         <div className="gh-stealth-input-wrapper">
+          <button
+            className="gh-history-toggle"
+            onClick={() => setShowHistory(true)}
+            title="文献回溯"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </button>
           <input
             ref={inputRef}
             type="text"
@@ -328,19 +390,11 @@ export function GrottoHub({ onBack }: GrottoHubProps) {
             onClick={handleSend}
             disabled={isStreaming || !inputText.trim()}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 19V5M5 12l7-7 7 7"/>
             </svg>
           </button>
         </div>
-
-        <button
-          className="gh-history-toggle"
-          onClick={() => setShowHistory(true)}
-          title="文献回溯"
-        >
-          文献回溯
-        </button>
       </div>
     </div>
   )

@@ -28,16 +28,24 @@
   padding-left: 2px;
 }
 
-/* 卡片横向排列 */
+/* 卡片横向排列（可滚动，避免截断） */
 .color-card-group__row {
   display: flex;
   gap: 12px;
-  flex-wrap: wrap;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  padding-bottom: 8px;
+  /* 隐藏滚动条但保留滚动功能 */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
+.color-card-group__row::-webkit-scrollbar { display: none; }
 
 /* 单张色彩卡片 */
 .color-card {
-  width: 120px;
+  width: 140px;
+  min-width: 140px;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   border-radius: 4px;

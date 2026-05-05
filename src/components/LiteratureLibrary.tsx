@@ -3,6 +3,8 @@ import ReactMarkdown from 'react-markdown'
 import './LiteratureLibrary.css'
 
 const API_BASE = import.meta.env.VITE_AGENT_API || ''
+// 文献插图存储在 Supabase Storage CDN
+const SUPABASE_STORAGE_URL = 'https://fgzjdxriyrnoibwmglih.supabase.co/storage/v1/object/public/literature-images'
 
 interface LiteratureLibraryProps {
   onBack: () => void
@@ -264,10 +266,12 @@ export function LiteratureLibrary({ onBack, autoSelectTitle, autoScrollSnippet }
                     <ReactMarkdown
                       components={{
                         img: ({ src, alt }) => {
-                          // 确保加载后端服务的静态图片
-                          const fullSrc = src?.startsWith('/static/') 
-                            ? `${API_BASE}${src}` 
-                            : src;
+                          // 文献插图从 Supabase Storage CDN 加载
+                          const fullSrc = src?.startsWith('/static/images/') 
+                            ? `${SUPABASE_STORAGE_URL}${src.replace('/static/images/', '/')}` 
+                            : src?.startsWith('/static/')
+                              ? `${SUPABASE_STORAGE_URL}${src.replace('/static/', '/')}`
+                              : src;
                           return (
                             <img
                               src={fullSrc}
