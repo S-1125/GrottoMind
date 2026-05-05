@@ -198,26 +198,28 @@ export function GrottoHub({ onBack }: GrottoHubProps) {
           <span className="gh-nav__chapter">第三章 · 问窟枢纽</span>
         </div>
 
-        <button className="gh-nav__lit" onClick={() => {
-          try {
-            const raw = localStorage.getItem('grottomind_notes')
-            setNotes(raw ? JSON.parse(raw) : [])
-          } catch { setNotes([]) }
-          setShowNotes(true)
-        }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
-          </svg>
-          笔记
-        </button>
-        <button className="gh-nav__lit" onClick={() => setView('literature')}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-          </svg>
-          文献库
-        </button>
+        <div className="gh-nav__right">
+          <button className="gh-nav__lit" onClick={() => {
+            try {
+              const raw = localStorage.getItem('grottomind_notes')
+              setNotes(raw ? JSON.parse(raw) : [])
+            } catch { setNotes([]) }
+            setShowNotes(true)
+          }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+              <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+            </svg>
+            笔记
+          </button>
+          <button className="gh-nav__lit" onClick={() => setView('literature')}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+            </svg>
+            文献库
+          </button>
+        </div>
       </nav>
 
       {/* ——— 中央主体区域 ——— */}
@@ -420,7 +422,21 @@ export function GrottoHub({ onBack }: GrottoHubProps) {
             </svg>
           </div>
           <div className="gh-manuscript-content">
-            <h2 className="gh-manuscript-title">发问志</h2>
+            <div className="gh-notes-header">
+              <h2 className="gh-manuscript-title">发问志</h2>
+              {messages.length > 1 && (
+                <button className="gh-notes-clear" onClick={() => {
+                  const initial = [messages[0]]
+                  setMessages(initial)
+                  saveHistory(initial)
+                }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/>
+                  </svg>
+                  清空记录
+                </button>
+              )}
+            </div>
             <div className="gh-manuscript-list">
               {messages.slice(1).map((msg, idx) => {
                 if (msg.role === 'assistant') {
@@ -546,7 +562,30 @@ export function GrottoHub({ onBack }: GrottoHubProps) {
                       </div>
                     )}
                     <div className="gh-note-card__answer">
-                      <ReactMarkdown>{parseColorCards(note.content).cleanText}</ReactMarkdown>
+                      <ReactMarkdown components={{
+                        a: ({...props}) => {
+                          const decodedHref = props.href ? decodeURIComponent(props.href) : ''
+                          if (decodedHref.includes('来源:') || decodedHref.includes('来源：')) {
+                            const sourceTitle = decodedHref.replace(/^#/, '').replace(/^来源[:：]\s*/, '')
+                            return (
+                              <span
+                                className="ga-citation"
+                                data-tooltip={sourceTitle}
+                                onClick={(e) => {
+                                  e.preventDefault()
+                                  e.stopPropagation()
+                                  setShowNotes(false)
+                                  setAutoSelectTitle(sourceTitle)
+                                  setAutoScrollSnippet(null)
+                                  setView('literature')
+                                }}
+                              >{props.children}</span>
+                            )
+                          }
+                          if (props.href?.startsWith('#')) return <span className="ga-citation-plain">{props.children}</span>
+                          return <a {...props} />
+                        }
+                      }}>{parseColorCards(note.content).cleanText}</ReactMarkdown>
                     </div>
                   </div>
                 ))

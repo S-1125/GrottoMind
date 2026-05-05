@@ -81,6 +81,12 @@
   letter-spacing: 0.15em;
 }
 
+.gh-nav__right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .gh-nav__lit {
   display: flex;
   align-items: center;
@@ -355,7 +361,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  width: 100%;
+  max-width: 680px;
+  margin-bottom: 40px;
+}
+
+.gh-notes-header .gh-manuscript-title {
+  margin-bottom: 0;
 }
 
 .gh-notes-clear {
