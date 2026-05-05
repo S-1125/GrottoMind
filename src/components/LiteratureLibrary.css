@@ -482,8 +482,8 @@
   display: inline-block;
   width: 10px;
   height: 10px;
-  border: 1.5px solid rgba(246,206,160,0.4);
-  border-top-color: #f6cea0;
+  border: 1.5px solid rgba(255,255,255,0.2);
+  border-top-color: #ffffff;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -513,15 +513,15 @@
 
 /* ——— 引用跳转高亮 ——— */
 .ll-highlight-snippet {
-  background: rgba(246, 206, 160, 0.15) !important;
-  border-left: 3px solid #f6cea0 !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-left: 3px solid #ffffff !important;
   padding-left: 12px !important;
   border-radius: 4px;
   animation: llHighlightFade 5s ease forwards;
 }
 
 @keyframes llHighlightFade {
-  0% { background: rgba(246, 206, 160, 0.25); }
-  70% { background: rgba(246, 206, 160, 0.15); }
+  0% { background: rgba(255, 255, 255, 0.2); }
+  70% { background: rgba(255, 255, 255, 0.1); }
   100% { background: transparent; border-left-color: transparent; }
 }

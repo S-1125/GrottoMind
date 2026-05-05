@@ -241,6 +241,11 @@ export function GrottoHub({ onBack }: GrottoHubProps) {
                     const decodedHref = props.href ? decodeURIComponent(props.href) : ''
                     if (decodedHref.includes('来源:') || decodedHref.includes('来源：')) {
                       const sourceTitle = decodedHref.replace(/^#/, '').replace(/^来源[:：]\s*/, '')
+                      
+                      // 提取角标编号匹配 snippet
+                      const citationNum = parseInt(String(props.children), 10)
+                      const matchedSource = latestMessage?.sources?.find(s => s.index === citationNum)
+
                       return (
                         <span
                           className="ga-citation"
@@ -248,7 +253,8 @@ export function GrottoHub({ onBack }: GrottoHubProps) {
                           onClick={(e) => {
                             e.preventDefault()
                             e.stopPropagation()
-                            setPendingLiteratureNav({ title: sourceTitle })
+                            setAutoSelectTitle(sourceTitle)
+                            setAutoScrollSnippet(matchedSource?.snippet || null)
                             setView('literature')
                           }}
                         >{props.children}</span>
@@ -271,6 +277,11 @@ export function GrottoHub({ onBack }: GrottoHubProps) {
                       const decodedHref = props.href ? decodeURIComponent(props.href) : ''
                       if (decodedHref.includes('来源:') || decodedHref.includes('来源：')) {
                         const sourceTitle = decodedHref.replace(/^#/, '').replace(/^来源[:：]\s*/, '')
+                        
+                        // 提取角标编号匹配 snippet
+                        const citationNum = parseInt(String(props.children), 10)
+                        const matchedSource = latestMessage?.sources?.find(s => s.index === citationNum)
+
                         return (
                           <span
                             className="ga-citation"
@@ -278,7 +289,8 @@ export function GrottoHub({ onBack }: GrottoHubProps) {
                             onClick={(e) => {
                               e.preventDefault()
                               e.stopPropagation()
-                              setPendingLiteratureNav({ title: sourceTitle })
+                              setAutoSelectTitle(sourceTitle)
+                              setAutoScrollSnippet(matchedSource?.snippet || null)
                               setView('literature')
                             }}
                           >{props.children}</span>
