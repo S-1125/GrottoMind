@@ -229,7 +229,7 @@ export function GrottoHub({ onBack }: GrottoHubProps) {
                   <div className="gh-thinking-dots">
                     <span /><span /><span />
                   </div>
-                  <div className="gh-thinking-label">石壁显影中</div>
+                  <div className="gh-thinking-label">思考中...</div>
                 </div>
               )
             }
@@ -379,7 +379,7 @@ export function GrottoHub({ onBack }: GrottoHubProps) {
             ref={inputRef}
             type="text"
             className="gh-stealth-input"
-            placeholder={isStreaming ? '石壁显影中...' : '向石窟发问...'}
+            placeholder={isStreaming ? '正在生成...' : '有什么我可以帮你的？'}
             value={inputText}
             onChange={e => setInputText(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && !e.nativeEvent.isComposing && handleSend()}

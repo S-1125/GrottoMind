@@ -10,19 +10,12 @@
   flex-direction: column;
   overflow: hidden;
   position: relative;
-  font-family: var(--font-primary), 'Noto Serif SC', serif;
+  font-family: var(--font-primary), 'Noto Serif SC', sans-serif;
   color: rgba(255, 255, 255, 0.94); /* 雾白 */
-  background-color: #151412; /* 墨黑 */
+  background-color: #030303; /* 纯黑实验室背景 */
   
-  /* Layered Background: 极简暗场遮罩 + 实体图片 (禁止赛博网格) */
-  background-image: 
-    radial-gradient(circle at center, rgba(21, 20, 18, 0.6) 0%, rgba(21, 20, 18, 0.98) 100%),
-    url('/章节2素材/栖霞山石窟艺术海报.jpg');
-  background-size: cover;
-  background-position: center center;
-  
-  /* 核心魔法：剥离原图的暖黄色，强制统一为墨黑 (Dark Charcoal) 质感 */
-  background-blend-mode: luminosity;
+  /* 发光中心光晕，替代图片 */
+  background-image: radial-gradient(circle at center, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0) 50%);
 }
 
 /* ——— 底层视频背景 ——— */
@@ -142,19 +135,19 @@
 
 /* 大标题 (Typography) */
 .gh-title {
-  font-family: var(--font-primary), 'Noto Serif SC', serif;
-  font-size: 42px;
-  font-weight: 400;
-  color: rgba(255, 255, 255, 0.94);
-  letter-spacing: 0.15em;
+  font-family: var(--font-primary), 'Noto Serif SC', sans-serif;
+  font-size: 38px;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.9);
+  letter-spacing: 0.1em;
   text-align: center;
   margin-bottom: 48px;
   line-height: 1.6;
-  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 .gh-title em {
   font-style: normal;
-  color: #f6cea0;
+  color: rgba(255, 255, 255, 1);
+  font-weight: 400;
 }
 
 /* 推荐问题气泡 */
@@ -168,21 +161,22 @@
 }
 
 .gh-suggestion-chip {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.5);
   padding: 10px 24px;
   border-radius: 30px;
   font-size: 13px;
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-primary), sans-serif;
   cursor: pointer;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
+  backdrop-filter: blur(10px);
 }
 .gh-suggestion-chip:hover {
-  background: rgba(246, 206, 160, 0.08);
-  border-color: rgba(246, 206, 160, 0.4);
-  color: #f6cea0;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
   transform: translateY(-2px);
 }
 
@@ -240,6 +234,42 @@
   to { opacity: 1; filter: blur(0); transform: translateY(0); }
 }
 
+/* AI 思考等待动画 */
+.gh-thinking {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  animation: subtitleReveal 0.6s ease forwards;
+}
+
+.gh-thinking-dots {
+  display: flex;
+  gap: 8px;
+}
+
+.gh-thinking-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(246, 206, 160, 0.5);
+  animation: thinkingPulse 1.4s ease-in-out infinite;
+}
+.gh-thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+.gh-thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes thinkingPulse {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.3); }
+}
+
+.gh-thinking-label {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.3);
+  letter-spacing: 0.15em;
+  font-family: 'Noto Serif SC', serif;
+}
+
 /* ——— 隐匿式底部交互栏 ——— */
 .gh-stealth-input-area {
   position: absolute;
@@ -251,7 +281,7 @@
   align-items: center;
   padding-bottom: 32px;
   z-index: 10;
-  background: linear-gradient(to top, rgba(15, 14, 12, 0.95) 0%, rgba(15, 14, 12, 0.6) 60%, transparent 100%);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.6) 60%, transparent 100%);
   padding-top: 40px;
 }
 
@@ -260,20 +290,20 @@
   align-items: center;
   width: 100%;
   max-width: 560px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(246, 206, 160, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 28px;
   padding: 6px 8px;
   gap: 4px;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 .gh-stealth-input-wrapper:focus-within {
-  border-color: rgba(246, 206, 160, 0.5);
-  background: rgba(255, 255, 255, 0.06);
-  box-shadow: 0 0 30px rgba(246, 206, 160, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.05);
 }
 
 .gh-stealth-input {
@@ -282,23 +312,23 @@
   border: none;
   color: rgba(255, 255, 255, 0.9);
   font-size: 14px;
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-primary), 'Noto Serif SC', sans-serif;
   outline: none;
   letter-spacing: 0.05em;
   padding: 8px 0;
 }
 
 .gh-stealth-input::placeholder {
-  color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.3);
 }
 
 .gh-stealth-send {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: rgba(246, 206, 160, 0.12);
-  border: 1px solid rgba(246, 206, 160, 0.2);
-  color: rgba(246, 206, 160, 0.7);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
   cursor: pointer;
   transition: all 0.3s;
   display: flex;
@@ -308,9 +338,9 @@
 }
 
 .gh-stealth-send:hover:not(:disabled) {
-  background: rgba(246, 206, 160, 0.2);
-  border-color: rgba(246, 206, 160, 0.5);
-  color: #f6cea0;
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #ffffff;
   transform: scale(1.05);
 }
 .gh-stealth-send:disabled {
@@ -324,7 +354,7 @@
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.4);
   cursor: pointer;
   transition: all 0.3s;
   display: flex;
@@ -334,9 +364,9 @@
   position: relative;
 }
 .gh-history-toggle:hover {
-  color: rgba(246, 206, 160, 0.8);
-  background: rgba(246, 206, 160, 0.08);
-  border-color: rgba(246, 206, 160, 0.25);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 /* tooltip */
 .gh-history-toggle::after {
@@ -345,8 +375,8 @@
   bottom: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%) scale(0.95);
-  background: rgba(30, 28, 24, 0.95);
-  color: rgba(246, 206, 160, 0.9);
+  background: rgba(20, 20, 20, 0.95);
+  color: rgba(255, 255, 255, 0.9);
   font-size: 11px;
   padding: 4px 10px;
   border-radius: 6px;
@@ -354,7 +384,7 @@
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.2s, transform 0.2s;
-  border: 1px solid rgba(246, 206, 160, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 .gh-history-toggle:hover::after {
   opacity: 1;

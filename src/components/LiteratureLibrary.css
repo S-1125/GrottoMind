@@ -1,9 +1,9 @@
 .literature-library {
   width: 100vw;
   height: 100vh;
-  background-color: #151412; /* 统一墨黑 */
-  color: rgba(255, 255, 255, 0.85);
-  font-family: var(--font-primary), 'Noto Serif SC', serif;
+  background-color: #050505; /* 纯黑背景 */
+  color: rgba(255, 255, 255, 0.9);
+  font-family: var(--font-primary), 'Noto Serif SC', sans-serif;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -17,9 +17,9 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 40px;
-  border-bottom: 1px solid rgba(246, 206, 160, 0.1);
-  background: rgba(21, 20, 18, 0.8); /* 墨黑半透 */
-  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(5, 5, 5, 0.8);
+  backdrop-filter: blur(20px);
   z-index: 10;
 }
 
@@ -29,7 +29,7 @@
   gap: 8px;
   background: transparent;
   border: none;
-  color: #f6cea0;
+  color: rgba(255, 255, 255, 0.6);
   font-size: 14px;
   letter-spacing: 0.1em;
   cursor: pointer;
@@ -158,18 +158,18 @@
 .ll-list-item__content h4 {
   font-size: 14px;
   font-weight: 400;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.7);
   line-height: 1.4;
   transition: color 0.3s ease;
 }
 
 .ll-list-item--active .ll-list-item__content h4 {
-  color: #f6cea0;
+  color: #ffffff;
 }
 
 .ll-list-item__content p {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.3);
   font-family: var(--font-secondary), sans-serif;
 }
 
@@ -177,7 +177,7 @@
 .ll-content {
   flex: 1;
   position: relative;
-  background: radial-gradient(circle at center, rgba(246, 206, 160, 0.04) 0%, transparent 60%);
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.02) 0%, transparent 60%);
   display: flex;
   overflow-y: auto;
 }
@@ -194,17 +194,18 @@
 .ll-content__empty-icon {
   width: 80px;
   height: 80px;
-  border: 1px dashed rgba(246, 206, 160, 0.3);
+  border: 1px dashed rgba(255, 255, 255, 0.2);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .ll-content__empty p {
   font-size: 14px;
   letter-spacing: 0.1em;
-  color: rgba(246, 206, 160, 0.6);
+  color: rgba(255, 255, 255, 0.4);
 }
 
 /* 阅读器内部 */
@@ -221,7 +222,7 @@
 .ll-reader__title {
   font-size: 26px;
   font-weight: 400;
-  color: #f6cea0;
+  color: #ffffff;
   line-height: 1.5;
   letter-spacing: 0.05em;
   margin-bottom: 32px;
@@ -230,8 +231,8 @@
 /* ——— AI 来源指南卡片 ——— */
 .ll-guide-card {
   flex-shrink: 0;
-  background: rgba(246, 206, 160, 0.08);
-  border: 1px solid rgba(246, 206, 160, 0.4);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   margin-bottom: 16px;
   overflow: hidden;
@@ -239,8 +240,8 @@
 }
 
 .ll-guide-card:hover {
-  background: rgba(246, 206, 160, 0.12);
-  border-color: rgba(246, 206, 160, 0.6);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.15);
 }
 
 .ll-guide-card__header {
@@ -358,26 +359,26 @@
 .ll-keyword-pill {
   display: inline-block;
   padding: 6px 16px;
-  border: 1px solid rgba(246, 206, 160, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 20px;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.6);
   letter-spacing: 0.05em;
-  background: rgba(246, 206, 160, 0.04);
+  background: rgba(255, 255, 255, 0.02);
   transition: all 0.2s ease;
   cursor: default;
 }
 
 .ll-keyword-pill:hover {
-  background: rgba(246, 206, 160, 0.1);
-  border-color: rgba(246, 206, 160, 0.35);
-  color: #f6cea0;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
 }
 
 /* ——— 分隔线 ——— */
 .ll-divider {
   height: 1px;
-  background: rgba(246, 206, 160, 0.1);
+  background: rgba(255, 255, 255, 0.05);
   margin: 40px 0;
 }
 
@@ -386,21 +387,21 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(246, 206, 160, 0.05);
-  border: 1px solid rgba(246, 206, 160, 0.3);
-  color: #f6cea0;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
   padding: 10px 20px;
   border-radius: 20px;
   font-size: 13px;
   letter-spacing: 0.1em;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 0 15px rgba(246, 206, 160, 0);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0);
 }
 
 .ll-btn-summary:hover {
-  background: rgba(246, 206, 160, 0.1);
-  box-shadow: 0 0 20px rgba(246, 206, 160, 0.15);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
   transform: translateY(-1px);
 }
 
@@ -415,7 +416,7 @@
   background: transparent;
 }
 .ll-reader__body::-webkit-scrollbar-thumb {
-  background: rgba(246, 206, 160, 0.2);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 4px;
 }
 
@@ -439,7 +440,7 @@
   background: transparent;
 }
 .ll-content::-webkit-scrollbar-thumb {
-  background: rgba(246, 206, 160, 0.15);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 4px;
 }
 
