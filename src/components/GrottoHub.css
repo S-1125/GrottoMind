@@ -11,11 +11,16 @@
   overflow: hidden;
   position: relative;
   font-family: var(--font-primary), 'Noto Serif SC', sans-serif;
-  color: rgba(255, 255, 255, 0.94); /* 雾白 */
-  background-color: #030303; /* 纯黑实验室背景 */
+  color: rgba(255, 255, 255, 0.94);
+  background-color: #0a0a0a;
   
-  /* 发光中心光晕，替代图片 */
-  background-image: radial-gradient(circle at center, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0) 50%);
+  /* 深色遮罩 + 实景背景图 */
+  background-image: 
+    radial-gradient(circle at center, rgba(10, 10, 10, 0.75) 0%, rgba(10, 10, 10, 0.95) 100%),
+    url('/章节2素材/栖霞山石窟艺术海报.jpg');
+  background-size: cover;
+  background-position: center center;
+  background-blend-mode: luminosity;
 }
 
 /* ——— 底层视频背景 ——— */
