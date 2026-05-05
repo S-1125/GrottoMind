@@ -275,6 +275,211 @@
   font-family: 'Noto Serif SC', serif;
 }
 
+/* ——— AI 回复操作按钮栏 ——— */
+.gh-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+  animation: ghActionsReveal 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+}
+
+@keyframes ghActionsReveal {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* "保存到笔记"胶囊按钮 */
+.gh-action-btn--save {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 13px;
+  font-family: var(--font-primary), sans-serif;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  letter-spacing: 0.03em;
+  backdrop-filter: blur(8px);
+}
+
+.gh-action-btn--save:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.gh-action-btn--save.is-active {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+}
+
+/* 图标按钮组（复制、赞、踩） */
+.gh-actions__icons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.gh-action-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.gh-action-icon:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.gh-action-icon.is-active {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* ——— 笔记面板 ——— */
+.gh-notes-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.gh-notes-clear {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 12px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.gh-notes-clear:hover {
+  background: rgba(224, 122, 95, 0.1);
+  border-color: rgba(224, 122, 95, 0.3);
+  color: #e07a5f;
+}
+
+.gh-notes-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 80px 0;
+  opacity: 0.6;
+}
+.gh-notes-empty p {
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0;
+}
+.gh-notes-empty-hint {
+  font-size: 13px !important;
+  color: rgba(255, 255, 255, 0.25) !important;
+}
+
+.gh-note-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  transition: border-color 0.2s;
+}
+.gh-note-card:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.gh-note-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.gh-note-card__time {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.3);
+  letter-spacing: 0.03em;
+}
+
+.gh-note-card__delete {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.gh-note-card__delete:hover {
+  background: rgba(224, 122, 95, 0.1);
+  color: #e07a5f;
+}
+
+.gh-note-card__question {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  line-height: 1.6;
+}
+
+.gh-note-card__q-label {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+}
+
+.gh-note-card__answer {
+  font-size: 14px;
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.75);
+}
+.gh-note-card__answer p {
+  margin: 0 0 8px;
+}
+.gh-note-card__answer p:last-child {
+  margin-bottom: 0;
+}
+.gh-note-card__answer strong {
+  color: rgba(255, 255, 255, 0.95);
+}
+
 /* ——— 隐匿式底部交互栏 ——— */
 .gh-stealth-input-area {
   position: absolute;

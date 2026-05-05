@@ -14,10 +14,17 @@ interface GrottoHubProps {
   onBack: () => void
 }
 
+interface SourceRef {
+  index: number
+  title: string
+  snippet: string
+}
+
 interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
   timestamp: number
+  sources?: SourceRef[]
 }
 
 const STORAGE_KEY = 'grottomind_chat_history'
@@ -48,6 +55,11 @@ export function GrottoHub({ onBack }: GrottoHubProps) {
   const [messages, setMessages] = useState<ChatMessage[]>(loadHistory)
   const [isStreaming, setIsStreaming] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
+  const [feedback, setFeedback] = useState<'up' | 'down' | null>(null)
+  const [copied, setCopied] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [showNotes, setShowNotes] = useState(false)
+  const [notes, setNotes] = useState<{content: string, timestamp: number, question: string}[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
   const historyEndRef = useRef<HTMLDivElement>(null)
   const mainRef = useRef<HTMLDivElement>(null)
@@ -139,6 +151,14 @@ export function GrottoHub({ onBack }: GrottoHubProps) {
                     return updated
                   })
                 }
+                // 接收 RAG 引用源数据（用于段落定位）
+                if (data.sources) {
+                  setMessages(prev => {
+                    const updated = [...prev]
+                    updated[updated.length - 1] = { ...updated[updated.length - 1], sources: data.sources }
+                    return updated
+                  })
+                }
               } catch { /* 忽略 */ }
             }
           }
@@ -178,6 +198,19 @@ export function GrottoHub({ onBack }: GrottoHubProps) {
           <span className="gh-nav__chapter">第三章 · 问窟枢纽</span>
         </div>
 
+        <button className="gh-nav__lit" onClick={() => {
+          try {
+            const raw = localStorage.getItem('grottomind_notes')
+            setNotes(raw ? JSON.parse(raw) : [])
+          } catch { setNotes([]) }
+          setShowNotes(true)
+        }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+          </svg>
+          笔记
+        </button>
         <button className="gh-nav__lit" onClick={() => setView('literature')}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
             <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
@@ -302,6 +335,75 @@ export function GrottoHub({ onBack }: GrottoHubProps) {
                   }}>{cleanText}</ReactMarkdown>
                 </div>
                 <ColorCardGroup cards={cards} />
+
+                {/* 操作按钮栏 */}
+                <div className="gh-actions">
+                  <button
+                    className={`gh-action-btn gh-action-btn--save ${saved ? 'is-active' : ''}`}
+                    onClick={() => {
+                      if (saved) return
+                      try {
+                        const notes = JSON.parse(localStorage.getItem('grottomind_notes') || '[]')
+                        notes.push({
+                          content: latestMessage.content,
+                          timestamp: Date.now(),
+                          question: messages.length >= 2 ? messages[messages.length - 2]?.content : ''
+                        })
+                        localStorage.setItem('grottomind_notes', JSON.stringify(notes))
+                        setSaved(true)
+                        setTimeout(() => setSaved(false), 2000)
+                      } catch { /* 忽略 */ }
+                    }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                      <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+                    </svg>
+                    <span>{saved ? '已保存' : '保存到笔记'}</span>
+                  </button>
+
+                  <div className="gh-actions__icons">
+                    <button
+                      className={`gh-action-icon ${copied ? 'is-active' : ''}`}
+                      title="复制"
+                      onClick={() => {
+                        navigator.clipboard.writeText(latestMessage.content).then(() => {
+                          setCopied(true)
+                          setTimeout(() => setCopied(false), 2000)
+                        })
+                      }}
+                    >
+                      {copied ? (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                      ) : (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                        </svg>
+                      )}
+                    </button>
+                    <button
+                      className={`gh-action-icon ${feedback === 'up' ? 'is-active' : ''}`}
+                      title="有用"
+                      onClick={() => setFeedback(prev => prev === 'up' ? null : 'up')}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill={feedback === 'up' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M7 22V11l-5 1v10h5zM14 9V5.5a2.5 2.5 0 0 0-5 0V9h5zM7 11l3-2 4 .5h6a2 2 0 0 1 2 2v1.5l-2 7.5H7"/>
+                      </svg>
+                    </button>
+                    <button
+                      className={`gh-action-icon ${feedback === 'down' ? 'is-active' : ''}`}
+                      title="没用"
+                      onClick={() => setFeedback(prev => prev === 'down' ? null : 'down')}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill={feedback === 'down' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M17 2v11l5-1V2h-5zM10 15v3.5a2.5 2.5 0 0 0 5 0V15h-5zM17 13l-3 2-4-.5H4a2 2 0 0 1-2-2v-1.5l2-7.5h10"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
               </>
             )
           })()}
@@ -333,6 +435,11 @@ export function GrottoHub({ onBack }: GrottoHubProps) {
                               const decodedHref = props.href ? decodeURIComponent(props.href) : ''
                               if (decodedHref.includes('来源:') || decodedHref.includes('来源：')) {
                                 const sourceTitle = decodedHref.replace(/^#/, '').replace(/^来源[:：]\s*/, '')
+                                
+                                // 提取角标编号匹配 snippet
+                                const citationNum = parseInt(String(props.children), 10)
+                                const matchedSource = msg.sources?.find(s => s.index === citationNum)
+
                                 return (
                                   <span
                                     className="ga-citation"
@@ -341,7 +448,8 @@ export function GrottoHub({ onBack }: GrottoHubProps) {
                                       e.preventDefault()
                                       e.stopPropagation()
                                       setShowHistory(false)
-                                      setPendingLiteratureNav({ title: sourceTitle })
+                                      setAutoSelectTitle(sourceTitle)
+                                      setAutoScrollSnippet(matchedSource?.snippet || null)
                                       setView('literature')
                                     }}
                                   >{props.children}</span>
@@ -374,13 +482,88 @@ export function GrottoHub({ onBack }: GrottoHubProps) {
         </div>
       )}
 
+      {/* ——— 笔记面板 ——— */}
+      {showNotes && (
+        <div className="gh-manuscript-overlay">
+          <div className="gh-manuscript-close" onClick={() => setShowNotes(false)}>
+            <span>返回空间</span>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+          <div className="gh-manuscript-content">
+            <div className="gh-notes-header">
+              <h2 className="gh-manuscript-title">我的笔记</h2>
+              {notes.length > 0 && (
+                <button className="gh-notes-clear" onClick={() => {
+                  localStorage.removeItem('grottomind_notes')
+                  setNotes([])
+                }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/>
+                  </svg>
+                  清空全部
+                </button>
+              )}
+            </div>
+            <div className="gh-manuscript-list">
+              {notes.length === 0 ? (
+                <div className="gh-notes-empty">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="1">
+                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+                    <line x1="12" y1="11" x2="12" y2="17"/>
+                    <line x1="9" y1="14" x2="15" y2="14"/>
+                  </svg>
+                  <p>还没有笔记</p>
+                  <p className="gh-notes-empty-hint">在 AI 回复下方点击「保存到笔记」即可收藏</p>
+                </div>
+              ) : (
+                notes.map((note, idx) => (
+                  <div key={idx} className="gh-note-card">
+                    <div className="gh-note-card__header">
+                      <span className="gh-note-card__time">
+                        {new Date(note.timestamp).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                      <button
+                        className="gh-note-card__delete"
+                        title="删除笔记"
+                        onClick={() => {
+                          const updated = notes.filter((_, i) => i !== idx)
+                          setNotes(updated)
+                          localStorage.setItem('grottomind_notes', JSON.stringify(updated))
+                        }}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M18 6L6 18M6 6l12 12"/>
+                        </svg>
+                      </button>
+                    </div>
+                    {note.question && (
+                      <div className="gh-note-card__question">
+                        <span className="gh-note-card__q-label">问</span>
+                        {note.question}
+                      </div>
+                    )}
+                    <div className="gh-note-card__answer">
+                      <ReactMarkdown>{parseColorCards(note.content).cleanText}</ReactMarkdown>
+                    </div>
+                  </div>
+                ))
+              )}
+              <div style={{ height: '80px' }} />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ——— 隐匿式底部交互栏 ——— */}
       <div className="gh-stealth-input-area">
         <div className="gh-stealth-input-wrapper">
           <button
             className="gh-history-toggle"
             onClick={() => setShowHistory(true)}
-            title="文献回溯"
+            title="对话历史"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10"/>
