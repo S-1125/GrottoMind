@@ -1001,10 +1001,10 @@ html.lenis body {
    右下角控制按钮 - 1:1 还原 persepolis.getty.edu
    ========================================================================== */
 .intro-ctrl-nav {
-  position: absolute;
+  position: fixed;
   right: clamp(16px, 2.5vw, 32px);
   bottom: clamp(26px, calc(2.5vh + 10px), 38px);
-  z-index: 20;
+  z-index: 9998;
   display: flex;
   gap: 10px;
 }

@@ -8,7 +8,6 @@ import {
 import gsap from 'gsap'
 import { AtmosphereEffects } from './AtmosphereEffects'
 import { AtmosphereShader } from './AtmosphereShader'
-import { FullscreenButton } from './FullscreenButton'
 import { GrottoModelScene, type GrottoModelSceneHandle } from './GrottoModelScene'
 
 /* ============================================================
@@ -135,28 +134,22 @@ function stopProgress(index: number) {
 interface TimelineHallProps {
   onDeepRead?: (nodeId: string) => void
   onNextChapter?: () => void
+  onGoToAI?: () => void
   isPaused?: boolean
 }
 
-export function TimelineHall({ onDeepRead, onNextChapter, isPaused }: TimelineHallProps) {
+export function TimelineHall({ onDeepRead, onNextChapter, onGoToAI, isPaused }: TimelineHallProps) {
   // ---- 核心状态 ----
   const [currentStop, setCurrentStop] = useState(0)
   const [isAnimating, setIsAnimating] = useState(false)
   const [activeImage, setActiveImage] = useState<string | null>(null)
   const [displayedImage, setDisplayedImage] = useState<string | null>(null)
 
-  // ---- 辅助 UI 状态 ----
-  const [settingsOpen, setSettingsOpen] = useState(false)
-  const [soundOn, setSoundOn] = useState(true)
-  const [reduceMotion, setReduceMotion] = useState(false)
-  const [highContrast, setHighContrast] = useState(false)
-  const [largeText, setLargeText] = useState(false)
-
   // ---- Refs ----
   const modelRef = useRef<GrottoModelSceneHandle>(null)
   const cameraProgressRef = useRef(0)
   const timelineRef = useRef<gsap.core.Timeline | null>(null)
-  const settingsRef = useRef<HTMLDivElement>(null)
+
   const fadeGroupRef = useRef<HTMLDivElement>(null)
   const introTextRef = useRef<HTMLDivElement>(null)
   const introVeilRef = useRef<HTMLDivElement>(null)
@@ -175,12 +168,7 @@ export function TimelineHall({ onDeepRead, onNextChapter, isPaused }: TimelineHa
     setActiveImage(null)
   }, [])
 
-  // ---- 无障碍 ----
-  useEffect(() => {
-    document.documentElement.classList.toggle('reduce-motion', reduceMotion)
-    document.documentElement.classList.toggle('high-contrast', highContrast)
-    document.documentElement.classList.toggle('large-text', largeText)
-  }, [reduceMotion, highContrast, largeText])
+
 
   // ---- 初始淡入：整页淡入 + 序章标题淡入后自动淡出 + UI 错峰入场 ----
   useEffect(() => {
@@ -264,16 +252,6 @@ export function TimelineHall({ onDeepRead, onNextChapter, isPaused }: TimelineHa
     }
   }, [])
 
-  // ---- 点击外部关闭设置 ----
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (settingsRef.current && !settingsRef.current.contains(e.target as Node)) {
-        setSettingsOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [])
 
   // ---- 核心过渡函数 ----
   const transitionTo = useCallback((targetIndex: number) => {
@@ -447,7 +425,6 @@ export function TimelineHall({ onDeepRead, onNextChapter, isPaused }: TimelineHa
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (isPausedRef.current) return
-      if (e.key === 'Escape') setSettingsOpen(false)
       if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
         e.preventDefault()
         transitionTo(currentStop + 1)
@@ -505,24 +482,33 @@ export function TimelineHall({ onDeepRead, onNextChapter, isPaused }: TimelineHa
       </div>
 
       {/* 右上角快捷入口（移动到此处以修复 z-index 遮挡全屏预览的 bug） */}
-      <div
-        className="next-chapter-group interactive"
-        onClick={() => onNextChapter?.()}
-        role="button"
-        tabIndex={0}
-        aria-label="进入第二章"
-        onKeyDown={(e) => { if (e.key === 'Enter') onNextChapter?.() }}
-        style={{ position: 'fixed', top: 20, right: 20, zIndex: 999 }}
-      >
-        <span className="next-pill">
-          <span className="next-pill-bg"></span>
-          <span className="next-pill-text">进入下一章</span>
-        </span>
-        <span className="next-icon" aria-hidden="true">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M1 1L13 13M13 13H3M13 13V3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </span>
+      <div style={{ position: 'fixed', top: 20, right: 20, zIndex: 999, display: 'flex', alignItems: 'center', gap: '20px' }}>
+        <button 
+          className="fh-nav__contact" 
+          onClick={(e) => { e.preventDefault(); onGoToAI?.(); }}
+          style={{ height: 'fit-content' }}
+        >
+          问窟 AI
+        </button>
+        <div
+          className="next-chapter-group interactive"
+          onClick={() => onNextChapter?.()}
+          role="button"
+          tabIndex={0}
+          aria-label="进入第二章"
+          onKeyDown={(e) => { if (e.key === 'Enter') onNextChapter?.() }}
+          style={{ position: 'relative', top: 'auto', right: 'auto', zIndex: 'auto' }}
+        >
+          <span className="next-pill">
+            <span className="next-pill-bg"></span>
+            <span className="next-pill-text">进入下一章</span>
+          </span>
+          <span className="next-icon" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M1 1L13 13M13 13H3M13 13V3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </span>
+        </div>
       </div>
 
       {/* ============================================================
@@ -865,73 +851,6 @@ export function TimelineHall({ onDeepRead, onNextChapter, isPaused }: TimelineHa
 
       {/* ---- 底部提示 ---- */}
       <p className="timeline-scroll-hint">轻滚鼠标，镜头沿舍利塔局部游览。</p>
-
-      {/* ---- 右下角控制栏 ---- */}
-      <nav className="intro-ctrl-nav exhibition-ctrl-nav" aria-label="辅助控制">
-        <div className="ctrl-btn-wrapper" ref={settingsRef}>
-          <button
-            className={`intro-ctrl-btn ${settingsOpen ? 'is-active' : ''}`}
-            aria-label="无障碍选项"
-            aria-expanded={settingsOpen}
-            onClick={() => setSettingsOpen(!settingsOpen)}
-          >
-            <svg className="ctrl-btn-outline" viewBox="0 0 50 50" aria-hidden="true">
-              <rect width="48.25" height="48.25" strokeWidth="1.75" x="0.5" y="0.5" rx="16" />
-            </svg>
-            <span className="ctrl-btn-bg" />
-            <svg className="ctrl-icon settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <circle cx="12" cy="12" r="3" />
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-            </svg>
-          </button>
-
-          {settingsOpen && (
-            <div className="settings-panel">
-              <h3 className="settings-title">无障碍选项</h3>
-              <div className="settings-list">
-                <button className={`settings-toggle ${reduceMotion ? 'is-on' : ''}`} onClick={() => setReduceMotion(!reduceMotion)}>
-                  <span className="settings-label">减少运动</span>
-                  <span className="settings-status">{reduceMotion ? 'on' : 'off'}</span>
-                </button>
-                <button className={`settings-toggle ${highContrast ? 'is-on' : ''}`} onClick={() => setHighContrast(!highContrast)}>
-                  <span className="settings-label">高对比度</span>
-                  <span className="settings-status">{highContrast ? 'on' : 'off'}</span>
-                </button>
-                <button className={`settings-toggle ${largeText ? 'is-on' : ''}`} onClick={() => setLargeText(!largeText)}>
-                  <span className="settings-label">较大文字</span>
-                  <span className="settings-status">{largeText ? 'on' : 'off'}</span>
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <button
-          className="intro-ctrl-btn"
-          aria-label={soundOn ? '静音' : '开启声音'}
-          onClick={() => setSoundOn(!soundOn)}
-        >
-          <svg className="ctrl-btn-outline" viewBox="0 0 50 50" aria-hidden="true">
-            <rect width="48.25" height="48.25" strokeWidth="1.75" x="0.5" y="0.5" rx="16" />
-          </svg>
-          <span className="ctrl-btn-bg" />
-          <svg className="ctrl-icon sound-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            {soundOn ? (
-              <>
-                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
-              </>
-            ) : (
-              <>
-                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                <line x1="23" y1="9" x2="17" y2="15" />
-                <line x1="17" y1="9" x2="23" y2="15" />
-              </>
-            )}
-          </svg>
-        </button>
-        <FullscreenButton />
-      </nav>
 
       {/* ---- 全屏大图预览容器 ---- */}
       <div

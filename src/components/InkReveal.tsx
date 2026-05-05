@@ -194,12 +194,7 @@ export function InkReveal({ grayImageUrl, colorImageUrl, className = '', hardEdg
     renderer.autoClear = false
     container.appendChild(renderer.domElement)
 
-    // 检查浮点纹理支持
-    const ext = renderer.getContext().getExtension('OES_texture_float')
-    if (!ext) {
-      // 如果不支持 float 纹理，也不报错，降级处理
-      console.warn('OES_texture_float 不可用，流体模拟可能受限')
-    }
+
 
     // ---- 正交相机 + 全屏四边形 ----
     const camera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, 0, 1)

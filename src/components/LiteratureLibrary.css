@@ -1,0 +1,526 @@
+.literature-library {
+  width: 100vw;
+  height: 100vh;
+  background-color: #151412; /* 统一墨黑 */
+  color: rgba(255, 255, 255, 0.85);
+  font-family: var(--font-primary), 'Noto Serif SC', serif;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+/* 顶部导航 */
+.ll-nav {
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+  border-bottom: 1px solid rgba(246, 206, 160, 0.1);
+  background: rgba(21, 20, 18, 0.8); /* 墨黑半透 */
+  backdrop-filter: blur(10px);
+  z-index: 10;
+}
+
+.ll-nav__back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  color: #f6cea0;
+  font-size: 14px;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  padding: 8px 16px;
+  transition: all 0.3s ease;
+  opacity: 0.8;
+}
+
+.ll-nav__back:hover {
+  opacity: 1;
+  transform: translateX(-4px);
+}
+
+.ll-nav__title {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.ll-nav__title-main {
+  font-size: 18px;
+  color: #f6cea0;
+  letter-spacing: 0.2em;
+}
+
+.ll-nav__title-sub {
+  font-size: 10px;
+  color: rgba(246, 206, 160, 0.5);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+/* 核心布局 */
+.ll-container {
+  display: flex;
+  flex: 1;
+  height: calc(100vh - 72px);
+}
+
+/* 左侧边栏 */
+.ll-sidebar {
+  width: 320px;
+  border-right: 1px solid rgba(246, 206, 160, 0.1);
+  display: flex;
+  flex-direction: column;
+  background: rgba(21, 20, 18, 0.4); /* 墨黑微透 */
+}
+
+.ll-sidebar__header {
+  padding: 24px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(246, 206, 160, 0.05);
+}
+
+.ll-sidebar__header h3 {
+  font-size: 15px;
+  color: #f6cea0;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+}
+
+.ll-count {
+  font-size: 12px;
+  color: rgba(246, 206, 160, 0.5);
+  font-family: var(--font-secondary), sans-serif;
+}
+
+.ll-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 自定义滚动条 */
+.ll-list::-webkit-scrollbar {
+  width: 4px;
+}
+.ll-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.ll-list::-webkit-scrollbar-thumb {
+  background: rgba(246, 206, 160, 0.2);
+  border-radius: 4px;
+}
+
+.ll-list-item {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+}
+
+.ll-list-item:hover {
+  background: rgba(246, 206, 160, 0.03);
+}
+
+.ll-list-item--active {
+  background: rgba(246, 206, 160, 0.05);
+  border: 1px solid rgba(246, 206, 160, 0.15);
+}
+
+.ll-list-item__icon {
+  color: rgba(246, 206, 160, 0.4);
+  margin-top: 2px;
+  transition: color 0.3s ease;
+}
+
+.ll-list-item--active .ll-list-item__icon {
+  color: #f6cea0;
+}
+
+.ll-list-item__content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ll-list-item__content h4 {
+  font-size: 14px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.4;
+  transition: color 0.3s ease;
+}
+
+.ll-list-item--active .ll-list-item__content h4 {
+  color: #f6cea0;
+}
+
+.ll-list-item__content p {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  font-family: var(--font-secondary), sans-serif;
+}
+
+/* 右侧内容区 */
+.ll-content {
+  flex: 1;
+  position: relative;
+  background: radial-gradient(circle at center, rgba(246, 206, 160, 0.04) 0%, transparent 60%);
+  display: flex;
+  overflow-y: auto;
+}
+
+.ll-content__empty {
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  opacity: 0.5;
+}
+
+.ll-content__empty-icon {
+  width: 80px;
+  height: 80px;
+  border: 1px dashed rgba(246, 206, 160, 0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ll-content__empty p {
+  font-size: 14px;
+  letter-spacing: 0.1em;
+  color: rgba(246, 206, 160, 0.6);
+}
+
+/* 阅读器内部 */
+.ll-content__reader {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding: 48px 60px 80px;
+}
+
+/* ——— 文献标题 ——— */
+.ll-reader__title {
+  font-size: 26px;
+  font-weight: 400;
+  color: #f6cea0;
+  line-height: 1.5;
+  letter-spacing: 0.05em;
+  margin-bottom: 32px;
+}
+
+/* ——— AI 来源指南卡片 ——— */
+.ll-guide-card {
+  flex-shrink: 0;
+  background: rgba(246, 206, 160, 0.08);
+  border: 1px solid rgba(246, 206, 160, 0.4);
+  border-radius: 12px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  transition: border-color 0.3s ease, background 0.3s ease;
+}
+
+.ll-guide-card:hover {
+  background: rgba(246, 206, 160, 0.12);
+  border-color: rgba(246, 206, 160, 0.6);
+}
+
+.ll-guide-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.ll-guide-card__label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #f6cea0;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+
+.ll-guide-card__label svg {
+  opacity: 0.7;
+}
+
+.ll-guide-card__toggle {
+  background: transparent;
+  border: none;
+  color: rgba(246, 206, 160, 0.6);
+  cursor: pointer;
+  padding: 4px;
+}
+
+/* 摘要生成前的提示 */
+.ll-guide-card__empty {
+  padding: 0 24px 20px;
+}
+
+.ll-guide-card__empty p {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+
+/* 加载中 */
+.ll-guide-card__loading {
+  padding: 20px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.ll-guide-card__loading p {
+  font-size: 13px;
+  color: rgba(246, 206, 160, 0.5);
+  letter-spacing: 0.1em;
+}
+
+.ll-loading-dots {
+  display: flex;
+  gap: 6px;
+}
+.ll-loading-dots span {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(246, 206, 160, 0.4);
+  animation: llDotPulse 1.2s ease-in-out infinite;
+}
+.ll-loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.ll-loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes llDotPulse {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* 摘要正文 */
+.ll-guide-card__body {
+  padding: 0 24px 24px;
+  animation: llFadeIn 0.4s ease forwards;
+}
+
+@keyframes llFadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.ll-guide-card__summary {
+  font-size: 14px;
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.ll-guide-card__summary p {
+  margin: 0 0 12px;
+}
+
+.ll-guide-card__summary strong {
+  color: #f6cea0;
+  font-weight: 500;
+}
+
+/* 关键词标签 */
+.ll-guide-card__keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.ll-keyword-pill {
+  display: inline-block;
+  padding: 6px 16px;
+  border: 1px solid rgba(246, 206, 160, 0.2);
+  border-radius: 20px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.05em;
+  background: rgba(246, 206, 160, 0.04);
+  transition: all 0.2s ease;
+  cursor: default;
+}
+
+.ll-keyword-pill:hover {
+  background: rgba(246, 206, 160, 0.1);
+  border-color: rgba(246, 206, 160, 0.35);
+  color: #f6cea0;
+}
+
+/* ——— 分隔线 ——— */
+.ll-divider {
+  height: 1px;
+  background: rgba(246, 206, 160, 0.1);
+  margin: 40px 0;
+}
+
+/* ——— 文献原文 ——— */
+.ll-btn-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(246, 206, 160, 0.05);
+  border: 1px solid rgba(246, 206, 160, 0.3);
+  color: #f6cea0;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 15px rgba(246, 206, 160, 0);
+}
+
+.ll-btn-summary:hover {
+  background: rgba(246, 206, 160, 0.1);
+  box-shadow: 0 0 20px rgba(246, 206, 160, 0.15);
+  transform: translateY(-1px);
+}
+
+.ll-reader__body {
+  flex: 1;
+}
+
+.ll-reader__body::-webkit-scrollbar {
+  width: 4px;
+}
+.ll-reader__body::-webkit-scrollbar-track {
+  background: transparent;
+}
+.ll-reader__body::-webkit-scrollbar-thumb {
+  background: rgba(246, 206, 160, 0.2);
+  border-radius: 4px;
+}
+
+.ll-reader__text {
+  font-size: 15px;
+  line-height: 2;
+  color: rgba(255, 255, 255, 0.75);
+  font-family: var(--font-secondary), sans-serif;
+  font-weight: 300;
+}
+
+.ll-reader__text p {
+  margin-bottom: 24px;
+}
+
+/* 滚动条 */
+.ll-content::-webkit-scrollbar {
+  width: 4px;
+}
+.ll-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+.ll-content::-webkit-scrollbar-thumb {
+  background: rgba(246, 206, 160, 0.15);
+  border-radius: 4px;
+}
+
+/* 来源指南错误提示 */
+.ll-guide-card__error {
+  color: #e07a5f;
+  font-size: 0.82rem;
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+/* ——— 标题行（标题 + 按钮并排） ——— */
+.ll-reader__title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.ll-reader__title-row .ll-reader__title {
+  margin-bottom: 0;
+  flex: 1;
+}
+
+/* 来源指南按钮样式覆盖（适配标题行） */
+.ll-reader__title-row .ll-btn-summary {
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+/* 按钮加载态 */
+.ll-btn-summary--loading {
+  opacity: 0.7;
+  cursor: not-allowed !important;
+}
+
+.ll-btn-spinner {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid rgba(246,206,160,0.4);
+  border-top-color: #f6cea0;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 小尺寸按钮（卡片内重新生成） */
+.ll-btn-summary--sm {
+  font-size: 11px;
+  padding: 4px 10px;
+  height: auto;
+}
+
+/* AI 研读失败提示 */
+.ll-guide-error {
+  background: rgba(224, 122, 95, 0.08);
+  border: 1px solid rgba(224, 122, 95, 0.25);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 12px;
+  color: rgba(224, 122, 95, 0.85);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+/* ——— 引用跳转高亮 ——— */
+.ll-highlight-snippet {
+  background: rgba(246, 206, 160, 0.15) !important;
+  border-left: 3px solid #f6cea0 !important;
+  padding-left: 12px !important;
+  border-radius: 4px;
+  animation: llHighlightFade 5s ease forwards;
+}
+
+@keyframes llHighlightFade {
+  0% { background: rgba(246, 206, 160, 0.25); }
+  70% { background: rgba(246, 206, 160, 0.15); }
+  100% { background: transparent; border-left-color: transparent; }
+}

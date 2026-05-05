@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 
 export function CustomCursor() {
+  // 触屏设备不渲染自定义光标
+  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0
+  if (isTouchDevice) return null
+
   const cursorRef = useRef<HTMLDivElement>(null)
   const ringRef = useRef<HTMLDivElement>(null)
   

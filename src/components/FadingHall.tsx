@@ -10,9 +10,10 @@ import './FadingHall.css'
 
 interface FadingHallProps {
   onBack?: () => void
+  onNext?: () => void
 }
 
-export function FadingHall({ onBack }: FadingHallProps) {
+export function FadingHall({ onBack, onNext }: FadingHallProps) {
   /* ---- 状态 ---- */
   const [progress, setProgress] = useState(0)
   const [loaderFading, setLoaderFading] = useState(false)  // 控制 opacity 淡出
@@ -188,10 +189,14 @@ export function FadingHall({ onBack }: FadingHallProps) {
       // 滚动监听联动导航栏 active 状态
       const sections = ['hero', 'pigment-archaeology', 'digital-resurrection']
       let current = 'hero'
+      const containerRect = container.getBoundingClientRect()
       for (const id of sections) {
         const el = document.getElementById(id)
-        if (el && el.offsetTop <= top + window.innerHeight / 3) {
-          current = id
+        if (el) {
+          const elTop = el.getBoundingClientRect().top - containerRect.top
+          if (elTop <= window.innerHeight / 3) {
+            current = id
+          }
         }
       }
       setActiveSection(current)
@@ -336,7 +341,7 @@ export function FadingHall({ onBack }: FadingHallProps) {
           observer.unobserve(entry.target) // 只触发一次
         }
       })
-    }, { threshold: 0.1 })
+    }, { threshold: 0.1, root: scrollContainerRef.current })
 
     // 观察每个倒三角组
     document.querySelectorAll('.fh-gallery-group').forEach(el => observer.observe(el))
@@ -460,7 +465,7 @@ export function FadingHall({ onBack }: FadingHallProps) {
               <img src="/assets/wenku-logo-final.png" alt="Wenku" className="fh-nav__logo-mark" />
               <img src="/assets/logo.png" alt="Logo" className="fh-nav__year" />
             </div>
-            <a href="#" className="fh-nav__contact">Contact</a>
+            <a href="#" className="fh-nav__contact" onClick={(e) => { e.preventDefault(); onNext?.(); }}>问窟 AI</a>
             <button
               className="fh-nav__toggle"
               aria-label="Toggle menu"
@@ -474,10 +479,10 @@ export function FadingHall({ onBack }: FadingHallProps) {
         {/* Mobile Menu */}
         <div className={`fh-mobile-menu ${mobileMenuOpen ? 'fh-mobile-menu--open' : ''}`}>
           <div className="fh-mobile-menu__inner">
-            <a href="#" className="fh-mobile-menu__link">Home</a>
-            <a href="#" className="fh-mobile-menu__link">About</a>
-            <a href="#" className="fh-mobile-menu__link">Gallery</a>
-            <a href="#" className="fh-mobile-menu__link">Contact</a>
+            <a href="#hero" className="fh-mobile-menu__link" onClick={() => setMobileMenuOpen(false)}>首页</a>
+            <a href="#pigment-gallery" className="fh-mobile-menu__link" onClick={() => setMobileMenuOpen(false)}>矿物图鉴</a>
+            <a href="#digital-resurrection" className="fh-mobile-menu__link" onClick={() => setMobileMenuOpen(false)}>数字焕颜</a>
+            <a href="#video-section" className="fh-mobile-menu__link" onClick={() => setMobileMenuOpen(false)}>流体重构</a>
           </div>
         </div>
 
@@ -875,7 +880,7 @@ export function FadingHall({ onBack }: FadingHallProps) {
                 <p className="fh-intro__text">
                   借助前沿的光谱扫描与AI图生图算法，我们将栖霞山石窟中风化剥落的造像细节进行像素级重建。从宝冠纹理到青狮鬃毛，每一处修复都经过了严谨的历史考证与算法推演，让沉睡千年的石刻重焕生机。
                 </p>
-                <a href="#" className="fh-intro__link">探索算法溯源</a>
+                <a href="#video-section" className="fh-intro__link">探索算法溯源</a>
               </div>
               <div className="fh-intro__images">
                 <img src="/章节2素材/TD粒子截图/截屏2026-04-17 22.30.49.png" alt="TD粒子造像-金" className="fh-intro__img fh-intro__img--1 fh-fade-in" />
@@ -1044,7 +1049,7 @@ export function FadingHall({ onBack }: FadingHallProps) {
         className={`fh-image-preview ${previewVisible ? 'fh-image-preview--visible' : ''}`}
         ref={previewRef}
       >
-        <img src={previewSrc} alt="Preview" />
+        <img src={previewSrc || undefined} alt="Preview" />
       </div>
     </div>
   )

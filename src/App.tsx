@@ -2,6 +2,9 @@ import { useCallback, useState } from 'react'
 import { Exhibition } from './components/Exhibition'
 import { IntroAnimation } from './components/IntroAnimation'
 import { CustomCursor } from './components/CustomCursor'
+import { AgentProvider } from './components/agent/AgentContext'
+import { GlobalAgent } from './components/agent/GlobalAgent'
+import { GlobalControls } from './components/GlobalControls'
 import './App.css'
 
 /* ============================================================
@@ -29,18 +32,20 @@ function App() {
   }, [isVeiling])
 
   return (
-    <>
+    <AgentProvider>
       <CustomCursor />
+      <GlobalAgent />
+      <GlobalControls />
       <main className={`app-root ${isVeiling ? 'is-veiling' : ''}`}>
-      {!showExhibition ? (
-        <IntroAnimation onEnter={enterExhibition} />
-      ) : (
-        <Exhibition />
-      )}
-      {/* 纯黑幕过渡遮罩 */}
-      <div className="experience-veil" aria-hidden="true" />
-    </main>
-    </>
+        {!showExhibition ? (
+          <IntroAnimation onEnter={enterExhibition} />
+        ) : (
+          <Exhibition />
+        )}
+        {/* 纯黑幕过渡遮罩 */}
+        <div className="experience-veil" aria-hidden="true" />
+      </main>
+    </AgentProvider>
   )
 }
 

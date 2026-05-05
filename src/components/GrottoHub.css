@@ -1,0 +1,493 @@
+/* ============================================================
+   GrottoHub: 第三章 · 问窟枢纽 — 完全重制版
+   参考 Sandra AI 风格：深邃背景光晕 + 大球居中 + 极简输入
+============================================================ */
+
+.grotto-hub {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  font-family: var(--font-primary), 'Noto Serif SC', serif;
+  color: rgba(255, 255, 255, 0.94); /* 雾白 */
+  background-color: #151412; /* 墨黑 */
+  
+  /* Layered Background: 极简暗场遮罩 + 实体图片 (禁止赛博网格) */
+  background-image: 
+    radial-gradient(circle at center, rgba(21, 20, 18, 0.6) 0%, rgba(21, 20, 18, 0.98) 100%),
+    url('/章节2素材/栖霞山石窟艺术海报.jpg');
+  background-size: cover;
+  background-position: center center;
+  
+  /* 核心魔法：剥离原图的暖黄色，强制统一为墨黑 (Dark Charcoal) 质感 */
+  background-blend-mode: luminosity;
+}
+
+/* ——— 底层视频背景 ——— */
+.gh-video-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.9; /* 稍微降低一点透明度，让底部的暗色网格透出一点质感 */
+}
+
+/* ——— 顶部导航 ——— */
+.gh-nav {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  position: relative;
+  z-index: 10;
+  flex-shrink: 0;
+  flex-shrink: 0;
+  flex-shrink: 0;
+  /* 回归极简无边框设计 */
+  background: transparent;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.gh-nav__back {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: color 0.2s;
+}
+.gh-nav__back:hover { color: rgba(255, 255, 255, 0.8); }
+
+.gh-nav__center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.gh-nav__chapter {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.15em;
+}
+
+.gh-nav__lit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  padding: 6px 16px;
+  border-radius: 20px;
+  transition: all 0.2s;
+}
+.gh-nav__lit:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* ——— 中央主体区域 (支持状态流转) ——— */
+.gh-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  /* 关键：允许内容超长时滚动 */
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 40px 0 120px; /* 为底部输入栏飞起空间 */
+  scroll-behavior: smooth;
+}
+.gh-main::-webkit-scrollbar { display: none; }
+
+/* 初始英雄区 (标题+气泡) */
+.gh-hero-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  /* 不再用绝对定位，改用正常文档流 */
+  transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), max-height 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  max-height: 600px;
+  overflow: hidden;
+}
+
+.is-chatting .gh-hero-section {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-20px);
+  max-height: 0;
+}
+
+/* 大标题 (Typography) */
+.gh-title {
+  font-family: var(--font-primary), 'Noto Serif SC', serif;
+  font-size: 42px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.94);
+  letter-spacing: 0.15em;
+  text-align: center;
+  margin-bottom: 48px;
+  line-height: 1.6;
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+.gh-title em {
+  font-style: normal;
+  color: #f6cea0;
+}
+
+/* 推荐问题气泡 */
+.gh-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  max-width: 600px;
+  padding: 0 24px;
+}
+
+.gh-suggestion-chip {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.6);
+  padding: 10px 24px;
+  border-radius: 30px;
+  font-size: 13px;
+  font-family: 'Noto Serif SC', serif;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  letter-spacing: 0.06em;
+}
+.gh-suggestion-chip:hover {
+  background: rgba(246, 206, 160, 0.08);
+  border-color: rgba(246, 206, 160, 0.4);
+  color: #f6cea0;
+  transform: translateY(-2px);
+}
+
+/* 电影级字幕区 */
+.gh-cinematic-area {
+  /* 正常文档流居中，不再用绝对定位 */
+  width: 100%;
+  max-width: 720px;
+  padding: 0 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  /* 初始隐藏，对话开始后显式渐入 */
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(12px);
+  transition: opacity 1.0s cubic-bezier(0.16, 1, 0.3, 1) 0.2s, transform 1.0s cubic-bezier(0.16, 1, 0.3, 1) 0.2s;
+}
+
+.is-chatting .gh-cinematic-area {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.gh-cinematic-user {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.3);
+  letter-spacing: 0.05em;
+  font-family: 'Noto Serif SC', serif;
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.gh-cinematic-ai {
+  /* 字号略小，对长文本更友好 */
+  font-size: 16px;
+  line-height: 2;
+  color: rgba(255, 255, 255, 0.90);
+  letter-spacing: 0.06em;
+  font-family: 'Noto Serif SC', var(--font-primary), serif;
+  text-align: left;
+  width: 100%;
+  text-shadow: none;
+  animation: subtitleReveal 1.0s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.gh-cinematic-ai--streaming {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+@keyframes subtitleReveal {
+  from { opacity: 0; filter: blur(2px); transform: translateY(8px); }
+  to { opacity: 1; filter: blur(0); transform: translateY(0); }
+}
+
+/* ——— 隐匿式底部交互栏 ——— */
+.gh-stealth-input-area {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 40px;
+  z-index: 10;
+  /* 极简底部暗场，防止与图片底部细节粘连 */
+  background: linear-gradient(to top, rgba(15, 14, 12, 0.9) 0%, transparent 100%);
+}
+
+.gh-stealth-input-wrapper {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 500px;
+  border-bottom: 1px solid rgba(246, 206, 160, 0.2); /* 悬浮单线 */
+  padding-bottom: 8px;
+  transition: border-color 0.4s ease;
+}
+
+.gh-stealth-input-wrapper:focus-within {
+  border-color: rgba(246, 206, 160, 0.8);
+}
+
+.gh-stealth-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  font-family: 'Noto Serif SC', serif;
+  outline: none;
+  letter-spacing: 0.05em;
+  padding: 0 12px;
+}
+
+.gh-stealth-input::placeholder {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.gh-stealth-send {
+  background: transparent;
+  border: none;
+  color: rgba(246, 206, 160, 0.5);
+  cursor: pointer;
+  padding: 0 12px;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gh-stealth-send:hover:not(:disabled) {
+  color: #f6cea0;
+  transform: translateY(-2px);
+}
+.gh-stealth-send:disabled {
+  opacity: 0.2;
+  cursor: not-allowed;
+}
+
+.gh-history-toggle {
+  margin-top: 24px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  font-family: 'Noto Serif SC', serif;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+.gh-history-toggle:hover {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ——— 全屏手稿式文献回溯 ——— */
+.gh-manuscript-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 14, 12, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  animation: fadeInOverlay 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.gh-manuscript-close {
+  position: absolute;
+  top: 40px;
+  right: 40px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: color 0.3s;
+  z-index: 101;
+}
+.gh-manuscript-close:hover {
+  color: #f6cea0;
+}
+
+.gh-manuscript-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 80px 20px;
+  overflow-y: auto;
+}
+
+.gh-manuscript-content::-webkit-scrollbar { display: none; }
+
+.gh-manuscript-title {
+  font-family: var(--font-primary), serif;
+  font-size: 24px;
+  color: #f6cea0;
+  letter-spacing: 0.2em;
+  margin-bottom: 60px;
+  font-weight: 400;
+}
+
+.gh-manuscript-list {
+  width: 100%;
+  max-width: 680px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.gh-manuscript-block {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  animation: slideUpBlock 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* 为不同的消息块添加交错动画延迟 */
+.gh-manuscript-block:nth-child(1) { animation-delay: 0.1s; }
+.gh-manuscript-block:nth-child(2) { animation-delay: 0.2s; }
+.gh-manuscript-block:nth-child(3) { animation-delay: 0.3s; }
+.gh-manuscript-block:nth-child(4) { animation-delay: 0.4s; }
+.gh-manuscript-block:nth-child(n+5) { animation-delay: 0.5s; }
+
+@keyframes slideUpBlock {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.gh-manuscript-role {
+  font-family: var(--font-primary), serif;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.3);
+  padding-top: 4px;
+  width: 24px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.gh-manuscript-block--user .gh-manuscript-role {
+  color: rgba(246, 206, 160, 0.6);
+}
+
+.gh-manuscript-text {
+  flex: 1;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 15px;
+  line-height: 2;
+  color: rgba(255, 255, 255, 0.8);
+  letter-spacing: 0.05em;
+}
+
+.gh-manuscript-block--user .gh-manuscript-text {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* 手稿中 assistant 的文本+色卡包裹容器 */
+.gh-manuscript-text-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 文献引用角标 */
+.citation-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7em;
+  color: var(--gh-accent);
+  border: 1px solid rgba(246, 206, 160, 0.3);
+  border-radius: 4px;
+  padding: 0 4px;
+  margin: 0 4px;
+  vertical-align: super;
+  cursor: help;
+  transition: all 0.2s ease;
+  background: rgba(246, 206, 160, 0.05);
+  text-decoration: none;
+}
+
+.citation-badge:hover {
+  background: rgba(246, 206, 160, 0.15);
+  border-color: rgba(246, 206, 160, 0.6);
+}
+
+/* 覆盖 Markdown 默认样式以适应电影字幕 */
+.gh-cinematic-ai p {
+  margin: 0;
+  padding: 0;
+}
+
+.gh-cinematic-ai strong {
+  color: var(--gh-accent);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+}
+
+.gh-cinematic-ai ul, .gh-cinematic-ai ol {
+  margin: 12px 0;
+  padding-left: 20px;
+  text-align: left;
+}
+
+.gh-cinematic-ai li {
+  margin-bottom: 8px;
+  line-height: 1.6;
+}
+
+.gh-manuscript-text strong {
+  color: var(--gh-accent);
+  font-weight: 500;
+}
