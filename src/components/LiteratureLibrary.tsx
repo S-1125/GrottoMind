@@ -240,7 +240,7 @@ export function LiteratureLibrary({ onBack, autoSelectTitle, autoScrollSnippet }
           {!activeDoc ? (
             <div className="ll-content__empty">
               <div className="ll-content__empty-icon">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(246,206,160,0.3)" strokeWidth="1">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1">
                   <circle cx="11" cy="11" r="8"></circle>
                   <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
@@ -257,7 +257,7 @@ export function LiteratureLibrary({ onBack, autoSelectTitle, autoScrollSnippet }
 
               {/* ——— AI 来源指南展开区 ——— */}
               {summaryState === 'loading' && (
-                <div className="ll-guide-card ll-guide-card--loading" style={{ padding: '20px', textAlign: 'center', color: 'rgba(246,206,160,0.6)' }}>
+                <div className="ll-guide-card ll-guide-card--loading" style={{ padding: '20px', textAlign: 'center', color: 'rgba(255,255,255,0.4)' }}>
                   <span className="ll-btn-spinner" style={{ marginRight: '8px' }} />
                   正在提取智能导读...
                 </div>

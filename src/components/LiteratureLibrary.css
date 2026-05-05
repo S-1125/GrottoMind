@@ -51,13 +51,13 @@
 
 .ll-nav__title-main {
   font-size: 18px;
-  color: #f6cea0;
+  color: rgba(255, 255, 255, 0.9);
   letter-spacing: 0.2em;
 }
 
 .ll-nav__title-sub {
   font-size: 10px;
-  color: rgba(246, 206, 160, 0.5);
+  color: rgba(255, 255, 255, 0.35);
   letter-spacing: 0.3em;
   text-transform: uppercase;
 }
@@ -72,10 +72,10 @@
 /* 左侧边栏 */
 .ll-sidebar {
   width: 320px;
-  border-right: 1px solid rgba(246, 206, 160, 0.1);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
   flex-direction: column;
-  background: rgba(21, 20, 18, 0.4); /* 墨黑微透 */
+  background: rgba(10, 10, 10, 0.5);
 }
 
 .ll-sidebar__header {
@@ -83,19 +83,19 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(246, 206, 160, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .ll-sidebar__header h3 {
   font-size: 15px;
-  color: #f6cea0;
+  color: rgba(255, 255, 255, 0.8);
   font-weight: 400;
   letter-spacing: 0.1em;
 }
 
 .ll-count {
   font-size: 12px;
-  color: rgba(246, 206, 160, 0.5);
+  color: rgba(255, 255, 255, 0.35);
   font-family: var(--font-secondary), sans-serif;
 }
 
@@ -116,7 +116,7 @@
   background: transparent;
 }
 .ll-list::-webkit-scrollbar-thumb {
-  background: rgba(246, 206, 160, 0.2);
+  background: rgba(255, 255, 255, 0.12);
   border-radius: 4px;
 }
 
@@ -131,22 +131,22 @@
 }
 
 .ll-list-item:hover {
-  background: rgba(246, 206, 160, 0.03);
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .ll-list-item--active {
-  background: rgba(246, 206, 160, 0.05);
-  border: 1px solid rgba(246, 206, 160, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .ll-list-item__icon {
-  color: rgba(246, 206, 160, 0.4);
+  color: rgba(255, 255, 255, 0.3);
   margin-top: 2px;
   transition: color 0.3s ease;
 }
 
 .ll-list-item--active .ll-list-item__icon {
-  color: #f6cea0;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .ll-list-item__content {
@@ -257,7 +257,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #f6cea0;
+  color: rgba(255, 255, 255, 0.7);
   font-size: 14px;
   font-weight: 500;
   letter-spacing: 0.08em;
@@ -270,7 +270,7 @@
 .ll-guide-card__toggle {
   background: transparent;
   border: none;
-  color: rgba(246, 206, 160, 0.6);
+  color: rgba(255, 255, 255, 0.4);
   cursor: pointer;
   padding: 4px;
 }
@@ -298,7 +298,7 @@
 
 .ll-guide-card__loading p {
   font-size: 13px;
-  color: rgba(246, 206, 160, 0.5);
+  color: rgba(255, 255, 255, 0.4);
   letter-spacing: 0.1em;
 }
 
@@ -311,7 +311,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: rgba(246, 206, 160, 0.4);
+  background: rgba(255, 255, 255, 0.3);
   animation: llDotPulse 1.2s ease-in-out infinite;
 }
 .ll-loading-dots span:nth-child(2) { animation-delay: 0.2s; }
@@ -344,7 +344,7 @@
 }
 
 .ll-guide-card__summary strong {
-  color: #f6cea0;
+  color: #ffffff;
   font-weight: 500;
 }
 
@@ -429,7 +429,42 @@
 }
 
 .ll-reader__text p {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
+}
+
+.ll-reader__text h1,
+.ll-reader__text h2,
+.ll-reader__text h3 {
+  color: #ffffff;
+  font-weight: 500;
+  margin: 32px 0 16px;
+  line-height: 1.5;
+}
+.ll-reader__text h1 { font-size: 22px; }
+.ll-reader__text h2 { font-size: 18px; }
+.ll-reader__text h3 { font-size: 16px; }
+
+.ll-reader__text ul,
+.ll-reader__text ol {
+  padding-left: 24px;
+  margin-bottom: 20px;
+}
+
+.ll-reader__text li {
+  margin-bottom: 8px;
+}
+
+.ll-reader__text strong {
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 500;
+}
+
+.ll-reader__text blockquote {
+  border-left: 2px solid rgba(255, 255, 255, 0.15);
+  padding-left: 16px;
+  margin: 16px 0;
+  color: rgba(255, 255, 255, 0.55);
+  font-style: italic;
 }
 
 /* 滚动条 */
