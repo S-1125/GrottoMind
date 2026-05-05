@@ -16,7 +16,7 @@
   
   /* 深色遮罩 + 实景背景图 */
   background-image: 
-    radial-gradient(circle at center, rgba(10, 10, 10, 0.75) 0%, rgba(10, 10, 10, 0.95) 100%),
+    radial-gradient(circle at center, rgba(10, 10, 10, 0.60) 0%, rgba(10, 10, 10, 0.80) 100%),
     url('/章节2素材/栖霞山石窟艺术海报.jpg');
   background-size: cover;
   background-position: center center;
