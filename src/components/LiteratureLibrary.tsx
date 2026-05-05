@@ -104,34 +104,72 @@ export function LiteratureLibrary({ onBack, autoSelectTitle, autoScrollSnippet }
   useEffect(() => {
     if (!autoScrollSnippet || contentLoading || !activeDocContent || !readerRef.current) return
 
-    // 等待 ReactMarkdown 渲染完成
+    // 等待 ReactMarkdown 渲染完成（给足时间）
     const timer = setTimeout(() => {
       const container = readerRef.current
       if (!container) return
 
-      // 取 snippet 前 30 个字作为搜索关键词（去掉空格和换行）
-      const searchText = autoScrollSnippet
-        .replace(/\s+/g, '')
-        .slice(0, 30)
+      // 预处理：将 snippet 中的空白字符全部去掉，取多段关键词用于匹配
+      const normalizedSnippet = autoScrollSnippet.replace(/\s+/g, '')
+      
+      // 使用多个不同位置的关键词片段来提升匹配精度
+      const keyFragments = [
+        normalizedSnippet.slice(0, 40),   // 前40字
+        normalizedSnippet.slice(20, 60),  // 中前段
+        normalizedSnippet.slice(40, 80),  // 中段
+      ].filter(f => f.length >= 10)
 
-      // 遍历所有文本节点，找到包含该片段的元素
-      const walker = document.createTreeWalker(
-        container,
-        NodeFilter.SHOW_TEXT,
-        null
-      )
+      // 在正文区域（.ll-reader__text）中搜索所有块级元素
+      const textContainer = container.querySelector('.ll-reader__text')
+      if (!textContainer) return
 
-      let targetNode: Node | null = null
-      while (walker.nextNode()) {
-        const nodeText = (walker.currentNode.textContent || '').replace(/\s+/g, '')
-        if (nodeText.includes(searchText)) {
-          targetNode = walker.currentNode
-          break
+      // 获取所有段落级元素（p, li, h1-h6, blockquote 等）
+      const blockElements = textContainer.querySelectorAll('p, li, h1, h2, h3, h4, h5, h6, blockquote, td')
+      
+      let bestMatch: Element | null = null
+      let bestScore = 0
+
+      blockElements.forEach(el => {
+        const elText = (el.textContent || '').replace(/\s+/g, '')
+        if (elText.length < 5) return  // 跳过空行/极短元素
+        
+        // 计算匹配分数：有多少个关键词片段被命中
+        let score = 0
+        for (const frag of keyFragments) {
+          if (elText.includes(frag)) {
+            score += frag.length  // 命中的片段越长，得分越高
+          }
+        }
+
+        // 额外加分：如果 snippet 的开头直接命中了段落开头
+        const snippetHead = normalizedSnippet.slice(0, 20)
+        if (elText.startsWith(snippetHead) || elText.includes(snippetHead)) {
+          score += 30
+        }
+        
+        if (score > bestScore) {
+          bestScore = score
+          bestMatch = el
+        }
+      })
+
+      // 如果匹配分数太低（仅靠前 20 字命中），尝试宽松匹配
+      if (!bestMatch || bestScore < 20) {
+        // 降级：取 snippet 中任意连续 15 字做全文扫描
+        const fallbackText = normalizedSnippet.slice(10, 25)
+        if (fallbackText.length >= 10) {
+          blockElements.forEach(el => {
+            if (bestMatch) return
+            const elText = (el.textContent || '').replace(/\s+/g, '')
+            if (elText.includes(fallbackText)) {
+              bestMatch = el
+            }
+          })
         }
       }
 
-      if (targetNode && targetNode.parentElement) {
-        const el = targetNode.parentElement
+      if (bestMatch) {
+        const el = bestMatch as HTMLElement
         // 添加高亮样式
         el.classList.add('ll-highlight-snippet')
         // 滚动到该元素
@@ -139,7 +177,7 @@ export function LiteratureLibrary({ onBack, autoSelectTitle, autoScrollSnippet }
         // 5 秒后移除高亮
         setTimeout(() => el.classList.remove('ll-highlight-snippet'), 5000)
       }
-    }, 500)
+    }, 800)  // 给 ReactMarkdown 更多渲染时间
 
     return () => clearTimeout(timer)
   }, [autoScrollSnippet, contentLoading, activeDocContent])
