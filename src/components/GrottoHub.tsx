@@ -56,6 +56,12 @@ function fixCitations(text: string): string {
     .replace(/）(?=。|，|；|$|\s)/g, ')')
     // 修复 [1] ( #来源: → [1](#来源: （括号后面多余空格）
     .replace(/\[(\d+)\]\s*\(\s*#/g, '[$1](#')
+    // 关键：转义链接 URL 内部的圆括号，防止 Markdown 解析器误判链接结束位置
+    // 例如 [1](#来源:栖霞寺舍利塔普贤菩萨造像(1)) → [1](#来源:栖霞寺舍利塔普贤菩萨造像%281%29)
+    .replace(/\[(\d+)\]\(([^)]*?\([^)]*?\)[^)]*?)\)/g, (_match, num, url) => {
+      const encodedUrl = url.replace(/\(/g, '%28').replace(/\)/g, '%29')
+      return `[${num}](${encodedUrl})`
+    })
 }
 
 export function GrottoHub({ onBack }: GrottoHubProps) {
