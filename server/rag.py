@@ -2,6 +2,11 @@
 RAG 模块 — 基于 ChromaDB 的向量检索
 使用 Gemini Embedding API（云端调用）代替本地 sentence-transformers，
 大幅降低内存占用，适配低配容器部署环境。
+
+模型：gemini-embedding-001
+- 支持批量输入（每次最多 2048 tokens/条，可传入多条文本）
+- 支持 task_type 优化检索质量
+- 索引文档用 RETRIEVAL_DOCUMENT，搜索查询用 RETRIEVAL_QUERY
 """
 
 import os
@@ -9,6 +14,7 @@ import json
 import time
 import chromadb
 from google import genai
+from google.genai import types
 from dotenv import load_dotenv
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
@@ -20,11 +26,11 @@ KNOWLEDGE_DIR = os.path.join(SCRIPT_DIR, "knowledge")
 CHROMA_DB_DIR = os.path.join(SCRIPT_DIR, "chroma_db")
 COLLECTION_NAME = "qixia_literature"
 
-# 当前使用的 Embedding 模型标识（用于检测模型变更）
-EMBEDDING_MODEL_NAME = "text-embedding-004"
+# Gemini Embedding 模型标识
+EMBEDDING_MODEL_NAME = "gemini-embedding-001"
 MODEL_VERSION_FILE = os.path.join(CHROMA_DB_DIR, ".model_version")
 
-# 初始化 Gemini 客户端（复用 main.py 的 API Key）
+# 初始化 Gemini 客户端
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 gemini_client = genai.Client(api_key=GEMINI_API_KEY)
 
@@ -32,24 +38,31 @@ gemini_client = genai.Client(api_key=GEMINI_API_KEY)
 chroma_client = chromadb.PersistentClient(path=CHROMA_DB_DIR)
 
 
-def _get_embeddings(texts: list[str]) -> list[list[float]]:
+def _get_embeddings(texts: list[str], task_type: str = "RETRIEVAL_DOCUMENT") -> list[list[float]]:
     """调用 Gemini Embedding API 获取文本向量。
+
+    Args:
+        texts: 待嵌入的文本列表
+        task_type: 任务类型，索引文档用 RETRIEVAL_DOCUMENT，搜索查询用 RETRIEVAL_QUERY
     
-    自动处理批量请求和速率限制。
-    Gemini text-embedding-004 每次最多支持 100 条文本。
+    gemini-embedding-001 支持批量输入，每次可传入多条文本，返回各自独立的嵌入向量。
     """
     all_embeddings = []
     batch_size = 50  # 保守批量大小，避免触发速率限制
 
     for i in range(0, len(texts), batch_size):
         batch = texts[i:i + batch_size]
-        
+
         # 带重试的 API 调用
         for attempt in range(3):
             try:
                 result = gemini_client.models.embed_content(
                     model=EMBEDDING_MODEL_NAME,
-                    contents=batch
+                    contents=batch,
+                    config=types.EmbedContentConfig(
+                        task_type=task_type,
+                        output_dimensionality=768  # 使用 768 维，节省存储同时保持高质量
+                    )
                 )
                 # 提取嵌入向量
                 batch_embeddings = [e.values for e in result.embeddings]
@@ -99,7 +112,7 @@ collection = chroma_client.get_or_create_collection(
     metadata={"hnsw:space": "cosine"}
 )
 
-print(f"✅ Embedding 模型：Gemini {EMBEDDING_MODEL_NAME}（云端 API，零本地内存占用）")
+print(f"✅ Embedding 模型：{EMBEDDING_MODEL_NAME}（云端 API，零本地内存占用）")
 
 # 文本分割器
 text_splitter = RecursiveCharacterTextSplitter(
@@ -108,6 +121,7 @@ text_splitter = RecursiveCharacterTextSplitter(
     length_function=len,
     is_separator_regex=False,
 )
+
 
 def build_index():
     """读取知识库文本，分块后插入 ChromaDB 向量数据库。"""
@@ -124,12 +138,12 @@ def build_index():
     ids = []
 
     print(f"📦 正在索引 {len(metadata_list)} 篇文献...")
-    
+
     for meta in metadata_list:
         file_path = os.path.join(KNOWLEDGE_DIR, meta["filename"])
         if not os.path.exists(file_path):
             continue
-            
+
         with open(file_path, "r", encoding="utf-8") as f:
             text = f.read()
 
@@ -138,7 +152,7 @@ def build_index():
 
         # 将文本分块
         chunks = text_splitter.split_text(text)
-        
+
         for i, chunk in enumerate(chunks):
             chunk_id = f"{meta['id']}_chunk_{i}"
             docs.append(chunk)
@@ -155,17 +169,17 @@ def build_index():
 
     print(f"   总分块数: {len(docs)}")
     print("   正在调用 Gemini Embedding API 计算向量并写入 ChromaDB...")
-    
-    # 分批计算嵌入并插入
+
+    # 分批计算嵌入并插入（使用 RETRIEVAL_DOCUMENT 任务类型优化文档索引）
     batch_size = 50
     for i in range(0, len(docs), batch_size):
         batch_docs = docs[i:i+batch_size]
         batch_ids = ids[i:i+batch_size]
         batch_metadatas = metadatas[i:i+batch_size]
-        
-        # 调用 Gemini API 生成嵌入向量
-        embeddings = _get_embeddings(batch_docs)
-        
+
+        # 调用 Gemini API，指定 RETRIEVAL_DOCUMENT 任务类型
+        embeddings = _get_embeddings(batch_docs, task_type="RETRIEVAL_DOCUMENT")
+
         collection.add(
             ids=batch_ids,
             embeddings=embeddings,
@@ -173,39 +187,40 @@ def build_index():
             documents=batch_docs
         )
         print(f"   已插入批次 {i//batch_size + 1}/{(len(docs)-1)//batch_size + 1}")
-        
+
     print("✅ 索引构建完成。")
+
 
 def search(query: str, top_k: int = 5, max_distance: float = 1.2):
     """搜索向量数据库，返回最相关的文本片段。
-    
+
     Args:
         query: 用户查询文本
         top_k: 返回的最大结果数
         max_distance: 余弦距离阈值，超过此值的结果视为不相关并过滤掉
                       (cosine distance: 0 = 完全相同, 2 = 完全相反)
     """
-    # 调用 Gemini API 生成查询向量
-    query_embedding = _get_embeddings([query])
-    
+    # 调用 Gemini API，指定 RETRIEVAL_QUERY 任务类型（专为搜索查询优化）
+    query_embedding = _get_embeddings([query], task_type="RETRIEVAL_QUERY")
+
     # 查询 ChromaDB（同时返回距离分数用于过滤）
     results = collection.query(
         query_embeddings=query_embedding,
         n_results=top_k,
         include=["documents", "metadatas", "distances"]
     )
-    
+
     # 格式化并过滤结果
     if not results["documents"] or not results["documents"][0]:
         return []
-        
+
     formatted_results = []
     for doc, meta, dist in zip(
         results["documents"][0],
         results["metadatas"][0],
         results["distances"][0]
     ):
-        # 过滤掉相关度过低的结果（距离越大越不相关）
+        # 过滤掉相关度过低的结果
         if dist > max_distance:
             continue
         formatted_results.append({
@@ -214,8 +229,9 @@ def search(query: str, top_k: int = 5, max_distance: float = 1.2):
             "source_id": meta["source_id"],
             "distance": round(dist, 4)
         })
-        
+
     return formatted_results
+
 
 if __name__ == "__main__":
     # 作为独立脚本运行时，重建索引
