@@ -46,22 +46,26 @@ function saveHistory(messages: ChatMessage[]) {
   } catch { /* 忽略 */ }
 }
 
-/** 修复 AI 输出中不规范的角标链接格式，确保 Markdown 能正确解析 */
+/** 修复 AI 输出中不规范的角标链接格式，确保 Markdown 能正确解析
+ * 
+ * 处理的变体：
+ * - [1] (#来源:标题)   → 空格
+ * - [1]（#来源：标题） → 中文括号
+ * - [1](#来源:标题(1)) → 标题内含括号
+ * - [1] ( #来源: 标题 ）→ 混合格式
+ */
 function fixCitations(text: string): string {
-  return text
-    // 修复 [1] (#来源:...) → [1](#来源:...) （去掉 ] 和 ( 之间的空格）
-    .replace(/\[(\d+)\]\s+\(#/g, '[$1](#')
-    // 修复 [1]（#来源:...） → [1](#来源:...) （中文括号替换为英文括号）
-    .replace(/\[(\d+)\]（(#来源[：:])/g, '[$1]($2')
-    .replace(/）(?=。|，|；|$|\s)/g, ')')
-    // 修复 [1] ( #来源: → [1](#来源: （括号后面多余空格）
-    .replace(/\[(\d+)\]\s*\(\s*#/g, '[$1](#')
-    // 关键：转义链接 URL 内部的圆括号，防止 Markdown 解析器误判链接结束位置
-    // 例如 [1](#来源:栖霞寺舍利塔普贤菩萨造像(1)) → [1](#来源:栖霞寺舍利塔普贤菩萨造像%281%29)
-    .replace(/\[(\d+)\]\(([^)]*?\([^)]*?\)[^)]*?)\)/g, (_match, num, url) => {
-      const encodedUrl = url.replace(/\(/g, '%28').replace(/\)/g, '%29')
-      return `[${num}](${encodedUrl})`
-    })
+  // 一条正则统一匹配所有角标变体：
+  // [数字] + 可选空格 + 中/英左括号 + 可选空格 + #来源 + 中/英冒号 + 标题 + 中/英右括号
+  // 使用 (?=[^)）]|$) 确保匹配最外层右括号（标题含括号时会回溯到最外层）
+  return text.replace(
+    /\[(\d+)\]\s*[（(]\s*#来源[：:]\s*(.+?)\s*[)）](?=[^)）]|$)/g,
+    (_match, num, title) => {
+      // URL 编码标题中的圆括号，防止 Markdown 解析器误判
+      const encodedTitle = title.trim().replace(/\(/g, '%28').replace(/\)/g, '%29')
+      return `[${num}](#来源:${encodedTitle})`
+    }
+  )
 }
 
 export function GrottoHub({ onBack }: GrottoHubProps) {
