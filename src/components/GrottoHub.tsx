@@ -46,6 +46,18 @@ function saveHistory(messages: ChatMessage[]) {
   } catch { /* 忽略 */ }
 }
 
+/** 修复 AI 输出中不规范的角标链接格式，确保 Markdown 能正确解析 */
+function fixCitations(text: string): string {
+  return text
+    // 修复 [1] (#来源:...) → [1](#来源:...) （去掉 ] 和 ( 之间的空格）
+    .replace(/\[(\d+)\]\s+\(#/g, '[$1](#')
+    // 修复 [1]（#来源:...） → [1](#来源:...) （中文括号替换为英文括号）
+    .replace(/\[(\d+)\]（(#来源[：:])/g, '[$1]($2')
+    .replace(/）(?=。|，|；|$|\s)/g, ')')
+    // 修复 [1] ( #来源: → [1](#来源: （括号后面多余空格）
+    .replace(/\[(\d+)\]\s*\(\s*#/g, '[$1](#')
+}
+
 export function GrottoHub({ onBack }: GrottoHubProps) {
   const { setOrbVisible, currentChapter, pendingLiteratureNav, setPendingLiteratureNav } = useAgent()
   const [view, setView] = useState<'hub' | 'literature'>('hub')
@@ -298,7 +310,7 @@ export function GrottoHub({ onBack }: GrottoHubProps) {
                     if (props.href?.startsWith('#')) return <span className="ga-citation-plain">{props.children}</span>
                     return <a {...props} />
                   }
-                }}>{cleanText}</ReactMarkdown>
+                }}>{fixCitations(cleanText)}</ReactMarkdown>
               </div>
             )
           })()}
@@ -334,7 +346,7 @@ export function GrottoHub({ onBack }: GrottoHubProps) {
                       if (props.href?.startsWith('#')) return <span className="ga-citation-plain">{props.children}</span>
                       return <a {...props} />
                     }
-                  }}>{cleanText}</ReactMarkdown>
+                  }}>{fixCitations(cleanText)}</ReactMarkdown>
                 </div>
                 <ColorCardGroup cards={cards} />
 
@@ -474,7 +486,7 @@ export function GrottoHub({ onBack }: GrottoHubProps) {
                               if (props.href?.startsWith('#')) return <span className="ga-citation-plain">{props.children}</span>
                               return <a {...props} />
                             }
-                          }}>{cleanText}</ReactMarkdown>
+                          }}>{fixCitations(cleanText)}</ReactMarkdown>
                         </div>
                         {cards.length > 0 && (
                           <div style={{ marginTop: '16px' }}>
@@ -585,7 +597,7 @@ export function GrottoHub({ onBack }: GrottoHubProps) {
                           if (props.href?.startsWith('#')) return <span className="ga-citation-plain">{props.children}</span>
                           return <a {...props} />
                         }
-                      }}>{parseColorCards(note.content).cleanText}</ReactMarkdown>
+                      }}>{fixCitations(parseColorCards(note.content).cleanText)}</ReactMarkdown>
                     </div>
                   </div>
                 ))
