@@ -13,8 +13,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 将整个 server 目录的代码复制进容器
 COPY server/ .
 
-# 暴露 FastAPI 默认运行的 8000 端口
-EXPOSE 8000
+# Zeabur 会注入 PORT 环境变量，默认 8080
+ENV PORT=8080
+EXPOSE 8080
 
-# 启动命令：运行 FastAPI 后端
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# 启动命令：使用 shell 形式以读取 $PORT 环境变量
+CMD uvicorn main:app --host 0.0.0.0 --port $PORT
