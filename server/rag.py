@@ -48,38 +48,45 @@ def _get_embeddings(texts: list[str], task_type: str = "RETRIEVAL_DOCUMENT") -> 
     gemini-embedding-001 支持批量输入，每次可传入多条文本，返回各自独立的嵌入向量。
     """
     all_embeddings = []
-    batch_size = 50  # 保守批量大小，避免触发速率限制
+    batch_size = 50
 
     for i in range(0, len(texts), batch_size):
         batch = texts[i:i + batch_size]
 
-        # 带重试的 API 调用
-        for attempt in range(3):
+        # 带智能重试的 API 调用（最多重试 5 次，遇到速率限制自动等待）
+        for attempt in range(5):
             try:
                 result = gemini_client.models.embed_content(
                     model=EMBEDDING_MODEL_NAME,
                     contents=batch,
                     config=types.EmbedContentConfig(
                         task_type=task_type,
-                        output_dimensionality=768  # 使用 768 维，节省存储同时保持高质量
+                        output_dimensionality=768
                     )
                 )
-                # 提取嵌入向量
                 batch_embeddings = [e.values for e in result.embeddings]
                 all_embeddings.extend(batch_embeddings)
                 break
             except Exception as e:
-                if attempt < 2:
-                    wait_time = 2 ** attempt
+                error_str = str(e)
+                # 解析 API 建议的等待时间（如 "Please retry in 35.267807746s"）
+                import re
+                retry_match = re.search(r'retry in (\d+(?:\.\d+)?)s', error_str)
+                if '429' in error_str and retry_match:
+                    wait_time = int(float(retry_match.group(1))) + 2  # 多等 2 秒留余量
+                    print(f"   ⏳ 触发速率限制（第{attempt+1}次），等待 {wait_time} 秒后继续...")
+                    time.sleep(wait_time)
+                elif attempt < 4:
+                    wait_time = min(2 ** attempt, 30)
                     print(f"   ⚠️ Embedding API 调用失败（第{attempt+1}次），{wait_time}秒后重试... 错误: {e}")
                     time.sleep(wait_time)
                 else:
                     print(f"   ❌ Embedding API 调用彻底失败: {e}")
                     raise
 
-        # 批次之间稍作等待，避免触发速率限制
+        # 批次之间等待 2 秒，避免触发速率限制
         if i + batch_size < len(texts):
-            time.sleep(0.5)
+            time.sleep(2)
 
     return all_embeddings
 
