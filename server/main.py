@@ -119,11 +119,13 @@ async def health_check():
 
 @app.get("/api/literature")
 async def get_literature():
-    """获取本地知识库中的文献列表"""
+    """获取本地知识库中的文献列表（过滤掉 hidden 内部文献）"""
     meta_path = os.path.join("knowledge", "metadata.json")
     if os.path.exists(meta_path):
         with open(meta_path, "r", encoding="utf-8") as f:
-            return json.load(f)
+            all_docs = json.load(f)
+        # 过滤掉标记为 hidden 的内部文献（仍保留 RAG 索引）
+        return [d for d in all_docs if not d.get("hidden", False)]
     return []
 
 import re
