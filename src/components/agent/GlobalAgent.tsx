@@ -219,7 +219,7 @@ export function GlobalAgent() {
         const updated = [...prev]
         updated[updated.length - 1] = {
           ...updated[updated.length - 1],
-          content: '⚠️ 后端服务未启动。请在终端运行：\ncd server && python3 main.py\n\n我会在后端就绪后为你提供真正的智能对话。'
+          content: '抱歉，AI 服务暂时无法连接，请稍后再试。'
         }
         return updated
       })

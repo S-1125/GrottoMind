@@ -169,7 +169,7 @@ export function GrottoHub({ onBack }: GrottoHubProps) {
         const updated = [...prev]
         updated[updated.length - 1] = {
           ...updated[updated.length - 1],
-          content: '⚠️ 后端未启动。请运行：cd server && python3 main.py'
+          content: '抱歉，AI 服务暂时无法连接，请稍后再试。'
         }
         return updated
       })
