@@ -333,7 +333,7 @@ export function GlobalAgent() {
               <button
                 className="ga-header-btn"
                 onClick={() => {
-                  setMessages([])
+                  setMessages([{ role: 'assistant', content: '你好，我是问窟者。你正在游览栖霞山数字档案馆。有什么我可以帮你的吗？', timestamp: Date.now() }])
                 }}
                 title="新建对话"
               >
