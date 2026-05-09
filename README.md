@@ -27,11 +27,11 @@
 | 序章   | 远望     | 滚动驱动视频 + 水墨雾气 + 叙事文案                | ✅ 已完成 |
 | 第一章 | 塔与窟   | 3D 粒子塔导航 + 8 节点深度阅读 + 学术文献引注体系 | ✅ 已完成 |
 | 第二章 | 数字焕颜 | 风化叙事 + 颜料考古 + 粒子流体推演实验              | ✅ 已完成 |
-| 第三章 | 问窟 AI  | 智能体"问窟者"对话系统                            | 🔲 待开发 |
+| 第三章 | 问窟枢纽 | 智能体"问窟者"对话 + 文献库 + 笔记系统            | ✅ 已完成 |
 | 第四章 | 共创一龛 | 用户生成栖霞色彩记忆卡                            | 🔲 待开发 |
 | 尾声   | 作品说明 | 设计理念与技术流程                                | 🔲 待开发 |
 
-## 第一章 · 塔与窟（详细说明）
+## 第一章 · 塔与窟
 
 第一章以南唐栖霞山舍利塔为核心，构建了一座**博物馆级数字长卷展厅**。
 
@@ -62,33 +62,94 @@
 
 每张文物图片左下角附着微型**矿物颜料色卡**（Color Fingerprint），标注了基于敷金涂彩工艺推断的颜料名称与占比（如泥金 25%、朱砂 15%、石青 30%）。
 
-## 第二章 · 数字焕颜（详细说明）
+## 第二章 · 数字焕颜
 
 第二章深入栖霞山石窟内部，重点展示由于千年风化导致造像颜料剥落的现状，并通过前沿技术进行数字化复原。
 
 ### 核心功能与交互
 
-- **颜料考古**：展示多组“显影前”与“显影后”的光谱扫描对比图，用户可通过交互滑块（InkReveal）查看石窟壁画被时光抹去的色彩空间。
+- **颜料考古**：展示多组"显影前"与"显影后"的光谱扫描对比图，用户可通过交互滑块（InkReveal）查看石窟壁画被时光抹去的色彩空间。
 - **粒子画廊系统**：采用博物馆级陈列设计的数字档案系统，展示了造像多通道光谱数据映射与三维点云推演的成果。
 - **流体推演实验室**：图文结合的科研排版系统，通过嵌入优化后的 TouchDesigner 粒子流体力场视频，呈现出跨越千年的数字焕颜过程。
 
 ### 设计亮点
 
-- 深度定制的“赛博考古”UI风格，包括卡纸级阴影装裱、等宽字体数据面板与十字瞄准星等界面微动效。
+- 深度定制的"赛博考古"UI风格，包括卡纸级阴影装裱、等宽字体数据面板与十字瞄准星等界面微动效。
 - **滚动间谍系统（Scroll Spy）**：智能跟随用户阅读进度的顶部导航系统，确保在长卷叙事下不迷失方向。
+
+## 第三章 · 问窟枢纽
+
+第三章是整个项目的**智能交互核心**，构建了一个完整的 AI 研究助手系统。
+
+### 问窟 AI 对话
+
+- **"问窟者"智能体**：基于 Gemini 3.1 Pro 构建的领域专家角色，专注于栖霞山石窟造像数字复彩研究
+- **SSE 流式对话**：实时逐字输出 AI 回复，附带思考动画与矿物色卡（ColorCard）可视化
+- **RAG 引用角标**：AI 回复中自动插入文献引用角标 `[1][2]`，支持悬浮显示来源文献标题，点击后跳转至文献库对应段落
+
+### 文献档案库
+
+- **36 篇学术文献**：覆盖石窟考古、颜料分析、色彩复原、AI 修复等领域
+- **AI 智能导读**：每篇文献配有 Gemini 生成的摘要和关键词标签
+- **段落精准定位**：从 AI 回复的引用角标点击后，可直接跳转到文献原文的对应段落（基于多 fragment 关键词重合度评分算法）
+- **内部文献隐藏**：通过 `metadata.json` 的 `hidden` 字段控制，不对外公开展示但保留 RAG 索引
+
+### 笔记系统
+
+- **保存到笔记**：AI 回复下方的操作栏支持一键保存到本地笔记
+- **笔记面板**：右上角入口，展示已保存的笔记卡片（含原始提问 + AI 回复），支持单条删除和清空
+- **数据持久化**：基于 `localStorage`，每位访客独立存储，刷新不丢失
+
+### 全局智能体（AgentOrb）
+
+- **悬浮光球**：全站可见的 AI 入口，支持语音面板交互
+- **上下文感知**：根据用户所在章节自动切换对话语境
+- **章节间导航**：支持从任意章节直接跳转至问窟枢纽
 
 ## 技术栈
 
-| 类别        | 技术                              |
-| ----------- | --------------------------------- |
-| 前端框架    | React 19 + TypeScript             |
-| 构建工具    | Vite 8                            |
-| 动画        | GSAP 3 + ScrollTrigger            |
-| 平滑滚动    | Lenis                             |
-| 3D / 着色器 | Three.js（开场水墨雾气 + 粒子塔） |
-| 后端        | FastAPI (Python) + Google Gemini API |
-| 向量检索    | ChromaDB 或 FAISS (本地 RAG 构建)   |
-| 图片导出    | html-to-image                     |
+<p align="center">
+  <img src="tech_architecture.png" alt="GrottoMind 技术架构图" width="800" />
+</p>
+
+| 类别           | 技术                                                |
+| -------------- | --------------------------------------------------- |
+| 前端框架       | React 19 + TypeScript                               |
+| 构建工具       | Vite 8                                              |
+| 动画           | GSAP 3 + ScrollTrigger                              |
+| 平滑滚动       | Lenis                                               |
+| 3D / 着色器    | Three.js（开场水墨雾气 + 粒子塔）                   |
+| Markdown 渲染  | react-markdown                                      |
+| 后端           | FastAPI (Python) + Google Gemini 3.1 Pro             |
+| 向量检索       | ChromaDB + Gemini Embedding API（gemini-embedding-001）|
+| 文献知识库     | NotebookLM 导出 + 本地 RAG 管线                     |
+| 图片 CDN       | Supabase Storage                                    |
+| 图片导出       | html-to-image                                       |
+
+## RAG 架构
+
+```
+用户提问
+  │
+  ▼
+Gemini Embedding API (RETRIEVAL_QUERY)
+  │
+  ▼
+ChromaDB 向量检索 (cosine, top_k=5)
+  │
+  ▼
+相关文献片段注入 System Prompt
+  │
+  ▼
+Gemini 3.1 Pro 生成带引用的回复
+  │
+  ▼
+前端渲染 Markdown + 角标跳转
+```
+
+- **文本切分**：RecursiveCharacterTextSplitter（chunk_size=500, overlap=50）
+- **索引规模**：36 篇文献 → 2782 个向量分块
+- **模型版本管理**：自动检测 Embedding 模型变更，必要时清除旧索引并重建
 
 ## 本地运行
 
@@ -100,58 +161,74 @@ npm install
 cd server
 pip install -r requirements.txt
 
-# 3. 启动开发服务器（前端 + 后端分别启动）
+# 3. 配置环境变量
+cp .env.example .env
+# 编辑 .env，填入 GEMINI_API_KEY
+
+# 4. 构建向量索引（首次运行）
+cd server && python3 rag.py
+
+# 5. 启动开发服务器（前端 + 后端分别启动）
 # 终端 1:
 npm run dev
 # 终端 2:
-cd server && uvicorn main:app --reload --port 8787
+cd server && python3 main.py
 ```
 
-- 前端：Vite 提供的本地地址（默认 `http://localhost:5173`）
-- 后端 API：`http://localhost:8787`
-
-## AI 配置
-
-复制 `.env.example` 为 `.env.local`，填入：
-
-```bash
-GEMINI_API_KEY=你的密钥
-PORT=8787
-```
-
-> **没有 API Key 也能运行**：问窟 AI 和共创卡片会使用内置的中文降级内容，所有界面和交互功能均可正常演示。
+- 前端：`http://localhost:5173`
+- 后端 API：`http://localhost:8788`
 
 ## 项目结构
 
 ```
 ├── src/
-│   ├── App.tsx                     # 应用入口
-│   ├── App.css                     # 全局样式系统
+│   ├── App.tsx                          # 应用入口与章节路由
+│   ├── App.css                          # 全局样式系统
 │   ├── components/
-│   │   ├── IntroAnimation.tsx      # 序章 · 滚动视频叙事
-│   │   ├── TimelineHall.tsx        # 第一章 · 3D粒子塔导航与节点系统
-│   │   ├── FadingHall.tsx          # 第二章 · 颜料考古与数字焕颜交互展览
-│   │   ├── DeepReadArticle.tsx     # 第一章 · 深度阅读横向画廊
-│   │   ├── ParticleStupa.tsx       # 3D 粒子舍利塔渲染
-│   │   ├── GrottoModelScene.tsx    # 石窟3D场景
-│   │   ├── AtmosphereShader.tsx    # 水墨雾气着色器
-│   │   ├── AtmosphereEffects.tsx   # 浮尘粒子系统
-│   │   ├── GlowText.tsx           # 标题发光特效
-│   │   ├── SandTextAnimation.tsx   # 沙化文字动画
-│   │   ├── CustomCursor.tsx        # 自定义光标
-│   │   ├── FullscreenButton.tsx    # 全屏切换
-│   │   └── Exhibition.tsx          # 展览入口
-│   ├── types.ts                    # API 类型定义
-│   └── main.tsx                    # 入口文件
+│   │   ├── IntroAnimation.tsx           # 序章 · 滚动视频叙事
+│   │   ├── TimelineHall.tsx             # 第一章 · 3D粒子塔导航与节点系统
+│   │   ├── DeepReadArticle.tsx          # 第一章 · 深度阅读横向画廊
+│   │   ├── ParticleStupa.tsx            # 3D 粒子舍利塔渲染
+│   │   ├── FadingHall.tsx               # 第二章 · 颜料考古与数字焕颜
+│   │   ├── InkReveal.tsx                # 第二章 · 显影前后对比滑块
+│   │   ├── GrottoHub.tsx                # 第三章 · 问窟枢纽主界面
+│   │   ├── GrottoHub.css                # 第三章 · 问窟枢纽样式
+│   │   ├── LiteratureLibrary.tsx        # 第三章 · 文献档案库
+│   │   ├── LiteratureLibrary.css        # 第三章 · 文献库样式
+│   │   ├── ColorCard.tsx                # 矿物色卡可视化组件
+│   │   ├── agent/                       # 全局智能体系统
+│   │   │   ├── AgentContext.tsx          #   上下文管理（章节感知）
+│   │   │   ├── AgentOrb.tsx             #   悬浮光球 UI
+│   │   │   ├── AgentTriggerButton.tsx   #   触发按钮
+│   │   │   ├── GlobalAgent.tsx          #   全局对话面板
+│   │   │   └── GlobalAgent.css          #   全局面板样式
+│   │   ├── GrottoModelScene.tsx         # 石窟 3D 场景
+│   │   ├── AtmosphereShader.tsx         # 水墨雾气着色器
+│   │   ├── AtmosphereEffects.tsx        # 浮尘粒子系统
+│   │   ├── GlobalControls.tsx           # 全局控制栏
+│   │   ├── GlowText.tsx                 # 标题发光特效
+│   │   ├── CustomCursor.tsx             # 自定义光标
+│   │   ├── FullscreenButton.tsx         # 全屏切换
+│   │   └── Exhibition.tsx               # 展览入口
+│   └── main.tsx                         # 入口文件
 ├── server/
-│   ├── main.py                     # FastAPI 应用入口
-│   ├── rag.py                      # 向量检索与文档切片逻辑
-│   ├── notebooklm_sync.py          # 调用 notebooklm-py 自动抓取逻辑
-│   ├── knowledge/                  # 抓取下来的文献数据及 ChromaDB 缓存
-│   └── requirements.txt            # Python 依赖清单
+│   ├── main.py                          # FastAPI 应用入口（SSE 对话 + 文献 API）
+│   ├── rag.py                           # RAG 模块（Gemini Embedding + ChromaDB）
+│   ├── batch_summarize.py               # 批量生成文献 AI 摘要
+│   ├── build_knowledge.py               # 知识库构建脚本
+│   ├── notebooklm_sync.py               # NotebookLM 自动抓取
+│   ├── upload_to_supabase.py            # 静态资源上传 CDN
+│   ├── knowledge/                       # 文献数据 + 摘要缓存
+│   │   ├── metadata.json                #   文献元数据（含 hidden 标记）
+│   │   ├── *.txt                        #   文献全文（清洗后）
+│   │   └── *_summary.json               #   AI 摘要缓存
+│   ├── chroma_db/                       # ChromaDB 向量索引（运行时生成）
+│   └── requirements.txt                 # Python 依赖清单
 ├── public/
-│   ├── assets/                     # 静态素材（视频、字体、Logo）
-│   └── 章节1图片素材/              # 舍利塔各部位高清图片（WebP）
+│   ├── assets/                          # 静态素材（视频、字体、Logo）
+│   ├── 章节1图片素材/                   # 舍利塔各部位高清图片（WebP）
+│   └── 章节2素材/                       # 第二章图片与背景素材
+├── Dockerfile                           # 后端容器化部署
 ├── index.html
 └── package.json
 ```
@@ -159,18 +236,25 @@ PORT=8787
 ## 常用命令
 
 ```bash
-npm run dev          # 启动前端开发环境
-npm run build        # 生产构建
-npm run lint         # 代码检查
+# 前端
+npm run dev              # 启动前端开发环境
+npm run build            # 生产构建
+npm run lint             # 代码检查
+
+# 后端
+cd server && python3 main.py       # 启动后端服务
+cd server && python3 rag.py        # 重建向量索引
+cd server && python3 batch_summarize.py  # 批量生成文献摘要
 ```
 
 ## 设计原则
 
 - **博物馆级叙事感**：每一屏都像一个展厅，不是网页
 - **呼吸感节奏**：大量留白、缓慢动效、沉静文案
+- **AI 实验室美学**：深色底 + 中性白灰 + 极简无衬线排版
 - **轻量化实现**：优先使用预渲染视频 + CSS/GSAP 动画，避免重度 WebGL
 - **文化严谨性**：区分历史依据、视觉推演与 AI 想象
-- **学术引注体系**：所有文案经 NotebookLM 知识库验证，UI 内嵌文献脚注
+- **学术引注体系**：所有文案经 NotebookLM 知识库验证，AI 回复内嵌文献角标
 
 ## 与 TouchDesigner 的关系
 
