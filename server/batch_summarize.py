@@ -22,7 +22,7 @@ GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 if not GEMINI_API_KEY:
     print("❌ 错误：GEMINI_API_KEY 未设置。请在环境变量中配置后重试。")
     exit(1)
-SUMMARY_MODEL_ID = "gemini-3.1-pro-preview"
+SUMMARY_MODEL_ID = "gemini-3.1-flash-lite-preview"
 client = genai.Client(api_key=GEMINI_API_KEY)
 
 def generate_summary_for_text(text: str) -> dict:
