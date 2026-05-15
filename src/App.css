@@ -4186,6 +4186,8 @@ html.large-text {
   /* 缩小整组间距 */
   .next-chapter-group {
     gap: 6px;
+  }
+
   /* 缩小"问窟 AI"快捷按钮，代替完全隐藏 */
   .fh-nav__contact {
     display: flex !important;
