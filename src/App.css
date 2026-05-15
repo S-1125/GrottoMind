@@ -4082,3 +4082,184 @@ html.large-text {
 .deg-result {
   color: rgba(246, 206, 160, 0.9);
 }
+
+/* ==========================================================================
+   移动端适配 — 序章 + 第一章 (≤768px)
+   仅追加覆盖规则，桌面端代码零改动
+   ========================================================================== */
+@media (max-width: 768px) {
+
+  /* ---------- 序章：GrottoMind 大标题 ---------- */
+  .intro-copy-line.is-title {
+    font-size: clamp(36px, 12vw, 56px);
+    margin-top: -6vh;
+    letter-spacing: 0.01em;
+    word-break: keep-all;
+    overflow-wrap: normal;
+  }
+
+  /* 问窟角标跟随缩小后的标题 */
+  .intro-title-superscript {
+    font-size: 22px;
+    top: calc(0.2em + 2px);
+    left: calc(0.1em + 60px);
+  }
+
+  /* 序章普通文案适配 */
+  .intro-copy-line {
+    max-width: 90vw;
+    font-size: clamp(22px, 6vw, 36px);
+    line-height: 1.25;
+  }
+
+  /* "单击Enter键继续" 在手机上无意义，隐藏 */
+  .intro-enter-hint {
+    display: none;
+  }
+
+  /* 底部控制按钮适配 */
+  .intro-ctrl-nav {
+    right: 12px;
+    bottom: 16px;
+    gap: 6px;
+  }
+
+  .intro-ctrl-btn {
+    width: 38px;
+    height: 38px;
+  }
+
+  /* 序章进入按钮环 */
+  .intro-enter-btn-wrap {
+    transform: scale(0.85);
+  }
+
+  /* ---------- 第一章：顶部导航条 ---------- */
+  /* Logo 英文部分在手机端隐藏，避免拥挤 */
+  .exhibition-logo .site-logo-img-en {
+    display: none;
+  }
+
+  .exhibition-logo .site-logo-img {
+    width: 40px;
+    height: 18px;
+  }
+
+  /* 缩小 "进入下一章" 胶囊 */
+  .next-pill {
+    width: 88px;
+    height: 36px;
+  }
+
+  .next-pill-text {
+    font-size: 11px;
+  }
+
+  /* 缩小圆形图标 */
+  .next-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .next-icon svg {
+    width: 10px;
+    height: 10px;
+  }
+
+  /* 缩小整组间距 */
+  .next-chapter-group {
+    gap: 6px;
+  }
+
+  /* 隐藏"问窟 AI"快捷按钮文字，避免溢出 */
+  .fh-nav__contact {
+    display: none !important;
+  }
+
+  /* ---------- 第一章：信息面板 → 底部全宽 ---------- */
+  .stupa-info-panel {
+    position: fixed;
+    right: auto;
+    left: 5vw;
+    top: auto;
+    bottom: 12vh;
+    width: 90vw;
+    transform: none;
+    max-height: 45vh;
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 20px 24px;
+    border-radius: 12px;
+  }
+
+  .stupa-info-panel h2 {
+    font-size: clamp(32px, 9vw, 46px);
+    margin: 10px 0 12px;
+  }
+
+  .stupa-info-panel p {
+    font-size: 14px;
+    line-height: 1.7;
+    letter-spacing: 0.04em;
+  }
+
+  .stupa-info-icon {
+    width: 32px;
+    height: 32px;
+    margin-bottom: 8px;
+  }
+
+  /* 深度阅读 + 下一章操作栏适配 */
+  .stupa-story-actions {
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  /* 故事面板同样改为底部全宽 */
+  .stupa-story-panel {
+    position: fixed;
+    right: auto;
+    left: 5vw;
+    top: auto;
+    bottom: 12vh;
+    width: 90vw;
+    max-height: 45vh;
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 20px 24px;
+    border-radius: 12px;
+  }
+
+  /* 放大镜透镜在手机端缩小 */
+  .stupa-lens {
+    width: 100px;
+    height: 100px;
+  }
+
+  /* 节点索引条横排居中 */
+  .timeline-node-index {
+    bottom: clamp(70px, 10vh, 100px);
+  }
+
+  /* 滚动提示条适配 */
+  .timeline-hall-footer-hint {
+    font-size: 11px;
+    bottom: 6px;
+    padding: 0 16px;
+  }
+
+  /* 激光进度条在手机端隐藏（太细看不见） */
+  .laser-progress-track {
+    display: none;
+  }
+
+  /* 自定义光标在手机端隐藏 */
+  .custom-cursor-container {
+    display: none !important;
+  }
+}

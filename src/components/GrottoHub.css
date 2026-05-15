@@ -827,3 +827,64 @@
   font-weight: 500;
 }
 
+/* ==========================================================================
+   移动端适配 — 第三章 GrottoHub (≤768px)
+   仅追加覆盖规则，桌面端代码零改动
+   ========================================================================== */
+@media (max-width: 768px) {
+
+  /* 导航栏适配 */
+  .gh-nav {
+    padding: 0 16px;
+    height: 48px;
+  }
+
+  .gh-nav__back {
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+
+  /* 大标题适配 */
+  .gh-title {
+    font-size: 24px;
+    margin-bottom: 32px;
+    letter-spacing: 0.06em;
+    padding: 0 16px;
+  }
+
+  /* 推荐气泡适配 */
+  .gh-suggestions {
+    padding: 0 16px;
+    gap: 8px;
+  }
+
+  .gh-suggestion-chip {
+    font-size: 12px;
+    padding: 8px 16px;
+  }
+
+  /* 电影字幕区域适配 */
+  .gh-cinematic-area {
+    max-width: 100%;
+    padding: 0 20px;
+  }
+
+  .gh-cinematic-ai {
+    font-size: 15px;
+    line-height: 1.9;
+  }
+
+  /* 底部输入区适配 */
+  .gh-dock {
+    padding: 8px 12px;
+  }
+
+  .gh-dock-inner {
+    max-width: 100%;
+    padding: 0;
+  }
+
+  .gh-dock__input {
+    font-size: 15px;
+  }
+}

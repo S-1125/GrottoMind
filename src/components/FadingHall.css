@@ -1813,3 +1813,142 @@
   /* 卡纸内侧边缘的切割立体感 */
   box-shadow: 0 0 0 1px rgba(0,0,0,0.9), 0 4px 12px rgba(0,0,0,0.5);
 }
+
+/* ==========================================================================
+   移动端适配 — 第二章 (≤768px)
+   仅追加覆盖规则，桌面端代码零改动
+   ========================================================================== */
+@media (max-width: 768px) {
+
+  /* ---------- 画廊倒三角 → 纵向堆叠 ---------- */
+  .fh-gallery-group {
+    min-height: auto;
+    padding: 6vh 5vw;
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+  }
+
+  .fh-gallery-item {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100%;
+    flex-direction: row;
+    gap: 16px;
+  }
+
+  /* 清除三个位置的绝对定位坐标 */
+  .fh-gallery-item--tl,
+  .fh-gallery-item--tr,
+  .fh-gallery-item--bc {
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+  }
+
+  /* 入场动画：静态后的覆盖 */
+  .fh-gallery-group.fh-gallery-visible .fh-gallery-item--tl,
+  .fh-gallery-group.fh-gallery-visible .fh-gallery-item--tr {
+    transform: none;
+  }
+  .fh-gallery-group.fh-gallery-visible .fh-gallery-item--bc {
+    transform: none;
+  }
+
+  /* 图片容器适配 */
+  .fh-pigment-gallery__img-wrap {
+    width: 40vw;
+    min-width: 120px;
+    max-width: 200px;
+  }
+
+  /* 标题字号适配 */
+  .fh-pigment-gallery__title {
+    font-size: 18px;
+  }
+
+  /* ---------- 矿物图鉴 → 单列 ---------- */
+  .fh-mineral-section {
+    padding: 8vh 5vw 12vh;
+  }
+
+  .fh-mineral-section__title {
+    margin-bottom: 40px;
+    font-size: 12px;
+  }
+
+  .fh-mineral-grid {
+    gap: 24px;
+  }
+
+  .fh-pigment-gallery__mineral-card {
+    flex: 0 0 100%;
+    padding: 24px 0 16px 0;
+  }
+
+  .fh-pigment-gallery__mineral-formula {
+    font-size: clamp(24px, 6vw, 36px);
+  }
+
+  .fh-pigment-gallery__mineral-desc {
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  /* ---------- 技术数据面板 → 单列 ---------- */
+  .fh-video-stats {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    max-width: 100%;
+  }
+
+  .fh-video-stats__val {
+    font-size: 14px;
+  }
+
+  /* ---------- 视频区域 → 上下堆叠 ---------- */
+  .fh-video-section {
+    padding: 60px 0;
+  }
+
+  .fh-video-section__inner {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .fh-video-section__desc {
+    padding-left: 16px;
+  }
+
+  .fh-video-wrapper {
+    max-width: 100%;
+  }
+
+  /* ---------- 过渡引言适配 ---------- */
+  .fh-transition-quote {
+    padding: 60px 20px;
+  }
+
+  .fh-transition-quote__title {
+    font-size: clamp(24px, 7vw, 40px);
+    line-height: 1.5;
+  }
+
+  .fh-transition-quote__subtitle {
+    font-size: 14px;
+    line-height: 1.8;
+  }
+
+  /* ---------- 容器通用适配 ---------- */
+  .fh-container {
+    padding: 0 20px;
+  }
+
+  /* 所有图片懒加载优化 */
+  .fh-pigment-gallery__img-wrap img,
+  .fh-gallery-item img {
+    content-visibility: auto;
+  }
+}

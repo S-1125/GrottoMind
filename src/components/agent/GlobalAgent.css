@@ -571,3 +571,73 @@
   opacity: 0.2;
   cursor: not-allowed;
 }
+
+/* ==========================================================================
+   移动端适配 — AI Agent 面板 (≤768px)
+   仅追加覆盖规则，桌面端代码零改动
+   ========================================================================== */
+@media (max-width: 768px) {
+
+  /* 整体容器紧贴右下角 */
+  .global-agent {
+    right: 12px;
+    bottom: 12px;
+  }
+
+  /* 悬浮球缩小 */
+  .ga-orb-container {
+    width: 64px;
+    height: 64px;
+  }
+
+  /* 聊天面板：改为全宽、从底部弹出 */
+  .ga-chat-panel {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100vw;
+    height: 85vh;
+    border-radius: 18px 18px 0 0;
+    transform-origin: bottom center;
+  }
+
+  /* 标题栏适配 */
+  .ga-chat-header {
+    padding: 12px 16px;
+  }
+
+  .ga-chat-header h2 {
+    font-size: 14px;
+  }
+
+  /* 消息区域适配 */
+  .ga-messages {
+    padding: 12px 14px;
+  }
+
+  .ga-msg-bubble {
+    max-width: 85%;
+    font-size: 14px;
+  }
+
+  /* 输入框适配 */
+  .ga-input-bar {
+    padding: 8px 12px;
+  }
+
+  .ga-input-bar input {
+    font-size: 15px;
+  }
+
+  /* 建议卡片适配 */
+  .ga-suggestions {
+    padding: 0 12px 8px;
+    gap: 6px;
+  }
+
+  .ga-suggestion-chip {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+}
