@@ -4203,9 +4203,9 @@ html.large-text {
     display: none !important;
   }
 
-  /* 通过 CSS 修正模型渲染在手机端偏左的问题（抵消原本为桌面端右侧导航预留的中心偏移） */
+  /* 通过 CSS 修正模型渲染在手机端偏左的问题，并整体往下移动一点点，隐藏模型底部的扫描瑕疵 */
   .grotto-model-scene {
-    transform: translateX(4vw);
+    transform: translate(4vw, 4vh);
   }
 
   /* 重排引线文字以适配手机端（不使用 scale 变形，而是限制宽度和间距） */
@@ -4221,6 +4221,9 @@ html.large-text {
   /* 将左侧节点推到右边 58% 处（即左侧 42% 处），留出中间模型空间 */
   .node-left { right: 58% !important; transform: none !important; }
   .node-left .node-line { width: 12vw !important; }
+  
+  /* 微调佛龛的位置，使其稍微往下一点，对准塔身的佛龛结构 */
+  .node-niche { top: 34% !important; }
 
   /* 缩小字体大小避免文字溢出 */
   .viz-node .node-content h4 { font-size: 16px; }
