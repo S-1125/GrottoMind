@@ -4381,7 +4381,7 @@ html.large-text {
   }
 
   /* ---------- 隐藏全局控制栏（因本章已将全屏移至顶部） ---------- */
-  .intro-ctrl-nav[data-chapter="intro"] {
+  .intro-ctrl-nav[data-chapter="ch1"] {
     display: none !important;
   }
 
