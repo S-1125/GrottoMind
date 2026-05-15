@@ -4320,19 +4320,36 @@ html.large-text {
     display: none !important;
   }
 
-  /* ---------- 手机端顶部控制栏（问窟AI + 进入下一章） ---------- */
+  /* ---------- 手机端顶部控制栏 ---------- */
   .timeline-top-nav {
     top: 20px !important;
-    right: 56px !important; /* 留出全屏按钮的空间 */
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
     gap: 8px !important;
+    width: fit-content !important;
+  }
+
+  /* 统一三个按钮的风格：胶囊形、同高度、同边框 */
+  .fh-nav__contact,
+  .next-chapter-group .next-pill,
+  .timeline-fs-wrapper .intro-ctrl-btn {
+    height: 32px !important;
+    border-radius: 999px !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
   }
 
   /* 精简“问窟 AI”按钮 */
   .fh-nav__contact {
-    height: 32px !important;
-    padding: 0 12px !important;
+    padding: 0 14px !important;
     font-size: 13px !important;
     letter-spacing: 1px !important;
+    color: #fff !important;
   }
 
   /* 精简“进入下一章”按钮组 */
@@ -4344,7 +4361,6 @@ html.large-text {
   }
   .next-chapter-group .next-pill {
     width: 86px !important;
-    height: 32px !important;
   }
   .next-chapter-group .next-pill-text {
     font-size: 13px !important;
@@ -4356,18 +4372,20 @@ html.large-text {
     transform: none !important;
   }
 
-  /* ---------- 全屏按钮独立布局，与上方同一排 ---------- */
-  .intro-ctrl-nav {
-    top: 20px !important;
-    bottom: auto !important;
-    right: 16px !important;
+  /* 全屏按钮特定修饰 */
+  .timeline-fs-wrapper .intro-ctrl-btn {
+    width: 40px !important;
+    padding: 0 !important;
+    color: #fff !important;
   }
-  .intro-ctrl-btn:not(.fullscreen-btn) {
+  /* 隐藏全屏按钮内置的方形边框 SVG */
+  .timeline-fs-wrapper .intro-ctrl-btn .ctrl-btn-outline {
     display: none !important;
   }
-  .intro-ctrl-btn.fullscreen-btn {
-    width: 32px !important;
-    height: 32px !important;
+
+  /* ---------- 隐藏全局控制栏（因本章已将全屏移至顶部） ---------- */
+  .intro-ctrl-nav[data-chapter="intro"] {
+    display: none !important;
   }
 
   /* 移动端专属滑动提示文案替换与位置调整 */

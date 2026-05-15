@@ -9,6 +9,7 @@ import gsap from 'gsap'
 import { AtmosphereEffects } from './AtmosphereEffects'
 import { AtmosphereShader } from './AtmosphereShader'
 import { GrottoModelScene, type GrottoModelSceneHandle } from './GrottoModelScene'
+import { FullscreenButton } from './FullscreenButton'
 
 /* ============================================================
    停靠点数据：每个停靠点定义了相机位置、UI 内容和透镜参数
@@ -505,12 +506,11 @@ export function TimelineHall({ onDeepRead, onNextChapter, onGoToAI, isPaused }: 
         <div className="site-logo-img-en" />
       </div>
 
-      {/* 右上角快捷入口（移动到此处以修复 z-index 遮挡全屏预览的 bug） */}
-      <div className="timeline-top-nav" style={{ position: 'fixed', top: 20, right: 20, zIndex: 999, display: 'flex', alignItems: 'center', gap: '20px' }}>
+      {/* 顶部快捷入口（居中排列，包含问窟AI、下一章、全屏） */}
+      <div className="timeline-top-nav">
         <button 
           className="fh-nav__contact" 
           onClick={(e) => { e.preventDefault(); onGoToAI?.(); }}
-          style={{ height: 'fit-content' }}
         >
           问窟 AI
         </button>
@@ -521,7 +521,6 @@ export function TimelineHall({ onDeepRead, onNextChapter, onGoToAI, isPaused }: 
           tabIndex={0}
           aria-label="进入第二章"
           onKeyDown={(e) => { if (e.key === 'Enter') onNextChapter?.() }}
-          style={{ position: 'relative', top: 'auto', right: 'auto', zIndex: 'auto' }}
         >
           <span className="next-pill">
             <span className="next-pill-bg"></span>
@@ -532,6 +531,11 @@ export function TimelineHall({ onDeepRead, onNextChapter, onGoToAI, isPaused }: 
               <path d="M1 1L13 13M13 13H3M13 13V3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </span>
+        </div>
+        
+        {/* 全屏按钮与导航组放在一起 */}
+        <div className="timeline-fs-wrapper">
+          <FullscreenButton />
         </div>
       </div>
 

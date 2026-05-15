@@ -37,7 +37,7 @@ export function GlobalControls() {
   if (currentChapter === 'ch3') return null
 
   return (
-    <nav className="intro-ctrl-nav" aria-label="辅助控制" style={{ zIndex: 1000 }}>
+    <nav className="intro-ctrl-nav" data-chapter={currentChapter} aria-label="辅助控制" style={{ zIndex: 1000 }}>
       {/* 1. 问窟 AI 唤醒按钮 */}
       <AgentTriggerButton />
       
