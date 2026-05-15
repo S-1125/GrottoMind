@@ -4387,8 +4387,8 @@ html.large-text {
   .node-body { top: 68% !important; }
   /* 最后两个塔基、浮雕保持原样即可 */
 
-  /* ---------- 隐藏全局控制栏（因本章已将全屏移至顶部） ---------- */
-  .intro-ctrl-nav[data-chapter="ch1"] {
+  /* ---------- 移动端彻底隐藏全局控制栏（四个图标的悬浮栏），所需按钮已移至各章内部 ---------- */
+  .intro-ctrl-nav {
     display: none !important;
   }
 
