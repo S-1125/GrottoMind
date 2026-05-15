@@ -1291,7 +1291,23 @@
 
 @media (max-width: 768px) {
   .fh-container { padding: 0 24px; }
-  .fh-nav__links, .fh-nav__year, .fh-nav__contact { display: none; }
+  /* 隐藏文字导航和年份，保留返回上一章按钮 */
+  .fh-nav__link, .fh-nav__year { display: none; }
+  /* 隐藏返回按钮的文字，只留箭头图标 */
+  .fh-nav__back span { display: none; }
+  
+  /* 缩小并保留问窟AI按钮 */
+  .fh-nav__contact { 
+    display: flex;
+    font-size: 13px;
+    padding: 6px 14px;
+    backdrop-filter: blur(4px);
+    background: rgba(10, 9, 8, 0.4);
+    border: 1px solid rgba(246, 206, 160, 0.15);
+  }
+  
+  /* 放大中间流体显影图片 */
+  .fh-hero__featured { width: 85vw; max-width: 400px; }
   .fh-nav__toggle { display: flex; }
   .fh-nav__logo { position: static; transform: none; }
   .fh-intro__images { display: none; }
