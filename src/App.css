@@ -4089,20 +4089,27 @@ html.large-text {
    ========================================================================== */
 @media (max-width: 768px) {
 
-  /* ---------- 序章：GrottoMind 大标题 ---------- */
-  .intro-copy-line.is-title {
-    font-size: clamp(28px, 9vw, 42px);
-    margin-top: -8vh;
-    letter-spacing: 0.02em;
-    word-break: break-word;
-    white-space: nowrap; /* 强制不换行 */
+  /* 隐藏第一步重叠的中文 Logo + AI Agent */
+  .intro-chinese-logo {
+    display: none !important;
   }
 
-  /* 问窟角标跟随缩小后的标题 */
+  /* ---------- 序章：GrottoMind 大标题 ---------- */
+  .intro-copy-line.is-title {
+    font-size: clamp(24px, 8vw, 36px) !important;
+    margin-top: -8vh;
+    letter-spacing: 0.05em;
+    white-space: nowrap !important; /* 强制不换行 */
+    width: 100%;
+    text-align: center;
+  }
+
+  /* 问窟角标居中悬浮在 GrottoMind 正上方 */
   .intro-title-superscript {
-    font-size: 16px;
-    top: calc(0.1em + 2px);
-    left: calc(0.1em + 44px);
+    font-size: 14px !important;
+    top: -24px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
   }
 
   /* 序章普通文案适配 */
@@ -4181,8 +4188,18 @@ html.large-text {
     gap: 6px;
   }
 
-  /* 隐藏"问窟 AI"快捷按钮文字，避免溢出 */
+  /* 缩小"问窟 AI"快捷按钮，代替完全隐藏 */
   .fh-nav__contact {
+    display: flex !important;
+    font-size: 13px !important;
+    padding: 6px 14px !important;
+    backdrop-filter: blur(4px);
+    background: rgba(10, 9, 8, 0.4);
+    border: 1px solid rgba(246, 206, 160, 0.15);
+  }
+
+  /* 隐藏右侧纹样节点进度条，使模型在视觉上居中 */
+  .timeline-node-index {
     display: none !important;
   }
 

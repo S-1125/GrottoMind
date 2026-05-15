@@ -110,6 +110,8 @@ uniform sampler2D uGray;
 uniform sampler2D uColor;
 uniform sampler2D uDye;
 uniform sampler2D uVelocity;
+uniform float uImageAspect;
+uniform float uScreenAspect;
 varying vec2 vUv;
 
 void main() {
@@ -117,14 +119,25 @@ void main() {
   
   // 速度驱动的微弱 UV 扭曲
   float distortStrength = 0.003;
-  vec2 distortedUV = vUv + vel * distortStrength * 0.3;
+  
+  // object-fit: cover 效果计算
+  vec2 imageUV = vUv;
+  if (uScreenAspect < uImageAspect) {
+    float scale = uScreenAspect / uImageAspect;
+    imageUV.x = (imageUV.x - 0.5) * scale + 0.5;
+  } else {
+    float scale = uImageAspect / uScreenAspect;
+    imageUV.y = (imageUV.y - 0.5) * scale + 0.5;
+  }
+  
+  vec2 distortedUV = imageUV + vel * distortStrength * 0.3;
   
   // 显影遮罩
   float mask = clamp(texture2D(uDye, vUv).r, 0.0, 1.0);
   mask = smoothstep(0.0, 0.8, mask);
   
   vec4 gray  = texture2D(uGray, distortedUV);
-  vec4 color = texture2D(uColor, vUv + vel * distortStrength);
+  vec4 color = texture2D(uColor, imageUV + vel * distortStrength);
   
   gl_FragColor = mix(gray, color, mask);
 }
@@ -234,7 +247,12 @@ export function InkReveal({ grayImageUrl, colorImageUrl, className = '', hardEdg
 
     // ---- Composite 材质 ----
     const texLoader = new THREE.TextureLoader()
-    const grayTex = texLoader.load(grayImageUrl)
+    const grayTex = texLoader.load(grayImageUrl, (tex) => {
+      const st = stateRef.current
+      if (st && tex.image) {
+        st.compositeMat.uniforms.uImageAspect.value = tex.image.width / tex.image.height
+      }
+    })
     const colorTex = texLoader.load(colorImageUrl)
     ;[grayTex, colorTex].forEach(t => {
       t.minFilter = THREE.LinearFilter
@@ -247,6 +265,8 @@ export function InkReveal({ grayImageUrl, colorImageUrl, className = '', hardEdg
         uColor: { value: colorTex },
         uDye: { value: dye.read.texture },
         uVelocity: { value: velocity.read.texture },
+        uImageAspect: { value: 1.0 }, // 默认 1.0，图片加载后更新
+        uScreenAspect: { value: w / h },
       },
       vertexShader: FULLSCREEN_VERT,
       fragmentShader: COMPOSITE_FRAG,
@@ -349,6 +369,7 @@ export function InkReveal({ grayImageUrl, colorImageUrl, className = '', hardEdg
       const nh = container.clientHeight
       st.renderer.setSize(nw, nh)
       st.splatMat.uniforms.uAspect.value.set(nw / nh, 1.0)
+      st.compositeMat.uniforms.uScreenAspect.value = nw / nh
     }
     window.addEventListener('resize', handleResize)
 
