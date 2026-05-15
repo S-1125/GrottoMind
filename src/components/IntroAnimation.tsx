@@ -322,6 +322,13 @@ export function IntroAnimation({ onEnter }: IntroAnimationProps) {
         ease: 'power2.out',
         onComplete() {
           loaderDone = true
+          
+          // 手机端：0-100进度加纹样加载完直接进入第一章
+          if (window.innerWidth <= 768) {
+            onEnterRef.current?.()
+            return
+          }
+          
           setupStory()
         },
       }, '-=0.4')
