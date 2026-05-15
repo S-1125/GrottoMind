@@ -4208,13 +4208,26 @@ html.large-text {
     transform: translateX(4vw);
   }
 
-  /* 缩小引线文字以适配手机端 */
+  /* 重排引线文字以适配手机端（不使用 scale 变形，而是限制宽度和间距） */
   .viz-node {
-    transform: scale(0.7);
-    transform-origin: center center;
+    width: 130px;
+    transform: none !important;
   }
-  .node-right { left: 50% !important; }
-  .node-left { right: 50% !important; }
+  
+  /* 将右侧节点推到 58% 处，留出中间模型空间 */
+  .node-right { left: 58% !important; transform: none !important; }
+  .node-right .node-line { width: 12vw !important; }
+
+  /* 将左侧节点推到右边 58% 处（即左侧 42% 处），留出中间模型空间 */
+  .node-left { right: 58% !important; transform: none !important; }
+  .node-left .node-line { width: 12vw !important; }
+
+  /* 缩小字体大小避免文字溢出 */
+  .viz-node .node-content h4 { font-size: 16px; }
+  .viz-node .node-content .en-title { font-size: 8px; }
+  .viz-node .node-desc { font-size: 11px; line-height: 1.4; }
+  .viz-node .node-stats { flex-direction: column; align-items: flex-start; gap: 4px; margin-top: 8px; }
+  .node-left .node-stats { align-items: flex-end; }
 
   /* ---------- 第一章：信息面板 → 底部沉浸式 ---------- */
   .stupa-info-panel {
