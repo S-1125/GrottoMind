@@ -4227,47 +4227,55 @@ html.large-text {
     top: 4vh;
   }
 
-  /* 重排引线文字以适配手机端（不使用 scale 变形，而是限制宽度和间距） */
+  /* 重排引线文字以适配手机端：极简展示，隐藏详情，贴边对齐 */
   .viz-node {
-    width: 130px;
+    width: auto;
+    max-width: 110px; /* 限制标题最大宽度 */
     transform: none !important;
   }
   
-  /* 将右侧节点推到 58% 处，留出中间模型空间 */
-  .node-right { left: 58% !important; transform: none !important; }
-  .node-right .node-line { width: 12vw !important; }
+  /* 移动端隐藏冗余的描述和数据，只保留标题，让模型保持视觉焦点 */
+  .viz-node .node-desc,
+  .viz-node .node-stats {
+    display: none !important;
+  }
 
-  /* 将左侧节点推到右边 58% 处（即左侧 42% 处），留出中间模型空间 */
-  .node-left { right: 58% !important; transform: none !important; }
-  .node-left .node-line { width: 12vw !important; }
+  /* 右侧节点：贴近右侧屏幕边缘，引线向左延伸到中心附近 */
+  .node-right { left: auto !important; right: 16px !important; transform: none !important; text-align: right; }
+  .node-right .node-line { width: calc(50vw - 100% - 24px) !important; right: 100% !important; left: auto !important; }
+
+  /* 左侧节点：贴近左侧屏幕边缘，引线向右延伸到中心附近 */
+  .node-left { right: auto !important; left: 16px !important; transform: none !important; text-align: left; }
+  .node-left .node-line { width: calc(50vw - 100% - 24px) !important; left: 100% !important; right: auto !important; }
+  
+  /* 桌面端将文字镜像了，手机端为了阅读习惯，左侧节点不需要镜像，文字应该靠左对齐 */
+  .node-left .node-content h4 { flex-direction: row; }
   
   /* 微调佛龛的位置，使其稍微往下一点，对准塔身的佛龛结构 */
   .node-niche { top: 34% !important; }
 
-  /* 缩小字体大小避免文字溢出 */
-  .viz-node .node-content h4 { font-size: 16px; }
-  .viz-node .node-content .en-title { font-size: 8px; }
-  .viz-node .node-desc { font-size: 11px; line-height: 1.4; }
-  .viz-node .node-stats { flex-direction: column; align-items: flex-start; gap: 4px; margin-top: 8px; }
-  .node-left .node-stats { align-items: flex-end; }
+  /* 缩小标题字体大小，并将中英文分开显示，显得更精致 */
+  .viz-node .node-content h4 { font-size: 14px; margin: 0; display: block; }
+  .viz-node .node-content .en-title { font-size: 8px; letter-spacing: 0.1em; opacity: 0.6; }
 
-  /* ---------- 第一章：信息面板 → 底部沉浸式 ---------- */
+  /* ---------- 第一章：信息面板 → 悬浮轻量卡片 ---------- */
   .stupa-info-panel {
     position: fixed;
-    right: 0;
-    left: 0;
+    right: 16px;
+    left: 16px;
     top: auto;
-    bottom: 0;
-    width: 100vw;
+    bottom: env(safe-area-inset-bottom, 24px);
+    width: auto;
     transform: none;
     max-height: 40vh;
     overflow-y: auto;
-    background: linear-gradient(to top, rgba(10,9,8,1) 40%, rgba(10,9,8,0.7) 100%);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    padding: 30px 24px 80px 24px; /* 底部留白给安全区 */
-    border-radius: 24px 24px 0 0; /* 圆角底板 */
-    border-top: 1px solid rgba(246, 206, 160, 0.15);
+    background: rgba(20, 18, 16, 0.65);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    padding: 20px;
+    border-radius: 20px;
+    border: 1px solid rgba(246, 206, 160, 0.15);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
   }
 
   .stupa-info-panel h2 {
@@ -4294,22 +4302,22 @@ html.large-text {
     margin-top: 20px;
   }
 
-  /* 故事面板同样改为底部半遮罩底板，并极简化压缩 */
+  /* 故事面板改为悬浮式轻质玻璃卡片，而非占满底部的抽屉 */
   .stupa-story-panel {
     position: fixed;
-    right: 0;
-    left: 0;
-    top: auto;
-    bottom: 0;
-    width: 100vw;
-    max-height: 40vh; /* 进一步压缩高度，给模型留出更多空间 */
+    right: 16px;
+    left: 16px;
+    bottom: env(safe-area-inset-bottom, 24px);
+    width: auto;
+    max-height: 40vh; /* 给模型留出充足高度 */
     overflow-y: auto;
-    background: linear-gradient(to top, rgba(10,9,8,1) 30%, rgba(10,9,8,0.4) 100%);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    padding: 24px 20px 80px 20px;
-    border-radius: 20px 20px 0 0;
-    border-top: 1px solid rgba(246, 206, 160, 0.1);
+    background: rgba(20, 18, 16, 0.65); /* 更轻透的底色 */
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    padding: 20px;
+    border-radius: 20px; /* 四面圆角 */
+    border: 1px solid rgba(246, 206, 160, 0.15); /* 四周微弱高光边框 */
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); /* 增加阴影使其悬浮感更强 */
   }
 
   .stupa-story-panel h2 {

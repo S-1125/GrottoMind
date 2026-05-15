@@ -62,10 +62,24 @@ function getCameraPose(progress: number) {
   const t = p - i
   // smoothstep 缓动
   const s = t * t * (3 - 2 * t)
-  return {
-    position: cameraStops[i].position.clone().lerp(cameraStops[i + 1].position, s),
-    target: cameraStops[i].target.clone().lerp(cameraStops[i + 1].target, s),
+  
+  const position = cameraStops[i].position.clone().lerp(cameraStops[i + 1].position, s)
+  const target = cameraStops[i].target.clone().lerp(cameraStops[i + 1].target, s)
+
+  // 移动端补偿：如果屏幕窄，说明是竖屏，强制将注视点拉回画面中心，并把整体模型往上推（向下偏折相机）
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768
+  if (isMobile && progress > 0.05) {
+    // 拉回 X 轴居中 (0 是模型的绝对中心)
+    // 根据进度渐变，避免第一幕（全景）发生跳变
+    const mobileWeight = Math.min(1, (progress - 0.05) * 5)
+    target.x = THREE.MathUtils.lerp(target.x, 0, mobileWeight)
+    
+    // 相机向下移动，则画面中的模型会上移（补偿底部 UI 的遮挡）
+    target.y -= 0.2 * mobileWeight
+    position.y -= 0.2 * mobileWeight
   }
+
+  return { position, target }
 }
 
 /* ============================================================
