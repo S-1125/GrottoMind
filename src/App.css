@@ -4139,11 +4139,13 @@ html.large-text {
     bottom: 15vh;
   }
 
-  /* 底部控制按钮适配 */
+  /* 底部控制按钮移至上方，避免与底部悬浮卡片重合 */
   .intro-ctrl-nav {
+    top: 72px;
+    bottom: auto;
     right: 12px;
-    bottom: 24px;
-    gap: 4px;
+    flex-direction: column;
+    gap: 12px;
   }
 
   .intro-ctrl-btn {
@@ -4258,89 +4260,83 @@ html.large-text {
   .viz-node .node-content h4 { font-size: 14px; margin: 0; display: block; }
   .viz-node .node-content .en-title { font-size: 8px; letter-spacing: 0.1em; opacity: 0.6; }
 
-  /* ---------- 第一章：信息面板 → 悬浮轻量卡片 ---------- */
-  .stupa-info-panel {
+  /* ---------- 第一章：信息面板 → 无底板纯文本极简排版 ---------- */
+  .stupa-info-panel,
+  .stupa-story-panel {
     position: fixed;
-    right: 16px;
-    left: 16px;
-    top: auto;
-    bottom: env(safe-area-inset-bottom, 24px);
+    right: auto;
+    left: 20px;
+    top: 15vh; /* 移到屏幕左上方的空白区域 */
+    bottom: auto;
     width: auto;
+    max-width: 80vw;
     transform: none;
-    max-height: 40vh;
-    overflow-y: auto;
-    background: rgba(20, 18, 16, 0.65);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    padding: 20px;
-    border-radius: 20px;
-    border: 1px solid rgba(246, 206, 160, 0.15);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    pointer-events: none; /* 允许触摸穿透，不遮挡模型交互 */
   }
 
-  .stupa-info-panel h2 {
-    font-size: clamp(32px, 9vw, 46px);
-    margin: 10px 0 12px;
+  /* 增加文本阴影，确保在模型背景上清晰可读 */
+  .stupa-info-panel h2,
+  .stupa-story-panel h2 {
+    font-size: clamp(36px, 10vw, 48px);
+    margin: 4px 0 0;
+    line-height: 1.1;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8), 0 4px 20px rgba(0, 0, 0, 0.5);
   }
 
-  .stupa-info-panel p {
+  .stupa-info-kicker {
     font-size: 14px;
-    line-height: 1.7;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.1em;
+    opacity: 0.9;
+    text-shadow: 0 1px 5px rgba(0, 0, 0, 0.8);
+    display: block;
   }
 
   .stupa-info-icon {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     margin-bottom: 8px;
+    filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.8));
   }
 
-  /* 深度阅读 + 下一章操作栏适配 */
+  /* 隐藏长介绍和深度阅读按钮，保持画面极简 */
+  .stupa-info-panel p,
+  .stupa-story-panel p,
+  .stupa-deep-read-btn {
+    display: none !important;
+  }
+
+  /* 操作栏隐藏，因为内部按钮都隐藏了 */
   .stupa-story-actions {
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 20px;
-  }
-
-  /* 故事面板改为悬浮式轻质玻璃卡片，而非占满底部的抽屉 */
-  .stupa-story-panel {
-    position: fixed;
-    right: 16px;
-    left: 16px;
-    bottom: env(safe-area-inset-bottom, 24px);
-    width: auto;
-    max-height: 40vh; /* 给模型留出充足高度 */
-    overflow-y: auto;
-    background: rgba(20, 18, 16, 0.65); /* 更轻透的底色 */
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    padding: 20px;
-    border-radius: 20px; /* 四面圆角 */
-    border: 1px solid rgba(246, 206, 160, 0.15); /* 四周微弱高光边框 */
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); /* 增加阴影使其悬浮感更强 */
-  }
-
-  .stupa-story-panel h2 {
-    font-size: clamp(28px, 8vw, 36px);
-    margin: 4px 0 8px;
-  }
-
-  .stupa-story-panel p {
-    font-size: 13px;
-    line-height: 1.6;
-    letter-spacing: 0.02em;
-    color: rgba(255, 255, 255, 0.75);
-  }
-
-  .stupa-story-actions {
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 16px;
+    display: none !important;
   }
   
-  .stupa-deep-read-btn {
+  .stupa-next-chapter-btn {
+    display: none !important;
+  }
+
+  /* 移动端专属滑动提示文案替换与位置调整 */
+  .timeline-scroll-hint {
+    display: block !important; /* 恢复显示 */
+    position: fixed;
+    top: calc(15vh + 120px); /* 放置在标题的下方 */
+    left: 20px;
+    bottom: auto;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0 !important; /* 隐藏原有的 PC 端文案 */
+    text-shadow: 0 1px 5px rgba(0, 0, 0, 0.8);
+  }
+
+  /* 通过 ::after 伪元素注入移动端文案 */
+  .timeline-scroll-hint::after {
+    content: "上下滑动屏幕，游览局部";
     font-size: 12px;
-    padding: 6px 14px;
+    letter-spacing: 0.1em;
   }
 
   /* 放大镜透镜在手机端缩小 */
