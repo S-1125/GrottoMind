@@ -4186,11 +4186,6 @@ html.large-text {
   /* 缩小整组间距 */
   .next-chapter-group {
     gap: 6px;
-  }
-
-  /* 隐藏左下角复杂的章节标题栏，因为会挡住模型 */
-  .timeline-hall-header { display: none !important; }
-
   /* 缩小"问窟 AI"快捷按钮，代替完全隐藏 */
   .fh-nav__contact {
     display: flex !important;
@@ -4206,10 +4201,18 @@ html.large-text {
     display: none !important;
   }
 
-  /* 隐藏模型周围复杂的引线弹窗标签 */
-  .viz-node {
-    display: none !important;
+  /* 通过 CSS 修正模型渲染在手机端偏左的问题（抵消原本为桌面端右侧导航预留的中心偏移） */
+  .grotto-model-scene {
+    transform: translateX(4vw);
   }
+
+  /* 缩小引线文字以适配手机端 */
+  .viz-node {
+    transform: scale(0.7);
+    transform-origin: center center;
+  }
+  .node-right { left: 50% !important; }
+  .node-left { right: 50% !important; }
 
   /* ---------- 第一章：信息面板 → 底部沉浸式 ---------- */
   .stupa-info-panel {
