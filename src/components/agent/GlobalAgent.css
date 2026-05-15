@@ -189,10 +189,12 @@
 .ga-chat-history {
   flex: 1;
   overflow-y: auto;
-  padding: 4px 16px 16px;
+  padding: 4px 16px 16px; /* 使用内部 spacer div 撑开空间，避免跨浏览器 padding 兼容性问题 */
   display: flex;
   flex-direction: column;
   gap: 20px;
+  /* 确保 iOS 上平滑滚动 */
+  -webkit-overflow-scrolling: touch;
 }
 
 /* 滚动条 — 解决排版闪烁问题（固定宽度，靠透明度显示） */
@@ -515,13 +517,21 @@
 }
 
 /* ====================================================================
-   输入区（Apple Messages 风格）
+   输入区（Apple Messages 风格 + 悬浮渐变遮罩）
 ==================================================================== */
 .ga-chat-input-area {
-  padding: 12px 12px 14px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 30px 16px 16px;
+  background: linear-gradient(to top, rgba(28, 28, 30, 1) 50%, rgba(28, 28, 30, 0));
+  pointer-events: none; /* 让背景渐变可以穿透点击 */
+  z-index: 10;
 }
 
 .ga-input-wrapper {
+  pointer-events: auto; /* 恢复内部元素的交互 */
   display: flex;
   align-items: center;
   background: rgba(255, 255, 255, 0.06);

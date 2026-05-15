@@ -194,6 +194,9 @@ export const GrottoModelScene = forwardRef<GrottoModelSceneHandle, GrottoModelSc
         const { targetPose } = sceneInternals.current
         const pose = getCameraPose(progress)
         
+        // 杀掉可能正在运行的开场推移(Dolly)动画，防止在用户开始滚动时，Dolly 还在强行重写 Z 轴，导致冲突和跳变
+        gsap.killTweensOf(targetPose.position)
+
         // 更新目标位置，而不直接硬切相机位置。动画循环会自动插值过去，消除 GSAP 掉帧造成的跳变。
         targetPose.position.copy(pose.position)
         targetPose.target.copy(pose.target)
@@ -204,13 +207,20 @@ export const GrottoModelScene = forwardRef<GrottoModelSceneHandle, GrottoModelSc
       },
       playIntroDolly(duration: number) {
         if (!sceneInternals.current) return
-        const { camera, currentTarget } = sceneInternals.current
-        // 从更远的位置推向当前位置
-        gsap.from(camera.position, {
-          z: camera.position.z + 2.5,
+        const { camera, targetPose } = sceneInternals.current
+        
+        const finalZ = targetPose.position.z
+        const startZ = finalZ + 2.5
+        
+        // 瞬间将真实相机和目标位置都放到远处
+        camera.position.z = startZ
+        targetPose.position.z = startZ
+
+        // 利用 GSAP 将目标位置平滑推回到初始位置
+        gsap.to(targetPose.position, {
+          z: finalZ,
           duration,
-          ease: 'power3.out',
-          onUpdate: () => camera.lookAt(currentTarget)
+          ease: 'power3.out'
         })
       }
     }))

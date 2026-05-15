@@ -4320,9 +4320,54 @@ html.large-text {
     display: none !important;
   }
 
-  /* 手机端隐藏除了全屏以外的其他所有右下角控制按钮 */
+  /* ---------- 手机端顶部控制栏（问窟AI + 进入下一章） ---------- */
+  .timeline-top-nav {
+    top: 20px !important;
+    right: 56px !important; /* 留出全屏按钮的空间 */
+    gap: 8px !important;
+  }
+
+  /* 精简“问窟 AI”按钮 */
+  .fh-nav__contact {
+    height: 32px !important;
+    padding: 0 12px !important;
+    font-size: 13px !important;
+    letter-spacing: 1px !important;
+  }
+
+  /* 精简“进入下一章”按钮组 */
+  .next-chapter-group {
+    gap: 0 !important;
+  }
+  .next-chapter-group .next-icon {
+    display: none !important; /* 隐藏多余的圆形箭头图标 */
+  }
+  .next-chapter-group .next-pill {
+    width: 86px !important;
+    height: 32px !important;
+  }
+  .next-chapter-group .next-pill-text {
+    font-size: 13px !important;
+  }
+  
+  /* 取消移动端 Hover 的复杂形变，防止误触闪烁 */
+  .next-chapter-group:hover .next-pill,
+  .next-chapter-group:focus-visible .next-pill {
+    transform: none !important;
+  }
+
+  /* ---------- 全屏按钮独立布局，与上方同一排 ---------- */
+  .intro-ctrl-nav {
+    top: 20px !important;
+    bottom: auto !important;
+    right: 16px !important;
+  }
   .intro-ctrl-btn:not(.fullscreen-btn) {
     display: none !important;
+  }
+  .intro-ctrl-btn.fullscreen-btn {
+    width: 32px !important;
+    height: 32px !important;
   }
 
   /* 移动端专属滑动提示文案替换与位置调整 */

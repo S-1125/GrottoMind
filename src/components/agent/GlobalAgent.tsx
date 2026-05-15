@@ -376,6 +376,7 @@ export function GlobalAgent() {
                 </div>
               </div>
             ))}
+            <div className="ga-chat-spacer" style={{ height: '140px', flexShrink: 0 }} />
             <div ref={historyEndRef} />
           </div>
 

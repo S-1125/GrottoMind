@@ -506,7 +506,7 @@ export function TimelineHall({ onDeepRead, onNextChapter, onGoToAI, isPaused }: 
       </div>
 
       {/* 右上角快捷入口（移动到此处以修复 z-index 遮挡全屏预览的 bug） */}
-      <div style={{ position: 'fixed', top: 20, right: 20, zIndex: 999, display: 'flex', alignItems: 'center', gap: '20px' }}>
+      <div className="timeline-top-nav" style={{ position: 'fixed', top: 20, right: 20, zIndex: 999, display: 'flex', alignItems: 'center', gap: '20px' }}>
         <button 
           className="fh-nav__contact" 
           onClick={(e) => { e.preventDefault(); onGoToAI?.(); }}
