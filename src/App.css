@@ -4380,6 +4380,13 @@ html.large-text {
     display: none !important;
   }
 
+  /* ---------- 调整移动端可视化节点位置（因为移动端模型整体下移了） ---------- */
+  .node-finial { top: 20% !important; }
+  .node-niche { top: 38% !important; }
+  .node-eaves { top: 50% !important; }
+  .node-body { top: 68% !important; }
+  /* 最后两个塔基、浮雕保持原样即可 */
+
   /* ---------- 隐藏全局控制栏（因本章已将全屏移至顶部） ---------- */
   .intro-ctrl-nav[data-chapter="ch1"] {
     display: none !important;

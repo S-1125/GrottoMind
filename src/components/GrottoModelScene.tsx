@@ -59,8 +59,8 @@ const cameraStops = [
 const mobileCameraStops = [
   {
     // 全景
-    position: new THREE.Vector3(Math.sin(-0.62) * 3.5, -0.05, Math.cos(-0.62) * 3.5),
-    target: new THREE.Vector3(0, 0.75, 0),
+    position: new THREE.Vector3(Math.sin(-0.62) * 3.5, 0, Math.cos(-0.62) * 3.5),
+    target: new THREE.Vector3(0, 0.8, 0),
   },
   {
     // 塔刹
