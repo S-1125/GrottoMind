@@ -1953,6 +1953,16 @@ html.large-text {
   width: clamp(80px, 12vw, 180px);
 }
 
+/* 移动端隐藏透镜元件，以免遮挡模型 */
+@media (max-width: 768px) {
+  .stupa-lens-stage {
+    position: static;
+  }
+  .stupa-lens {
+    display: none !important;
+  }
+}
+
 .stupa-lens-stage {
   position: absolute;
   inset: 0;
@@ -4203,9 +4213,18 @@ html.large-text {
     display: none !important;
   }
 
-  /* 通过 CSS 修正模型渲染在手机端偏左的问题，并整体往下移动一点点，隐藏模型底部的扫描瑕疵 */
-  .grotto-model-scene {
+  /* 通过 CSS 修正模型渲染在手机端偏左的问题，并整体往下移动一点点，隐藏模型底部的扫描瑕疵（仅全景阶段生效） */
+  .grotto-model-scene.is-overview {
     transform: translate(4vw, 4vh);
+  }
+  
+  .grotto-model-scene {
+    transform: none; /* 细节镜头取消偏移，确保严格对齐 */
+  }
+
+  /* 同步下移文字悬浮层，让文字对准被下移的模型 */
+  .stupa-data-viz {
+    top: 4vh;
   }
 
   /* 重排引线文字以适配手机端（不使用 scale 变形，而是限制宽度和间距） */
@@ -4275,7 +4294,7 @@ html.large-text {
     margin-top: 20px;
   }
 
-  /* 故事面板同样改为底部半遮罩底板 */
+  /* 故事面板同样改为底部半遮罩底板，并极简化压缩 */
   .stupa-story-panel {
     position: fixed;
     right: 0;
@@ -4283,14 +4302,37 @@ html.large-text {
     top: auto;
     bottom: 0;
     width: 100vw;
-    max-height: 50vh;
+    max-height: 40vh; /* 进一步压缩高度，给模型留出更多空间 */
     overflow-y: auto;
-    background: linear-gradient(to top, rgba(10,9,8,1) 40%, rgba(10,9,8,0.7) 100%);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    padding: 30px 24px 80px 24px;
-    border-radius: 24px 24px 0 0;
-    border-top: 1px solid rgba(246, 206, 160, 0.15);
+    background: linear-gradient(to top, rgba(10,9,8,1) 30%, rgba(10,9,8,0.4) 100%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 24px 20px 80px 20px;
+    border-radius: 20px 20px 0 0;
+    border-top: 1px solid rgba(246, 206, 160, 0.1);
+  }
+
+  .stupa-story-panel h2 {
+    font-size: clamp(28px, 8vw, 36px);
+    margin: 4px 0 8px;
+  }
+
+  .stupa-story-panel p {
+    font-size: 13px;
+    line-height: 1.6;
+    letter-spacing: 0.02em;
+    color: rgba(255, 255, 255, 0.75);
+  }
+
+  .stupa-story-actions {
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  
+  .stupa-deep-read-btn {
+    font-size: 12px;
+    padding: 6px 14px;
   }
 
   /* 放大镜透镜在手机端缩小 */

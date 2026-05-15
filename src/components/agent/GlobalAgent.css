@@ -590,15 +590,16 @@
     height: 64px;
   }
 
-  /* 聊天面板：改为全宽、从底部弹出 */
+  /* 聊天面板：改为全屏弹出，完美适配键盘弹出时的 viewport (dvh) 自动缩放 */
   .ga-chat-panel {
     position: fixed;
     right: 0;
     bottom: 0;
     left: 0;
+    top: 0;
     width: 100vw;
-    height: 85dvh;
-    border-radius: 18px 18px 0 0;
+    height: 100dvh;
+    border-radius: 0; /* 移除圆角，呈现全屏沉浸态 */
     transform-origin: bottom center;
   }
 
@@ -621,9 +622,10 @@
     font-size: 14px;
   }
 
-  /* 输入框适配 */
+  /* 输入框适配：增加底部安全区 padding */
   .ga-input-bar {
-    padding: 8px 12px;
+    padding: 12px 16px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
   }
 
   .ga-input-bar input {

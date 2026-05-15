@@ -495,6 +495,7 @@ export function TimelineHall({ onDeepRead, onNextChapter, onGoToAI, isPaused }: 
       {/* 3D 模型场景 */}
       <GrottoModelScene
         ref={modelRef}
+        className={currentStop === 0 ? 'is-overview' : ''}
       />
       <div className="intro-film-grain" aria-hidden="true" />
 

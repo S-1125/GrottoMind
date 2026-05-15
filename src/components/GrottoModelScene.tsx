@@ -83,6 +83,7 @@ export interface GrottoModelSceneHandle {
 interface GrottoModelSceneProps {
   onLoadProgress?: (progress: number) => void
   onSceneReady?: () => void
+  className?: string
 }
 
 function loadTexture(loader: THREE.TextureLoader, url: string) {
@@ -118,7 +119,7 @@ async function hasGlbAsset() {
    内部 RAF 仅负责渲染和微小呼吸动效。
 ============================================================ */
 export const GrottoModelScene = forwardRef<GrottoModelSceneHandle, GrottoModelSceneProps>(
-  function GrottoModelScene({ onLoadProgress, onSceneReady }, ref) {
+  function GrottoModelScene({ onLoadProgress, onSceneReady, className = '' }, ref) {
     const containerRef = useRef<HTMLDivElement>(null)
     const loadCallbacksRef = useRef({ onLoadProgress, onSceneReady })
 
@@ -423,6 +424,6 @@ export const GrottoModelScene = forwardRef<GrottoModelSceneHandle, GrottoModelSc
       }
     }, [])
 
-    return <div ref={containerRef} className="grotto-model-scene" aria-hidden="true" />
+    return <div ref={containerRef} className={`grotto-model-scene ${className}`.trim()} aria-hidden="true" />
   }
 )
