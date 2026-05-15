@@ -1285,8 +1285,8 @@
   .fh-intro__grid { grid-template-columns: 1fr; gap: 48px; }
   .fh-intro__images { height: 400px; }
   .fh-hero__thumb { display: none; }
-  .fh-hero__desc { display: none; }
-  .fh-hero__featured { width: min(320px, 60vw); }
+  /* 不要在这里粗暴隐藏左侧文案，让手机端能够重新排版 */
+  .fh-hero__featured { width: min(400px, 80vw); }
 }
 
 @media (max-width: 768px) {
@@ -1306,8 +1306,38 @@
     border: 1px solid rgba(246, 206, 160, 0.15);
   }
   
-  /* 放大中间流体显影图片 */
-  .fh-hero__featured { width: 85vw; max-width: 400px; }
+  /* 放大中间流体显影图片，并稍微上移居中 */
+  .fh-hero__featured { 
+    width: 90vw !important; 
+    max-width: 100% !important;
+    top: 40%;
+    transform: translate(-50%, -50%);
+  }
+  
+  /* 恢复并重排左侧文案，放到大图下方 */
+  .fh-hero__desc {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    top: auto;
+    bottom: 12vh;
+    left: 20px;
+    right: 20px;
+    max-width: 100%;
+  }
+
+  .fh-hero__desc-text {
+    font-size: 14px;
+    line-height: 1.8;
+  }
+  
+  /* 底部 Awaken The Color 标题变小并往下沉 */
+  .fh-hero__title {
+    font-size: clamp(36px, 12vw, 60px);
+    bottom: 2vh;
+  }
+
   .fh-nav__toggle { display: flex; }
   .fh-nav__logo { position: static; transform: none; }
   .fh-intro__images { display: none; }

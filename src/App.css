@@ -4188,6 +4188,9 @@ html.large-text {
     gap: 6px;
   }
 
+  /* 隐藏左下角复杂的章节标题栏，因为会挡住模型 */
+  .timeline-hall-header { display: none !important; }
+
   /* 缩小"问窟 AI"快捷按钮，代替完全隐藏 */
   .fh-nav__contact {
     display: flex !important;
@@ -4198,27 +4201,33 @@ html.large-text {
     border: 1px solid rgba(246, 206, 160, 0.15);
   }
 
-  /* 隐藏右侧纹样节点进度条，使模型在视觉上居中 */
-  .timeline-node-index {
+  /* 隐藏右侧曼陀罗曲线节点导航 */
+  .curve-nav-index {
     display: none !important;
   }
 
-  /* ---------- 第一章：信息面板 → 底部全宽 ---------- */
+  /* 隐藏模型周围复杂的引线弹窗标签 */
+  .viz-node {
+    display: none !important;
+  }
+
+  /* ---------- 第一章：信息面板 → 底部沉浸式 ---------- */
   .stupa-info-panel {
     position: fixed;
-    right: auto;
-    left: 5vw;
+    right: 0;
+    left: 0;
     top: auto;
-    bottom: 12vh;
-    width: 90vw;
+    bottom: 0;
+    width: 100vw;
     transform: none;
-    max-height: 45vh;
+    max-height: 40vh;
     overflow-y: auto;
-    background: rgba(0, 0, 0, 0.75);
+    background: linear-gradient(to top, rgba(10,9,8,1) 40%, rgba(10,9,8,0.7) 100%);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    padding: 20px 24px;
-    border-radius: 12px;
+    padding: 30px 24px 80px 24px; /* 底部留白给安全区 */
+    border-radius: 24px 24px 0 0; /* 圆角底板 */
+    border-top: 1px solid rgba(246, 206, 160, 0.15);
   }
 
   .stupa-info-panel h2 {
@@ -4245,21 +4254,22 @@ html.large-text {
     margin-top: 20px;
   }
 
-  /* 故事面板同样改为底部全宽 */
+  /* 故事面板同样改为底部半遮罩底板 */
   .stupa-story-panel {
     position: fixed;
-    right: auto;
-    left: 5vw;
+    right: 0;
+    left: 0;
     top: auto;
-    bottom: 12vh;
-    width: 90vw;
-    max-height: 45vh;
+    bottom: 0;
+    width: 100vw;
+    max-height: 50vh;
     overflow-y: auto;
-    background: rgba(0, 0, 0, 0.75);
+    background: linear-gradient(to top, rgba(10,9,8,1) 40%, rgba(10,9,8,0.7) 100%);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    padding: 20px 24px;
-    border-radius: 12px;
+    padding: 30px 24px 80px 24px;
+    border-radius: 24px 24px 0 0;
+    border-top: 1px solid rgba(246, 206, 160, 0.15);
   }
 
   /* 放大镜透镜在手机端缩小 */
@@ -4268,9 +4278,9 @@ html.large-text {
     height: 100px;
   }
 
-  /* 节点索引条横排居中 */
+  /* 隐藏下方横向导航（如果有的话） */
   .timeline-node-index {
-    bottom: clamp(70px, 10vh, 100px);
+    display: none !important;
   }
 
   /* 滚动提示条适配 */
