@@ -388,11 +388,36 @@ export function InkReveal({ grayImageUrl, colorImageUrl, className = '', hardEdg
     mouse.moved = true
   }, [])
 
+  /* 触屏设备：将触摸坐标映射为鼠标坐标，驱动流体显影 */
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    const container = containerRef.current
+    if (!container) return
+
+    // 阻止触摸时页面跟着滚动（仅在 InkReveal 区域内）
+    e.stopPropagation()
+
+    const touch = e.touches[0]
+    const rect = container.getBoundingClientRect()
+    const nx = (touch.clientX - rect.left) / rect.width
+    const ny = 1.0 - (touch.clientY - rect.top) / rect.height
+
+    const mouse = mouseRef.current
+    if (mouse.x === 0 && mouse.y === 0) {
+      mouse.prevX = nx
+      mouse.prevY = ny
+    }
+    mouse.x = nx
+    mouse.y = ny
+    mouse.moved = true
+  }, [])
+
   return (
     <div
       ref={containerRef}
       className={`ink-reveal ${className}`}
       onMouseMove={handleMouseMove}
+      onTouchMove={handleTouchMove}
+      style={{ touchAction: 'none' }}
     />
   )
 }

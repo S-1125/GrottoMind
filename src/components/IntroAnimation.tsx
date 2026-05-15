@@ -108,6 +108,9 @@ export function IntroAnimation({ onEnter }: IntroAnimationProps) {
     let stepUnlockTimer: number | null = null
     let wheelHandler: ((event: WheelEvent) => void) | null = null
     let keyHandler: ((event: KeyboardEvent) => void) | null = null
+    let touchStartHandler: ((event: TouchEvent) => void) | null = null
+    let touchEndHandler: ((event: TouchEvent) => void) | null = null
+    let touchStartY = 0
 
     const previousBodyOverflow = document.body.style.overflow
     const previousHtmlOverflow = document.documentElement.style.overflow
@@ -244,6 +247,22 @@ export function IntroAnimation({ onEnter }: IntroAnimationProps) {
 
       window.addEventListener('wheel', wheelHandler, { passive: false, capture: true })
 
+      // 触屏设备：通过触摸滑动方向切换文案步骤
+      touchStartHandler = (event: TouchEvent) => {
+        touchStartY = event.touches[0].clientY
+      }
+      touchEndHandler = (event: TouchEvent) => {
+        if (!storyStarted) return
+        const deltaY = touchStartY - event.changedTouches[0].clientY
+        // 滑动距离超过 50px 才触发
+        if (Math.abs(deltaY) < 50) return
+        if (stepLocked) return
+        const direction = deltaY > 0 ? 1 : -1
+        scrollToStep(activeStep + direction)
+      }
+      window.addEventListener('touchstart', touchStartHandler, { passive: true, capture: true })
+      window.addEventListener('touchend', touchEndHandler, { passive: true, capture: true })
+
       keyHandler = (event: KeyboardEvent) => {
         if (event.key === 'Enter' && activeStep === lines.length - 1) {
           event.preventDefault()
@@ -312,6 +331,12 @@ export function IntroAnimation({ onEnter }: IntroAnimationProps) {
       video.removeEventListener('loadedmetadata', onLoadedMetadata)
       if (wheelHandler) {
         window.removeEventListener('wheel', wheelHandler, { capture: true })
+      }
+      if (touchStartHandler) {
+        window.removeEventListener('touchstart', touchStartHandler, { capture: true })
+      }
+      if (touchEndHandler) {
+        window.removeEventListener('touchend', touchEndHandler, { capture: true })
       }
       if (keyHandler) {
         window.removeEventListener('keydown', keyHandler)

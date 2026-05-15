@@ -2352,7 +2352,7 @@ html.large-text {
   display: grid;
   place-items: center;
   overflow: hidden;
-  touch-action: none;
+  touch-action: pan-y;
 }
 
 .stupa-deep-canvas img {

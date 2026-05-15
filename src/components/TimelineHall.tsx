@@ -452,7 +452,30 @@ export function TimelineHall({ onDeepRead, onNextChapter, onGoToAI, isPaused }: 
       go(stop + direction)
     }
     el.addEventListener('wheel', handler, { passive: false })
-    return () => el.removeEventListener('wheel', handler)
+
+    // 触屏设备：通过触摸滑动方向切换节点
+    let touchStartY = 0
+    const onTouchStart = (e: TouchEvent) => {
+      touchStartY = e.touches[0].clientY
+    }
+    const onTouchEnd = (e: TouchEvent) => {
+      if (isPausedRef.current) return
+      const deltaY = touchStartY - e.changedTouches[0].clientY
+      // 滑动距离超过 50px 才触发
+      if (Math.abs(deltaY) < 50) return
+      const { isAnimating: anim, currentStop: stop, transitionTo: go } = wheelStateRef.current
+      if (anim) return
+      const direction = deltaY > 0 ? 1 : -1
+      go(stop + direction)
+    }
+    el.addEventListener('touchstart', onTouchStart, { passive: true })
+    el.addEventListener('touchend', onTouchEnd, { passive: true })
+
+    return () => {
+      el.removeEventListener('wheel', handler)
+      el.removeEventListener('touchstart', onTouchStart)
+      el.removeEventListener('touchend', onTouchEnd)
+    }
   }, [])
 
   // ---- 渲染 ----
