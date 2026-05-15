@@ -54,30 +54,65 @@ const cameraStops = [
 ]
 
 /* ============================================================
+   移动端专属机位预设 (针对竖屏构图优化，防止裁切)
+============================================================ */
+const mobileCameraStops = [
+  {
+    // 全景
+    position: new THREE.Vector3(Math.sin(-0.62) * 3.5, -0.1, Math.cos(-0.62) * 3.5),
+    target: new THREE.Vector3(0, 0.6, 0),
+  },
+  {
+    // 塔刹
+    position: new THREE.Vector3(-0.25, 1.5, 1.2),
+    target: new THREE.Vector3(0, 1.35, 0),
+  },
+  {
+    // 密檐
+    position: new THREE.Vector3(-0.5, 0.7, 1.8),
+    target: new THREE.Vector3(0, 0.8, 0),
+  },
+  {
+    // 佛龛
+    position: new THREE.Vector3(-0.4, 0.75, 1.3),
+    target: new THREE.Vector3(0, 0.65, 0),
+  },
+  {
+    // 天王 (修复头部被切，整体向上看)
+    position: new THREE.Vector3(-1.1, 0.35, 0.5),
+    target: new THREE.Vector3(0.15, 0.5, 0.14),
+  },
+  {
+    // 菩萨 (修复视角偏离，正确看向左侧面)
+    position: new THREE.Vector3(-1.4, 0.3, -0.1),
+    target: new THREE.Vector3(-0.3, 0.5, 0.15),
+  },
+  {
+    // 塔基 (修复穿模，稍微抬高相机)
+    position: new THREE.Vector3(0.18, -0.1, 1.7),
+    target: new THREE.Vector3(0, 0.25, 0),
+  },
+  {
+    // 八相成道图 (修复底部截断穿模，抬高机位)
+    position: new THREE.Vector3(-0.82, 0.05, 1.35),
+    target: new THREE.Vector3(0.2, 0.25, 0.04),
+  },
+]
+
+/* ============================================================
    根据 progress (0~1) 在停靠点间插值计算相机姿态
 ============================================================ */
 function getCameraPose(progress: number) {
-  const p = THREE.MathUtils.clamp(progress, 0, 1) * (cameraStops.length - 1)
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768
+  const stops = isMobile ? mobileCameraStops : cameraStops
+  const p = THREE.MathUtils.clamp(progress, 0, 1) * (stops.length - 1)
   const i = Math.min(cameraStops.length - 2, Math.floor(p))
   const t = p - i
   // smoothstep 缓动
   const s = t * t * (3 - 2 * t)
   
-  const position = cameraStops[i].position.clone().lerp(cameraStops[i + 1].position, s)
-  const target = cameraStops[i].target.clone().lerp(cameraStops[i + 1].target, s)
-
-  // 移动端补偿：如果屏幕窄，说明是竖屏，强制将注视点拉回画面中心，并把整体模型往上推（向下偏折相机）
-  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768
-  if (isMobile && progress > 0.05) {
-    // 拉回 X 轴居中 (0 是模型的绝对中心)
-    // 根据进度渐变，避免第一幕（全景）发生跳变
-    const mobileWeight = Math.min(1, (progress - 0.05) * 5)
-    target.x = THREE.MathUtils.lerp(target.x, 0, mobileWeight)
-    
-    // 相机向下移动，则画面中的模型会上移（补偿底部 UI 的遮挡）
-    target.y -= 0.2 * mobileWeight
-    position.y -= 0.2 * mobileWeight
-  }
+  const position = stops[i].position.clone().lerp(stops[i + 1].position, s)
+  const target = stops[i].target.clone().lerp(stops[i + 1].target, s)
 
   return { position, target }
 }
@@ -145,20 +180,23 @@ export const GrottoModelScene = forwardRef<GrottoModelSceneHandle, GrottoModelSc
     const sceneInternals = useRef<{
       camera: THREE.PerspectiveCamera
       currentTarget: THREE.Vector3
+      targetPose: { position: THREE.Vector3; target: THREE.Vector3 }
     } | null>(null)
 
-    // 记录是否处于轨道模式
+    // 控制是否进入轨道环绕模式（八相成道特写）
     const isOrbitingRef = useRef(false)
+    // 累加计算轨道旋转角度
     const orbitAngleRef = useRef(0)
 
     useImperativeHandle(ref, () => ({
       setCameraProgress(progress: number) {
         if (!sceneInternals.current) return
-        const { camera, currentTarget } = sceneInternals.current
+        const { targetPose } = sceneInternals.current
         const pose = getCameraPose(progress)
-        camera.position.copy(pose.position)
-        currentTarget.copy(pose.target)
-        camera.lookAt(pose.target)
+        
+        // 更新目标位置，而不直接硬切相机位置。动画循环会自动插值过去，消除 GSAP 掉帧造成的跳变。
+        targetPose.position.copy(pose.position)
+        targetPose.target.copy(pose.target)
       },
       setOrbitMode(isOrbit: boolean) {
         isOrbitingRef.current = isOrbit
@@ -256,13 +294,19 @@ export const GrottoModelScene = forwardRef<GrottoModelSceneHandle, GrottoModelSc
 
       // ---- 初始相机姿态 ----
       const currentTarget = new THREE.Vector3()
+      const targetPose = {
+        position: new THREE.Vector3(),
+        target: new THREE.Vector3()
+      }
       const initialPose = getCameraPose(0)
       camera.position.copy(initialPose.position)
       currentTarget.copy(initialPose.target)
+      targetPose.position.copy(initialPose.position)
+      targetPose.target.copy(initialPose.target)
       camera.lookAt(currentTarget)
 
       // 保存供 imperative handle 使用
-      sceneInternals.current = { camera, currentTarget }
+      sceneInternals.current = { camera, currentTarget, targetPose }
 
       // ---- 加载模型 ----
       const manager = new THREE.LoadingManager()
@@ -376,23 +420,34 @@ export const GrottoModelScene = forwardRef<GrottoModelSceneHandle, GrottoModelSc
 
       // ---- 渲染循环：仅渲染 + 呼吸微动 / 轨道自转 ----
       const startTime = performance.now()
+      let lastTime = startTime
       let raf = 0
       const animate = () => {
-        const elapsed = (performance.now() - startTime) / 1000
+        const now = performance.now()
+        const elapsed = (now - startTime) / 1000
+        const delta = Math.min((now - lastTime) / 1000, 0.05) // 防止切后台时 delta 过大导致瞬移
+        lastTime = now
 
         if (isOrbitingRef.current) {
           // 轨道模式：缓慢顺时针持续旋转 (每秒约 2 度)
           orbitAngleRef.current += 0.0005
-        } else if (orbitAngleRef.current !== 0) {
-          // 退出轨道模式时，平滑地将轨道累加角度归零，让模型优雅地“转回正轨”
-          // 1. 将角度取模，避免观看太久后多圈疯狂反转，寻找最短回归路径
-          orbitAngleRef.current = orbitAngleRef.current % (Math.PI * 2)
-          if (orbitAngleRef.current > Math.PI) orbitAngleRef.current -= Math.PI * 2
-          else if (orbitAngleRef.current < -Math.PI) orbitAngleRef.current += Math.PI * 2
-          
-          // 2. 阻尼平滑回正
-          orbitAngleRef.current = THREE.MathUtils.lerp(orbitAngleRef.current, 0, 0.05)
-          if (Math.abs(orbitAngleRef.current) < 0.001) orbitAngleRef.current = 0
+        } else {
+          if (orbitAngleRef.current !== 0) {
+            // 退出轨道模式时，平滑地将轨道累加角度归零，让模型优雅地“转回正轨”
+            // 1. 将角度取模，避免观看太久后多圈疯狂反转，寻找最短回归路径
+            orbitAngleRef.current = orbitAngleRef.current % (Math.PI * 2)
+            if (orbitAngleRef.current > Math.PI) orbitAngleRef.current -= Math.PI * 2
+            else if (orbitAngleRef.current < -Math.PI) orbitAngleRef.current += Math.PI * 2
+            
+            // 2. 阻尼平滑回正
+            orbitAngleRef.current = THREE.MathUtils.lerp(orbitAngleRef.current, 0, 0.05)
+            if (Math.abs(orbitAngleRef.current) < 0.001) orbitAngleRef.current = 0
+          }
+
+          // 平滑插值相机位置，解决由于 GSAP + React 重渲染掉帧导致的跳变卡顿问题
+          const dampFactor = 1 - Math.exp(-8 * delta)
+          camera.position.lerp(targetPose.position, dampFactor)
+          currentTarget.lerp(targetPose.target, dampFactor)
         }
 
         // 叠加基础旋转 + 呼吸微动 + 轨道累加旋转 (基础旋转现已改为 Math.PI 以展示背面)

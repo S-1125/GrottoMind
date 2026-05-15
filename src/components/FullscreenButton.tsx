@@ -72,7 +72,7 @@ export function FullscreenButton() {
 
   return (
     <button
-      className={`intro-ctrl-btn ${isFullscreen ? 'is-active' : ''}`}
+      className={`intro-ctrl-btn fullscreen-btn ${isFullscreen ? 'is-active' : ''}`}
       aria-label={isFullscreen ? '退出全屏' : '进入全屏'}
       aria-pressed={isFullscreen}
       onClick={toggleFullscreen}

@@ -4266,8 +4266,8 @@ html.large-text {
     position: fixed;
     right: auto;
     left: 20px;
-    top: 15vh; /* 移到屏幕左上方的空白区域 */
-    bottom: auto;
+    top: auto;
+    bottom: 120px; /* 移到底部，上方留出模型展示空间 */
     width: auto;
     max-width: 80vw;
     transform: none;
@@ -4320,16 +4320,24 @@ html.large-text {
     display: none !important;
   }
 
+  /* 手机端隐藏除了全屏以外的其他所有右下角控制按钮 */
+  .intro-ctrl-btn:not(.fullscreen-btn) {
+    display: none !important;
+  }
+
   /* 移动端专属滑动提示文案替换与位置调整 */
   .timeline-scroll-hint {
-    display: block !important; /* 恢复显示 */
+    display: block !important;
     position: fixed;
-    top: calc(15vh + 120px); /* 放置在标题的下方 */
-    left: 20px;
-    bottom: auto;
-    color: rgba(255, 255, 255, 0.8);
+    top: auto !important;
+    bottom: 60px !important; /* 置于信息面板下方 */
+    left: 0 !important;
+    width: 100% !important;
+    text-align: center !important;
+    color: rgba(255, 255, 255, 0.6);
     font-size: 0 !important; /* 隐藏原有的 PC 端文案 */
     text-shadow: 0 1px 5px rgba(0, 0, 0, 0.8);
+    pointer-events: none;
   }
 
   /* 通过 ::after 伪元素注入移动端文案 */
