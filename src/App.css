@@ -4323,11 +4323,8 @@ html.large-text {
   /* ---------- 手机端顶部控制栏 ---------- */
   .timeline-top-nav {
     top: 20px !important;
-    left: 50% !important;
-    right: auto !important;
-    transform: translateX(-50%) !important;
+    right: 16px !important;
     gap: 8px !important;
-    width: fit-content !important;
   }
 
   /* 统一三个按钮的风格：胶囊形、同高度、同边框 */

@@ -506,8 +506,8 @@ export function TimelineHall({ onDeepRead, onNextChapter, onGoToAI, isPaused }: 
         <div className="site-logo-img-en" />
       </div>
 
-      {/* 顶部快捷入口（居中排列，包含问窟AI、下一章、全屏） */}
-      <div className="timeline-top-nav">
+      {/* 顶部快捷入口（包含问窟AI、下一章、全屏，统一样式） */}
+      <div className="timeline-top-nav" style={{ position: 'fixed', top: 20, right: 20, zIndex: 999, display: 'flex', alignItems: 'center', gap: '8px' }}>
         <button 
           className="fh-nav__contact" 
           onClick={(e) => { e.preventDefault(); onGoToAI?.(); }}
