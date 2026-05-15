@@ -832,22 +832,55 @@
    仅追加覆盖规则，桌面端代码零改动
    ========================================================================== */
 @media (max-width: 768px) {
-
-  /* 导航栏适配 */
+  /* 导航栏适配：修正重叠问题，采用磨砂玻璃背景并隐藏中间文字 */
   .gh-nav {
     padding: 0 16px;
-    height: 48px;
+    height: 52px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    z-index: 50;
+    background: rgba(10, 10, 10, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .gh-nav__center {
+    display: none; /* 隐藏大字标题以节省横向空间，避免重叠 */
   }
 
   .gh-nav__back {
-    font-size: 12px;
+    font-size: 13px;
     padding: 4px 8px;
+    background: transparent;
+  }
+  
+  .gh-nav__lit {
+    font-size: 12px;
+    padding: 4px 10px;
+  }
+
+  /* 问窟主界面：添加下半部深色遮罩，提升白色文字和按钮的清晰度 */
+  .grotto-hub::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 40%, rgba(0,0,0,0) 100%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .gh-main {
+    padding-top: 56px; /* 让出导航栏空间 */
+    z-index: 2; /* 浮于遮罩之上 */
   }
 
   /* 大标题适配 */
   .gh-title {
     font-size: 24px;
-    margin-bottom: 32px;
+    margin-bottom: 24px;
     letter-spacing: 0.06em;
     padding: 0 16px;
   }
@@ -863,7 +896,7 @@
     padding: 8px 16px;
   }
 
-  /* 电影字幕区域适配 */
+  /* 电影字幕区域适配（问窟 AI 回答区） */
   .gh-cinematic-area {
     max-width: 100%;
     padding: 0 20px;
@@ -872,11 +905,31 @@
   .gh-cinematic-ai {
     font-size: 15px;
     line-height: 1.9;
+    margin-bottom: 16px; /* 和操作按钮拉开距离 */
+  }
+  
+  /* 操作按钮区域适配 */
+  .gh-cinematic-actions {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(246, 206, 160, 0.15); /* 加一条分界线与文字隔离 */
+    justify-content: flex-start;
+  }
+
+  .gh-action-btn--save {
+    font-size: 12px;
+    padding: 6px 14px;
+  }
+
+  .gh-action-icon {
+    width: 32px;
+    height: 32px;
   }
 
   /* 底部输入区适配 */
   .gh-dock {
-    padding: 8px 12px;
+    padding: 10px 16px 16px 16px;
+    z-index: 10;
   }
 
   .gh-dock-inner {
@@ -886,5 +939,6 @@
 
   .gh-dock__input {
     font-size: 15px;
+    padding: 14px 44px 14px 20px;
   }
 }

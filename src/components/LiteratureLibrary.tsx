@@ -199,7 +199,7 @@ export function LiteratureLibrary({ onBack, autoSelectTitle, autoScrollSnippet }
       </nav>
 
       {/* 核心布局 */}
-      <div className="ll-container">
+      <div className={`ll-container ${activeDoc ? 'has-active-doc' : ''}`}>
         {/* 左侧：文献列表 */}
         <aside className="ll-sidebar">
           <div className="ll-sidebar__header">
@@ -249,6 +249,13 @@ export function LiteratureLibrary({ onBack, autoSelectTitle, autoScrollSnippet }
             </div>
           ) : (
             <div className="ll-content__reader">
+              {/* 移动端专属：返回文献列表 */}
+              <button className="ll-mobile-back" onClick={() => setActiveDoc(null)}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M10 3L5 8L10 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                返回列表
+              </button>
 
               {/* ——— 标题行 ——— */}
               <div className="ll-reader__title-row">

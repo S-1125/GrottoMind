@@ -209,6 +209,11 @@
 }
 
 /* 阅读器内部 */
+/* 移动端专属返回按钮默认隐藏 */
+.ll-mobile-back {
+  display: none;
+}
+
 .ll-content__reader {
   width: 100%;
   max-width: 900px;
@@ -559,4 +564,66 @@
   0% { background: rgba(255, 255, 255, 0.2); }
   70% { background: rgba(255, 255, 255, 0.1); }
   100% { background: transparent; border-left-color: transparent; }
+}
+
+/* ==========================================================================
+   移动端适配 — 文献库单列路由切换 (≤768px)
+   ========================================================================== */
+@media (max-width: 768px) {
+  .ll-container {
+    flex-direction: column;
+    height: calc(100dvh - 60px);
+  }
+
+  /* 默认状态下隐藏阅读区，让侧边栏撑满 100% 宽度 */
+  .ll-container:not(.has-active-doc) .ll-content {
+    display: none;
+  }
+  .ll-container:not(.has-active-doc) .ll-sidebar {
+    width: 100%;
+    border-right: none;
+  }
+
+  /* 活动状态下隐藏左侧列表，让阅读区撑满 100% 宽度 */
+  .ll-container.has-active-doc .ll-sidebar {
+    display: none;
+  }
+  .ll-container.has-active-doc .ll-content {
+    width: 100%;
+    padding: 16px;
+  }
+
+  /* 移动端顶部导航 */
+  .ll-nav {
+    padding: 0 16px;
+    height: 52px;
+  }
+  .ll-nav__title-main {
+    font-size: 16px;
+  }
+  .ll-nav__title-sub {
+    font-size: 8px;
+  }
+
+  /* 返回列表按钮 */
+  .ll-mobile-back {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: transparent;
+    border: none;
+    color: rgba(246, 206, 160, 0.8);
+    font-size: 14px;
+    padding: 8px 0 16px 0;
+    cursor: pointer;
+  }
+
+  /* 阅读区文字适配 */
+  .ll-reader__title {
+    font-size: 18px;
+  }
+  .ll-markdown {
+    font-size: 15px;
+    line-height: 1.8;
+  }
 }
