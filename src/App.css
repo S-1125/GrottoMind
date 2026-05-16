@@ -4392,26 +4392,33 @@ html.large-text {
     display: none !important;
   }
 
-  /* 移动端专属滑动提示文案替换与位置调整 */
+  /* 移动端彻底隐藏文字面板，保持纯净画面 */
+  .stupa-info-panel {
+    display: none !important;
+  }
+
+  /* 移动端专属滑动提示文案替换与位置调整：竖排放在右上方（避开顶部按钮） */
   .timeline-scroll-hint {
     display: block !important;
     position: fixed;
-    top: auto !important;
-    bottom: 60px !important; /* 置于信息面板下方 */
-    left: 0 !important;
-    width: 100% !important;
-    text-align: center !important;
+    top: 80px !important; /* 置于顶部按钮群的下方 */
+    bottom: auto !important;
+    right: 20px !important;
+    left: auto !important;
+    width: auto !important;
+    writing-mode: vertical-rl; /* 竖排方向 */
+    text-align: left !important;
     color: rgba(255, 255, 255, 0.6);
     font-size: 0 !important; /* 隐藏原有的 PC 端文案 */
     text-shadow: 0 1px 5px rgba(0, 0, 0, 0.8);
     pointer-events: none;
+    letter-spacing: 0.15em !important; /* 竖排增加一点间距更透气 */
   }
 
   /* 通过 ::after 伪元素注入移动端文案 */
   .timeline-scroll-hint::after {
     content: "上下滑动屏幕，游览局部";
     font-size: 12px;
-    letter-spacing: 0.1em;
   }
 
   /* 放大镜透镜在手机端缩小 */
