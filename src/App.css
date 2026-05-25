@@ -1971,7 +1971,7 @@ html.large-text {
 }
 
 .stupa-lens {
-  --detail-image: url('/assets/qixia-model/3DModel.jpg');
+  --detail-image: url('/assets/qixia-model/qixia-stupa-texture.jpg');
   --detail-position: 50% 50%;
   position: absolute;
   display: grid;
@@ -2514,7 +2514,7 @@ html.large-text {
 }
 
 .timeline-magnifier {
-  --detail-image: url('/assets/qixia-model/3DModel.jpg');
+  --detail-image: url('/assets/qixia-model/qixia-stupa-texture.jpg');
   --detail-position: 50% 50%;
   position: absolute;
   display: grid;

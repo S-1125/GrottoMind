@@ -1306,11 +1306,11 @@
     border: 1px solid rgba(246, 206, 160, 0.15);
   }
   
-  /* 放大中间流体显影图片，并稍微上移居中 */
+  /* 放大中间流体显影图片，并稍微上移居中。使用 200vw 配合父级的 overflow:hidden 实现居中裁切放大 */
   .fh-hero__featured { 
-    width: 90vw !important; 
-    max-width: 100% !important;
-    top: 40%;
+    width: 200vw !important; 
+    max-width: none !important;
+    top: 45%;
     transform: translate(-50%, -50%);
   }
   
@@ -1368,7 +1368,9 @@
   position: absolute;
   inset: 0;
   z-index: 1;
-  background-image: url('/章节2素材/栖霞山石窟艺术海报.jpg');
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.62), rgba(0, 0, 0, 0.72)),
+    url('/章节2素材/颜料考古背景.webp');
   background-size: cover;
   background-position: center center;
   opacity: 1;

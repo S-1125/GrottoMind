@@ -605,7 +605,7 @@ export function FadingHall({ onBack, onNext }: FadingHallProps) {
                 onMouseLeave={handleCardMouseLeave}
                 onClick={() => handleCardClick(1)}
               >
-                <img src="/章节2素材/文殊造像复原/无色彩石刻复原.jpg" alt="石刻复原" className="fh-recolor-process__img" />
+                <img src="/章节2素材/无色彩石刻复原.webp" alt="石刻复原" className="fh-recolor-process__img" />
                 <div className="fh-recolor-process__card-label">肌理重塑</div>
               </div>
               {/* 卡片 2：复彩 */}
@@ -615,7 +615,7 @@ export function FadingHall({ onBack, onNext }: FadingHallProps) {
                 onMouseLeave={handleCardMouseLeave}
                 onClick={() => handleCardClick(2)}
               >
-                <img src="/章节2素材/文殊造像复原/复彩后.jpg" alt="数字复彩" className="fh-recolor-process__img" />
+                <img src="/章节2素材/复彩.webp" alt="数字复彩" className="fh-recolor-process__img" />
                 <div className="fh-recolor-process__card-label">数字复彩</div>
               </div>
             </div>

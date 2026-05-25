@@ -9,6 +9,8 @@ export default defineConfig({
   },
   server: {
     host: '0.0.0.0',
+    port: 5180,
+    strictPort: true,
     proxy: {
       // Python FastAPI 后端（独立部署）
       '/api/agent': 'http://localhost:8788',

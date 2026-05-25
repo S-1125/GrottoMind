@@ -16,7 +16,11 @@ from dotenv import load_dotenv
 import rag
 
 # 自动加载根目录下的 .env 文件
-load_dotenv(os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env"))
+SERVER_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(SERVER_DIR)
+KNOWLEDGE_DIR = os.path.join(SERVER_DIR, "knowledge")
+
+load_dotenv(os.path.join(PROJECT_ROOT, ".env"))
 
 # ————————————————————————————————————————————
 # 配置
@@ -97,7 +101,7 @@ SYSTEM_PROMPT = """你是"问窟者"，栖霞山石窟造像数字复彩档案�
 app = FastAPI(title="GrottoMind Agent API")
 
 # 允许前端跨域访问（生产环境请设置 ALLOWED_ORIGINS 环境变量为前端域名）
-ALLOWED_ORIGINS = os.environ.get("ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:3000").split(",")
+ALLOWED_ORIGINS = os.environ.get("ALLOWED_ORIGINS", "http://localhost:5180,http://localhost:3000").split(",")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
@@ -120,7 +124,7 @@ async def health_check():
 @app.get("/api/literature")
 async def get_literature():
     """获取本地知识库中的文献列表（过滤掉 hidden 内部文献）"""
-    meta_path = os.path.join("knowledge", "metadata.json")
+    meta_path = os.path.join(KNOWLEDGE_DIR, "metadata.json")
     if os.path.exists(meta_path):
         with open(meta_path, "r", encoding="utf-8") as f:
             all_docs = json.load(f)
@@ -185,12 +189,12 @@ def clean_notebooklm_text(text: str) -> str:
 async def summarize_literature(filename: str):
     """用 Gemini Pro 为单篇文献生成全文摘要和关键词"""
     safe_filename = os.path.basename(filename)
-    file_path = os.path.join("knowledge", safe_filename)
+    file_path = os.path.join(KNOWLEDGE_DIR, safe_filename)
     if not os.path.exists(file_path):
         return JSONResponse({"error": "文献不存在"}, status_code=404)
 
     # 改为读取本地静态 JSON 缓存
-    summary_path = os.path.join("knowledge", safe_filename.replace('.txt', '_summary.json'))
+    summary_path = os.path.join(KNOWLEDGE_DIR, safe_filename.replace('.txt', '_summary.json'))
     if not os.path.exists(summary_path):
         return JSONResponse({"error": "摘要尚未生成，请稍后刷新。"}, status_code=404)
 
@@ -206,7 +210,7 @@ async def get_literature_content(filename: str):
     """获取单篇文献的原始文本内容（已清洗）"""
     # 防止路径穿越
     safe_filename = os.path.basename(filename)
-    file_path = os.path.join("knowledge", safe_filename)
+    file_path = os.path.join(KNOWLEDGE_DIR, safe_filename)
     if os.path.exists(file_path):
         with open(file_path, "r", encoding="utf-8") as f:
             raw_text = f.read()

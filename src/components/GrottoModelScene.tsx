@@ -5,9 +5,9 @@ import { OBJLoader } from 'three/addons/loaders/OBJLoader.js'
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
 import gsap from 'gsap'
 
-const MODEL_TEXTURE_URL = '/assets/qixia-model/3DModel.jpg'
-const MODEL_GLB_URL = '/assets/qixia-model/3DModel0.glb'
-const MODEL_OBJ_URL = '/assets/qixia-model/3DModel0.obj'
+const MODEL_TEXTURE_URL = '/assets/qixia-model/qixia-stupa-texture.jpg'
+const MODEL_GLB_URL = '/assets/qixia-model/qixia-stupa.glb'
+const MODEL_OBJ_URL = '/assets/qixia-model/qixia-stupa.obj'
 const DRACO_DECODER_PATH = '/assets/draco/'
 
 /* ============================================================
@@ -288,7 +288,7 @@ export const GrottoModelScene = forwardRef<GrottoModelSceneHandle, GrottoModelSc
       const displayGroup = new THREE.Group()
       displayGroup.name = "StandardDisplayGroup"
       displayGroup.rotation.y = Math.PI // 旋转 180 度展示背面
-      displayGroup.position.set(0, 0.95, 0) // 整体抬高以适应镜头
+      displayGroup.position.set(0, 0.92, 0.1) // 整体抬高以适应镜头
       scene.add(displayGroup)
 
       // 层级 2: 物理校准组 (专门用于抵消扫描模型本身的物理倾斜)
@@ -386,7 +386,7 @@ export const GrottoModelScene = forwardRef<GrottoModelSceneHandle, GrottoModelSc
         box.getSize(size)
         box.getCenter(center)
         object.position.sub(center)
-        object.scale.multiplyScalar(2.1 / Math.max(size.x, size.y, size.z))
+        object.scale.multiplyScalar(2.2 / Math.max(size.x, size.y, size.z))
         object.traverse((child) => {
           if (child instanceof THREE.Mesh) {
             child.material = material

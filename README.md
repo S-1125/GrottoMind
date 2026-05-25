@@ -153,30 +153,37 @@ Gemini 3.1 Pro 生成带引用的回复
 
 ## 本地运行
 
+本项目本地开发采用两层隔离：
+
+- 前端依赖安装在项目内 `node_modules/`，Node 版本由 `.nvmrc` 指定为 22。
+- Python 后端依赖安装在项目内 `.venv/`，不会污染系统 Python，也不会提交到 Git。
+
 ```bash
-# 1. 前端依赖
+# 1. 使用项目指定的 Node 版本（如果你使用 nvm）
+nvm use
+
+# 2. 安装前端依赖
 npm install
 
-# 2. 后端依赖 (推荐使用 conda/venv)
-cd server
-pip install -r requirements.txt
+# 3. 创建 Python 虚拟环境并安装后端依赖
+npm run setup:python
 
-# 3. 配置环境变量
+# 4. 配置环境变量
 cp .env.example .env
 # 编辑 .env，填入 GEMINI_API_KEY
 
-# 4. 构建向量索引（首次运行）
-cd server && python3 rag.py
+# 5. 构建向量索引（首次运行）
+npm run rag:build
 
-# 5. 启动开发服务器（前端 + 后端分别启动）
-# 终端 1:
-npm run dev
-# 终端 2:
-cd server && python3 main.py
+# 6. 启动本地开发环境（前端 + Express API + FastAPI）
+npm run dev:local
 ```
 
-- 前端：`http://localhost:5173`
-- 后端 API：`http://localhost:8788`
+如果 `npm run setup:python` 因网络代理无法下载依赖，先确认终端可以访问 Python 包源，然后重新运行同一条命令。
+
+- 前端：`http://localhost:5180`
+- Express API：`http://localhost:8787`
+- Python FastAPI：`http://localhost:8788`
 
 ## 项目结构
 
@@ -237,14 +244,16 @@ cd server && python3 main.py
 
 ```bash
 # 前端
-npm run dev              # 启动前端开发环境
-npm run build            # 生产构建
-npm run lint             # 代码检查
+npm run dev:client              # 启动前端开发环境
+npm run dev:api                 # 启动 Express / Vercel Serverless API
+npm run build                   # 生产构建
+npm run lint                    # 代码检查
 
 # 后端
-cd server && python3 main.py       # 启动后端服务
-cd server && python3 rag.py        # 重建向量索引
-cd server && python3 batch_summarize.py  # 批量生成文献摘要
+npm run setup:python            # 创建 .venv 并安装 Python 依赖
+npm run dev:python              # 使用 .venv 启动 FastAPI 后端
+npm run rag:build               # 使用 .venv 重建向量索引
+npm run dev:local               # 同时启动前端、Express API、FastAPI
 ```
 
 ## 设计原则
