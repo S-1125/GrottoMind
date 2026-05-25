@@ -883,7 +883,7 @@ export function FadingHall({ onBack, onNext }: FadingHallProps) {
                 <a href="#video-section" className="fh-intro__link">探索算法溯源</a>
               </div>
               <div className="fh-intro__images">
-                <img src="/章节2素材/TD粒子截图/截屏2026-04-17 22.30.49.png" alt="TD粒子造像-金" className="fh-intro__img fh-intro__img--1 fh-fade-in" />
+                <img src="/章节2素材/组 5.jpg" alt="TD粒子造像-金" className="fh-intro__img fh-intro__img--1 fh-fade-in" />
                 <img src="/章节2素材/TD粒子截图/截屏2026-04-18 17.02.48.png" alt="TD粒子点云" className="fh-intro__img fh-intro__img--2 fh-fade-in" />
                 <img src="/章节2素材/TD粒子截图/截屏2026-04-17 22.56.20.png" alt="TD粒子造像" className="fh-intro__img fh-intro__img--3 fh-fade-in" />
               </div>
