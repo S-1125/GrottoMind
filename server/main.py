@@ -28,8 +28,8 @@ load_dotenv(os.path.join(PROJECT_ROOT, ".env"))
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 if not GEMINI_API_KEY:
     print("⚠️  警告：GEMINI_API_KEY 未设置，AI 对话将不可用。请在环境变量中配置。")
-MODEL_ID = "gemini-3.1-flash-lite-preview"       # 对话模型（已验证可用）
-SUMMARY_MODEL_ID = "gemini-3.1-flash-lite-preview"  # 摘要模型（已验证可用）
+MODEL_ID = "gemini-3.1-flash-lite"       # 对话模型（已验证可用）
+SUMMARY_MODEL_ID = "gemini-3.1-flash-lite"  # 摘要模型（已验证可用）
 
 # 初始化客户端
 client = genai.Client(api_key=GEMINI_API_KEY)
