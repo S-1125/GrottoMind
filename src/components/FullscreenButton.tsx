@@ -1,62 +1,67 @@
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
 
-type WebkitFullscreenDocument = Document & {
-  webkitFullscreenElement?: Element | null
-  webkitExitFullscreen?: () => Promise<void> | void
-}
-
-type WebkitFullscreenElement = HTMLElement & {
-  webkitRequestFullscreen?: () => Promise<void> | void
-}
-
-function getFullscreenElement() {
-  const webkitDocument = document as WebkitFullscreenDocument
-  return document.fullscreenElement ?? webkitDocument.webkitFullscreenElement ?? null
-}
-
-async function requestPageFullscreen() {
-  const root = document.documentElement as WebkitFullscreenElement
-
-  if (root.requestFullscreen) {
-    await root.requestFullscreen()
-    return
-  }
-
-  await root.webkitRequestFullscreen?.()
-}
-
-async function exitPageFullscreen() {
-  const webkitDocument = document as WebkitFullscreenDocument
-
-  if (document.exitFullscreen) {
-    await document.exitFullscreen()
-    return
-  }
-
-  await webkitDocument.webkitExitFullscreen?.()
-}
-
-/* ============================================================
-   FullscreenButton: 右下角全屏控制按钮
-   兼容标准 Fullscreen API 与 Safari 的 webkit 前缀。
-============================================================ */
 export function FullscreenButton() {
   const [isFullscreen, setIsFullscreen] = useState(false)
+
+  const isFullscreenAvailable = () => {
+    return Boolean(
+      document.fullscreenEnabled ??
+      (document as Document & { webkitFullscreenEnabled?: boolean }).webkitFullscreenEnabled ??
+      false
+    )
+  }
+
+  const getFullscreenElement = () => {
+    const webkitDocument = document as Document & { webkitFullscreenElement?: Element }
+    return document.fullscreenElement ?? webkitDocument.webkitFullscreenElement ?? null
+  }
+
+  const requestPageFullscreen = async () => {
+    const docEl = document.documentElement as HTMLElement & {
+      webkitRequestFullscreen?: () => Promise<void>
+    }
+
+    if (docEl.requestFullscreen) {
+      await docEl.requestFullscreen()
+      return
+    }
+
+    if (docEl.webkitRequestFullscreen) {
+      await docEl.webkitRequestFullscreen()
+    }
+  }
+
+  const exitPageFullscreen = async () => {
+    const doc = document as Document & {
+      webkitExitFullscreen?: () => Promise<void>
+    }
+
+    if (doc.exitFullscreen) {
+      await doc.exitFullscreen()
+      return
+    }
+
+    if (doc.webkitExitFullscreen) {
+      await doc.webkitExitFullscreen()
+    }
+  }
 
   useEffect(() => {
     const syncFullscreenState = () => {
       setIsFullscreen(Boolean(getFullscreenElement()))
     }
 
+    syncFullscreenState()
     document.addEventListener('fullscreenchange', syncFullscreenState)
     document.addEventListener('webkitfullscreenchange', syncFullscreenState)
-    syncFullscreenState()
 
     return () => {
       document.removeEventListener('fullscreenchange', syncFullscreenState)
       document.removeEventListener('webkitfullscreenchange', syncFullscreenState)
     }
   }, [])
+
+  if (!isFullscreenAvailable()) return null
 
   const toggleFullscreen = async () => {
     try {
@@ -76,12 +81,9 @@ export function FullscreenButton() {
       aria-label={isFullscreen ? '退出全屏' : '进入全屏'}
       aria-pressed={isFullscreen}
       onClick={toggleFullscreen}
+      title={isFullscreen ? '退出全屏 (ESC)' : '进入全屏'}
     >
-      <svg className="ctrl-btn-outline" viewBox="0 0 50 50" aria-hidden="true">
-        <rect width="48.25" height="48.25" strokeWidth="1.75" x="0.5" y="0.5" rx="16" />
-      </svg>
-      <span className="ctrl-btn-bg" />
-      <svg className="ctrl-icon fullscreen-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <svg className="ctrl-icon fullscreen-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         {isFullscreen ? (
           <>
             <path d="M8 3v5H3" />
@@ -91,10 +93,10 @@ export function FullscreenButton() {
           </>
         ) : (
           <>
-            <path d="M8 3H3v5" />
-            <path d="M16 3h5v5" />
-            <path d="M8 21H3v-5" />
-            <path d="M16 21h5v-5" />
+            <path d="M3 8V3h5" />
+            <path d="M21 8V3h-5" />
+            <path d="M3 16v5h5" />
+            <path d="M21 16v5h-5" />
           </>
         )}
       </svg>

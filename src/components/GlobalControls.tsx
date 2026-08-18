@@ -43,16 +43,12 @@ export function GlobalControls() {
       
       {/* 2. 音效开关 */}
       <button
-        className="intro-ctrl-btn"
+        className={`intro-ctrl-btn ${soundOn ? 'is-active' : ''}`}
         aria-label={soundOn ? '静音' : '开启音效'}
         onClick={() => setSoundOn(!soundOn)}
         title={soundOn ? '静音' : '开启音效'}
       >
-        <svg className="ctrl-btn-outline" viewBox="0 0 50 50" aria-hidden="true">
-          <rect width="48.25" height="48.25" strokeWidth="1.75" x="0.5" y="0.5" rx="16" />
-        </svg>
-        <span className="ctrl-btn-bg" />
-        <svg className="ctrl-icon sound-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <svg className="ctrl-icon sound-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           {soundOn ? (
             <>
               <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
@@ -78,42 +74,48 @@ export function GlobalControls() {
           aria-label="无障碍选项"
           aria-expanded={settingsOpen}
           onClick={() => setSettingsOpen(!settingsOpen)}
-          title="设置"
+          title="系统与无障碍设置"
         >
-          <svg className="ctrl-btn-outline" viewBox="0 0 50 50" aria-hidden="true">
-            <rect width="48.25" height="48.25" strokeWidth="1.75" x="0.5" y="0.5" rx="16" />
-          </svg>
-          <span className="ctrl-btn-bg" />
-          <svg className="ctrl-icon settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <svg className="ctrl-icon settings-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <circle cx="12" cy="12" r="3" />
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
           </svg>
         </button>
+
         {settingsOpen && (
-          <div className="settings-panel">
-            <h3 className="settings-title">无障碍选项</h3>
-            <div className="settings-list">
-              <button
-                className={`settings-toggle ${reduceMotion ? 'is-on' : ''}`}
-                onClick={() => setReduceMotion(!reduceMotion)}
-              >
-                <span className="settings-label">减少运动</span>
-                <span className="settings-status">{reduceMotion ? 'on' : 'off'}</span>
-              </button>
-              <button
-                className={`settings-toggle ${highContrast ? 'is-on' : ''}`}
-                onClick={() => setHighContrast(!highContrast)}
-              >
-                <span className="settings-label">高对比度</span>
-                <span className="settings-status">{highContrast ? 'on' : 'off'}</span>
-              </button>
-              <button
-                className={`settings-toggle ${largeText ? 'is-on' : ''}`}
-                onClick={() => setLargeText(!largeText)}
-              >
-                <span className="settings-label">较大文字</span>
-                <span className="settings-status">{largeText ? 'on' : 'off'}</span>
-              </button>
+          <div className="settings-panel" role="dialog" aria-label="无障碍设置">
+            <div className="settings-panel__header">
+              <span className="settings-panel__title">视觉与交互体验</span>
+              <span className="settings-panel__sub">ACCESSIBILITY</span>
+            </div>
+            
+            <div className="settings-group">
+              <label className="settings-item">
+                <span>减少动效 (Reduce Motion)</span>
+                <input
+                  type="checkbox"
+                  checked={reduceMotion}
+                  onChange={e => setReduceMotion(e.target.checked)}
+                />
+              </label>
+              
+              <label className="settings-item">
+                <span>高对比度 (High Contrast)</span>
+                <input
+                  type="checkbox"
+                  checked={highContrast}
+                  onChange={e => setHighContrast(e.target.checked)}
+                />
+              </label>
+              
+              <label className="settings-item">
+                <span>大号文本 (Large Text)</span>
+                <input
+                  type="checkbox"
+                  checked={largeText}
+                  onChange={e => setLargeText(e.target.checked)}
+                />
+              </label>
             </div>
           </div>
         )}
