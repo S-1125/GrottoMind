@@ -503,7 +503,7 @@ export function IntroAnimation({ onEnter }: IntroAnimationProps) {
               <path d="M8 3v10M4 9l4 4 4-4" stroke="currentColor" strokeWidth="0.8" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
-          <span className="intro-guide-label">滑动继续</span>
+          <span className="intro-guide-label">鼠标滚轮滑动继续</span>
         </div>
 
         {/* 底部引导：进入按钮（最后阶段显示） */}

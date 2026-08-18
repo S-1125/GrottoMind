@@ -9,7 +9,6 @@ import gsap from 'gsap'
 import { AtmosphereEffects } from './AtmosphereEffects'
 import { AtmosphereShader } from './AtmosphereShader'
 import { GrottoModelScene, type GrottoModelSceneHandle } from './GrottoModelScene'
-import { FullscreenButton } from './FullscreenButton'
 
 /* ============================================================
    停靠点数据：每个停靠点定义了相机位置、UI 内容和透镜参数
@@ -506,38 +505,32 @@ export function TimelineHall({ onDeepRead, onNextChapter, onGoToAI, isPaused }: 
         <div className="site-logo-img-en" />
       </div>
 
-      {/* 顶部快捷入口（包含问窟AI、下一章、全屏，统一样式） */}
-      <div className="timeline-top-nav" style={{ position: 'fixed', top: 20, right: 20, zIndex: 999, display: 'flex', alignItems: 'center', gap: '8px' }}>
+      {/* 顶部导航岛（问窟 AI + 进入下一章，高奢东方暗金琉璃一体化设计） */}
+      <nav className="timeline-nav-island" aria-label="快捷导览">
         <button 
-          className="fh-nav__contact" 
+          className="nav-island-btn nav-island-ai interactive" 
           onClick={(e) => { e.preventDefault(); onGoToAI?.(); }}
+          aria-label="唤起问窟者 AI 智能导览"
         >
-          问窟 AI
+          <span className="nav-ai-sparkle" aria-hidden="true">✦</span>
+          <span className="nav-ai-text">问窟 AI</span>
         </button>
-        <div
-          className="next-chapter-group interactive"
+        
+        <div className="nav-island-divider" aria-hidden="true" />
+
+        <button
+          className="nav-island-btn nav-island-next interactive"
           onClick={() => onNextChapter?.()}
-          role="button"
-          tabIndex={0}
-          aria-label="进入第二章"
-          onKeyDown={(e) => { if (e.key === 'Enter') onNextChapter?.() }}
+          aria-label="进入第二章：石窟壁画复彩"
         >
-          <span className="next-pill">
-            <span className="next-pill-bg"></span>
-            <span className="next-pill-text">进入下一章</span>
-          </span>
-          <span className="next-icon" aria-hidden="true">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M1 1L13 13M13 13H3M13 13V3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <span className="nav-next-text">进入下一章</span>
+          <span className="nav-next-arrow" aria-hidden="true">
+            <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+              <path d="M1 1L13 13M13 13H3M13 13V3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </span>
-        </div>
-        
-        {/* 全屏按钮与导航组放在一起 */}
-        <div className="timeline-fs-wrapper">
-          <FullscreenButton />
-        </div>
-      </div>
+        </button>
+      </nav>
 
       {/* ============================================================
           序章全屏居中标题 — 独立于 fadeGroup，GSAP 控制淡入→停留→淡出
@@ -608,11 +601,12 @@ export function TimelineHall({ onDeepRead, onNextChapter, onGoToAI, isPaused }: 
               <i aria-hidden="true" />
               <p>{stop.body}</p>
               <button
-                className="stupa-deep-read-btn interactive"
+                className="stupa-action-btn stupa-deep-read-btn interactive"
                 onClick={() => onDeepRead?.(stop.id)}
+                aria-label={`深度阅读${stop.title}考据文献`}
               >
-                深度阅读
-                <span className="arrow" aria-hidden="true">→</span>
+                <span>深度阅读</span>
+                <span className="btn-arrow" aria-hidden="true">→</span>
               </button>
             </article>
           </div>
@@ -655,35 +649,26 @@ export function TimelineHall({ onDeepRead, onNextChapter, onGoToAI, isPaused }: 
               <p>{stop.body}</p>
               <div className="stupa-story-actions">
                 <button
-                  className="stupa-deep-read-btn interactive"
+                  className="stupa-action-btn stupa-deep-read-btn interactive"
                   onClick={() => onDeepRead?.(stop.id)}
+                  aria-label="阅读八相成道图全卷文献"
                 >
-                  阅读全卷
-                  <span className="arrow" aria-hidden="true">→</span>
+                  <span>阅读全卷</span>
+                  <span className="btn-arrow" aria-hidden="true">→</span>
                 </button>
 
-                {/* 进入下一章按钮组（分离互换式交互） */}
-                <div
-                  className="next-chapter-group interactive"
+                <button
+                  className="stupa-action-btn stupa-next-chapter-btn interactive"
                   onClick={() => onNextChapter?.()}
-                  role="button"
-                  tabIndex={0}
-                  aria-label="进入第二章"
-                  onKeyDown={(e) => { if (e.key === 'Enter') onNextChapter?.() }}
+                  aria-label="进入第二章：石窟壁画复彩"
                 >
-                  {/* 胶囊形主按钮 */}
-                  <span className="next-pill">
-                    <span className="next-pill-bg"></span>
-                    <span className="next-pill-text">进入下一章</span>
-                  </span>
-                  
-                  {/* 圆形图标按钮 */}
-                  <span className="next-icon" aria-hidden="true">
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                      <path d="M1 1L13 13M13 13H3M13 13V3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <span>进入下一章</span>
+                  <span className="btn-icon-box" aria-hidden="true">
+                    <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+                      <path d="M1 1L13 13M13 13H3M13 13V3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   </span>
-                </div>
+                </button>
               </div>
             </article>
           </div>
@@ -786,8 +771,9 @@ export function TimelineHall({ onDeepRead, onNextChapter, onGoToAI, isPaused }: 
         </div>
       </div>
 
-      {/* ---- 右侧导航索引 - 数学曲线圆形指示器 ---- */}
+      {/* ---- 右侧导航索引 - 东方星盘经纬轴线指示器 ---- */}
       <nav className="curve-nav-index" aria-label="第一章漫游节点">
+        <div className="curve-nav-axis-line" aria-hidden="true" />
         {stupaStops.slice(1).map((s, idx) => {
           const actualIdx = idx + 1
           const isActive = actualIdx === currentStop
@@ -805,80 +791,36 @@ export function TimelineHall({ onDeepRead, onNextChapter, onGoToAI, isPaused }: 
               title={isLocked ? '请按顺序浏览相邻节点' : s.title}
               onClick={() => transitionTo(actualIdx)}
             >
-              {/* 莲花瓣形状的外圈 - 使用 SVG 路径绘制 */}
-              <svg className="curve-nav-ring" viewBox="0 0 44 44" aria-hidden="true">
-                {/* 莲花瓣外圈 - 8个对称花瓣，以(22,22)为中心 */}
-                <path
-                  className="ring-lotus"
-                  d="M 17 10
-                     A 8 8 0 0 1 22 2
-                     A 8 8 0 0 1 27 10
-                     A 8 8 0 0 1 36.1 7.9
-                     A 8 8 0 0 1 34 17
-                     A 8 8 0 0 1 42 22
-                     A 8 8 0 0 1 34 27
-                     A 8 8 0 0 1 36.1 36.1
-                     A 8 8 0 0 1 27 34
-                     A 8 8 0 0 1 22 42
-                     A 8 8 0 0 1 17 34
-                     A 8 8 0 0 1 7.9 36.1
-                     A 8 8 0 0 1 10 27
-                     A 8 8 0 0 1 2 22
-                     A 8 8 0 0 1 10 17
-                     A 8 8 0 0 1 7.9 7.9
-                     A 8 8 0 0 1 17 10 Z"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                {/* 中间装饰圆环 - 以(22,22)为中心 */}
-                <circle
-                  className="ring-mid"
-                  cx="22"
-                  cy="22"
-                  r="10"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1"
-                />
-                {/* 内圈圆点 - 以(22,22)为中心 */}
-                <circle
-                  className="ring-inner"
-                  cx="22"
-                  cy="22"
-                  r={isActive ? 5 : 3}
-                  fill="currentColor"
-                />
-                {/* 激活状态的外发光 - 以(22,22)为中心 */}
-                {isActive && (
-                  <circle
-                    className="ring-glow"
-                    cx="22"
-                    cy="22"
-                    r="16"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="0.5"
-                    opacity="0.5"
-                  />
-                )}
-              </svg>
+              {/* 纯净几何菱形光晶指示器 */}
+              <div className="diamond-crystal-node" aria-hidden="true">
+                <span className="diamond-outer" />
+                <span className="diamond-core" />
+              </div>
               {/* 悬停提示 */}
-              <span className="curve-nav-tooltip">{s.title}</span>
+              <span className="curve-nav-tooltip">
+                <span className="tooltip-idx">0{actualIdx}</span>
+                <span className="tooltip-title">{s.title}</span>
+              </span>
             </button>
           )
         })}
       </nav>
 
-      {/* ---- 底部进度条 ---- */}
-      <div className="timeline-tour-progress" aria-hidden="true">
-        <span style={{ transform: `scaleX(${Math.max(0.08, stopProgress(currentStop))})` }} />
+      {/* ---- 左下角：沉浸式漫游导览指示器 ---- */}
+      <div className="timeline-scroll-indicator" aria-label="漫游操作提示">
+        <div className="scroll-indicator-body">
+          <div className="scroll-mouse-track" aria-hidden="true">
+            <span className="scroll-mouse-dot" />
+          </div>
+          <div className="scroll-text-group">
+            <span className="scroll-kicker">SCROLL TO EXPLORE</span>
+            <span className="scroll-hint-title">轻滚鼠标 · 探索舍利塔层级</span>
+          </div>
+        </div>
+        <div className="timeline-tour-progress" aria-hidden="true">
+          <span style={{ transform: `scaleX(${Math.max(0.08, stopProgress(currentStop))})` }} />
+        </div>
       </div>
-
-      {/* ---- 底部提示 ---- */}
-      <p className="timeline-scroll-hint">轻滚鼠标，镜头沿舍利塔局部游览。</p>
 
       {/* ---- 全屏大图预览容器 ---- */}
       <div

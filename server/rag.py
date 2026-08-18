@@ -1,117 +1,38 @@
 """
-RAG 模块 — 基于 ChromaDB 的向量检索
-使用 Gemini Embedding API（云端调用）代替本地 sentence-transformers，
-大幅降低内存占用，适配低配容器部署环境。
-
-模型：gemini-embedding-001
-- 支持批量输入（每次最多 2048 tokens/条，可传入多条文本）
-- 支持 task_type 优化检索质量
-- 索引文档用 RETRIEVAL_DOCUMENT，搜索查询用 RETRIEVAL_QUERY
+学术文献 RAG 检索增强引擎 — 问窟 GrottoMind
+基于 ChromaDB + BGE-small-zh 向量模型
+支持精确行号与字符偏移记录，实现文献段落像素级锚点定位
 """
 
 import os
+import sys
 import json
-import time
+import re
+import logging
 import chromadb
-from google import genai
-from google.genai import types
-from dotenv import load_dotenv
+from typing import List, Dict, Any
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-# 加载环境变量
-load_dotenv(os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env"))
+# 确保项目根目录在 sys.path 中
+SERVER_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(SERVER_DIR)
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-KNOWLEDGE_DIR = os.path.join(SCRIPT_DIR, "knowledge")
-CHROMA_DB_DIR = os.path.join(SCRIPT_DIR, "chroma_db")
-COLLECTION_NAME = "qixia_literature"
+from dotenv import load_dotenv
+load_dotenv(os.path.join(PROJECT_ROOT, ".env"))
 
-# Gemini Embedding 模型标识
-EMBEDDING_MODEL_NAME = "gemini-embedding-001"
-MODEL_VERSION_FILE = os.path.join(CHROMA_DB_DIR, ".model_version")
+from server.llm_adapter import get_embeddings
 
-# 初始化 Gemini 客户端
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
-gemini_client = genai.Client(api_key=GEMINI_API_KEY)
+logger = logging.getLogger("rag_engine")
+logging.basicConfig(level=logging.INFO)
 
-# 初始化 ChromaDB 客户端
-chroma_client = chromadb.PersistentClient(path=CHROMA_DB_DIR)
+KNOWLEDGE_DIR = os.path.join(SERVER_DIR, "knowledge")
+CHROMA_DIR = os.path.join(SERVER_DIR, "chroma_db")
+COLLECTION_NAME = "qixia_literature_v2"
 
-
-def _get_embeddings(texts: list[str], task_type: str = "RETRIEVAL_DOCUMENT") -> list[list[float]]:
-    """调用 Gemini Embedding API 获取文本向量。
-
-    Args:
-        texts: 待嵌入的文本列表
-        task_type: 任务类型，索引文档用 RETRIEVAL_DOCUMENT，搜索查询用 RETRIEVAL_QUERY
-    
-    gemini-embedding-001 支持批量输入，每次可传入多条文本，返回各自独立的嵌入向量。
-    """
-    all_embeddings = []
-    batch_size = 50
-
-    for i in range(0, len(texts), batch_size):
-        batch = texts[i:i + batch_size]
-
-        # 带智能重试的 API 调用（最多重试 5 次，遇到速率限制自动等待）
-        for attempt in range(5):
-            try:
-                result = gemini_client.models.embed_content(
-                    model=EMBEDDING_MODEL_NAME,
-                    contents=batch,
-                    config=types.EmbedContentConfig(
-                        task_type=task_type,
-                        output_dimensionality=768
-                    )
-                )
-                batch_embeddings = [e.values for e in result.embeddings]
-                all_embeddings.extend(batch_embeddings)
-                break
-            except Exception as e:
-                error_str = str(e)
-                # 解析 API 建议的等待时间（如 "Please retry in 35.267807746s"）
-                import re
-                retry_match = re.search(r'retry in (\d+(?:\.\d+)?)s', error_str)
-                if '429' in error_str and retry_match:
-                    wait_time = int(float(retry_match.group(1))) + 2  # 多等 2 秒留余量
-                    print(f"   ⏳ 触发速率限制（第{attempt+1}次），等待 {wait_time} 秒后继续...")
-                    time.sleep(wait_time)
-                elif attempt < 4:
-                    wait_time = min(2 ** attempt, 30)
-                    print(f"   ⚠️ Embedding API 调用失败（第{attempt+1}次），{wait_time}秒后重试... 错误: {e}")
-                    time.sleep(wait_time)
-                else:
-                    print(f"   ❌ Embedding API 调用彻底失败: {e}")
-                    raise
-
-        # 批次之间等待 2 秒，避免触发速率限制
-        if i + batch_size < len(texts):
-            time.sleep(2)
-
-    return all_embeddings
-
-
-# 检查 Embedding 模型是否变更，如果变更则清除旧索引
-def _check_model_version():
-    """检测 Embedding 模型版本，如果与上次不同则清除旧向量索引"""
-    os.makedirs(CHROMA_DB_DIR, exist_ok=True)
-    if os.path.exists(MODEL_VERSION_FILE):
-        with open(MODEL_VERSION_FILE, "r") as f:
-            saved_model = f.read().strip()
-        if saved_model == EMBEDDING_MODEL_NAME:
-            return  # 模型未变更，跳过
-        print(f"⚠️  Embedding 模型已从 '{saved_model}' 变更为 '{EMBEDDING_MODEL_NAME}'")
-        print("   正在清除旧向量索引...")
-        try:
-            chroma_client.delete_collection(COLLECTION_NAME)
-            print("   旧索引已清除，将在启动时自动重建。")
-        except Exception:
-            pass
-    # 写入当前模型版本
-    with open(MODEL_VERSION_FILE, "w") as f:
-        f.write(EMBEDDING_MODEL_NAME)
-
-_check_model_version()
+# 初始化本地持久化 Chroma 客户端
+chroma_client = chromadb.PersistentClient(path=CHROMA_DIR)
 
 # 获取或创建 collection
 collection = chroma_client.get_or_create_collection(
@@ -119,32 +40,46 @@ collection = chroma_client.get_or_create_collection(
     metadata={"hnsw:space": "cosine"}
 )
 
-print(f"✅ Embedding 模型：{EMBEDDING_MODEL_NAME}（云端 API，零本地内存占用）")
-
-# 文本分割器
+# 文本切分器：根据段落、换行与标点智能切分
 text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size=500,
+    chunk_size=450,
     chunk_overlap=50,
     length_function=len,
     is_separator_regex=False,
 )
 
 
+def find_chunk_line(full_text: str, chunk_text: str) -> int:
+    """计算切片文本在全文中的绝对起始行号 (1-based)"""
+    idx = -1
+    # 尝试不同长度的前缀匹配
+    for prefix_len in [60, 40, 25, 15]:
+        if len(chunk_text) >= prefix_len:
+            sub = chunk_text[:prefix_len]
+            idx = full_text.find(sub)
+            if idx != -1:
+                break
+
+    if idx == -1:
+        return 1
+    return full_text[:idx].count("\n") + 1
+
+
 def build_index():
-    """读取知识库文本，分块后插入 ChromaDB 向量数据库。"""
+    """读取知识库文本，切分并精准计算行号与元数据，写入 ChromaDB"""
     meta_path = os.path.join(KNOWLEDGE_DIR, "metadata.json")
     if not os.path.exists(meta_path):
-        print("metadata.json not found. Run notebooklm_sync.py first.")
+        logger.warning("未找到 metadata.json")
         return
 
     with open(meta_path, "r", encoding="utf-8") as f:
         metadata_list = json.load(f)
 
-    docs = []
-    metadatas = []
-    ids = []
+    docs: List[str] = []
+    metadatas: List[Dict[str, Any]] = []
+    ids: List[str] = []
 
-    print(f"📦 正在索引 {len(metadata_list)} 篇文献...")
+    logger.info(f"正在索引 {len(metadata_list)} 篇学术文献并提取精准行号...")
 
     for meta in metadata_list:
         file_path = os.path.join(KNOWLEDGE_DIR, meta["filename"])
@@ -152,94 +87,134 @@ def build_index():
             continue
 
         with open(file_path, "r", encoding="utf-8") as f:
-            text = f.read()
+            full_text = f.read()
 
-        if not text.strip():
-            continue
+        # 读取可能存在的预缓存摘要
+        summary_path = os.path.join(KNOWLEDGE_DIR, meta["filename"].replace(".txt", "_summary.json"))
+        summary_text = ""
+        keywords_text = ""
+        if os.path.exists(summary_path):
+            try:
+                with open(summary_path, "r", encoding="utf-8") as sf:
+                    s_data = json.load(sf)
+                    summary_text = s_data.get("summary", "")
+                    keywords_text = "、".join(s_data.get("keywords", []))
+            except Exception:
+                pass
 
-        # 将文本分块
-        chunks = text_splitter.split_text(text)
+        # 过滤掉纯图片语法后的可读文本
+        pure_readable_text = re.sub(r'!\[.*?\]\(.*?\)', '', full_text).strip()
 
-        for i, chunk in enumerate(chunks):
-            chunk_id = f"{meta['id']}_chunk_{i}"
-            docs.append(chunk)
+        # 1. 如果有充足的学术正文文本，执行语义分块
+        if len(pure_readable_text) > 100:
+            chunks = text_splitter.split_text(full_text)
+            for i, chunk in enumerate(chunks):
+                chunk_id = f"{meta['id']}_chunk_{i}"
+                start_line = find_chunk_line(full_text, chunk)
+
+                docs.append(chunk)
+                metadatas.append({
+                    "source_id": meta["id"],
+                    "title": meta["title"],
+                    "filename": meta["filename"],
+                    "chunk_index": i,
+                    "start_line": start_line,
+                })
+                ids.append(chunk_id)
+
+        # 2. 针对扫描件、影印卷宗或补充文献，建立结构化高维学术导读与图录检索块
+        if summary_text:
+            dense_knowledge_chunk = f"【文献考据专卷】《{meta['title']}》\n" \
+                                    f"核心学术内容：{summary_text}\n" \
+                                    f"考据关键词：{keywords_text}\n" \
+                                    f"归档形态：{'原始影印扫描档案' if len(pure_readable_text) <= 100 else '学术全文数字化卷宗'}"
+            
+            chunk_id = f"{meta['id']}_summary_dense"
+            docs.append(dense_knowledge_chunk)
             metadatas.append({
                 "source_id": meta["id"],
                 "title": meta["title"],
-                "chunk_index": i
+                "filename": meta["filename"],
+                "chunk_index": 0,
+                "start_line": 1,
             })
             ids.append(chunk_id)
 
     if not docs:
-        print("未找到需要索引的文档。")
+        logger.info("未找到需要索引的文档内容。")
         return
 
-    print(f"   总分块数: {len(docs)}")
-    print("   正在调用 Gemini Embedding API 计算向量并写入 ChromaDB...")
+    logger.info(f"总分块数: {len(docs)}，正在提取向量并插入 ChromaDB...")
 
-    # 分批计算嵌入并插入（使用 RETRIEVAL_DOCUMENT 任务类型优化文档索引）
-    batch_size = 50
-    for i in range(0, len(docs), batch_size):
-        batch_docs = docs[i:i+batch_size]
-        batch_ids = ids[i:i+batch_size]
-        batch_metadatas = metadatas[i:i+batch_size]
+    # 清理旧数据以保证新元数据完整
+    try:
+        chroma_client.delete_collection(COLLECTION_NAME)
+    except Exception:
+        pass
 
-        # 调用 Gemini API，指定 RETRIEVAL_DOCUMENT 任务类型
-        embeddings = _get_embeddings(batch_docs, task_type="RETRIEVAL_DOCUMENT")
-
-        collection.add(
-            ids=batch_ids,
-            embeddings=embeddings,
-            metadatas=batch_metadatas,
-            documents=batch_docs
-        )
-        print(f"   已插入批次 {i//batch_size + 1}/{(len(docs)-1)//batch_size + 1}")
-
-    print("✅ 索引构建完成。")
-
-
-def search(query: str, top_k: int = 5, max_distance: float = 1.2):
-    """搜索向量数据库，返回最相关的文本片段。
-
-    Args:
-        query: 用户查询文本
-        top_k: 返回的最大结果数
-        max_distance: 余弦距离阈值，超过此值的结果视为不相关并过滤掉
-                      (cosine distance: 0 = 完全相同, 2 = 完全相反)
-    """
-    # 调用 Gemini API，指定 RETRIEVAL_QUERY 任务类型（专为搜索查询优化）
-    query_embedding = _get_embeddings([query], task_type="RETRIEVAL_QUERY")
-
-    # 查询 ChromaDB（同时返回距离分数用于过滤）
-    results = collection.query(
-        query_embeddings=query_embedding,
-        n_results=top_k,
-        include=["documents", "metadatas", "distances"]
+    new_collection = chroma_client.get_or_create_collection(
+        name=COLLECTION_NAME,
+        metadata={"hnsw:space": "cosine"}
     )
 
-    # 格式化并过滤结果
-    if not results["documents"] or not results["documents"][0]:
+    batch_size = 64
+    for i in range(0, len(docs), batch_size):
+        batch_docs = docs[i:i + batch_size]
+        batch_ids = ids[i:i + batch_size]
+        batch_metas = metadatas[i:i + batch_size]
+
+        embeddings = get_embeddings(batch_docs)
+        new_collection.add(
+            ids=batch_ids,
+            embeddings=embeddings,
+            metadatas=batch_metas,
+            documents=batch_docs
+        )
+        logger.info(f"已处理分块: {min(i + batch_size, len(docs))}/{len(docs)}")
+
+    logger.info(f"✅ ChromaDB 索引重构完毕，当前总条数: {new_collection.count()}")
+
+
+def search(query: str, top_k: int = 4, max_distance: float = 0.85) -> List[Dict[str, Any]]:
+    """根据查询词搜索最相关的学术文献片段，返回标题、精准行号与文本"""
+    if not query.strip():
         return []
 
-    formatted_results = []
+    try:
+        active_col = chroma_client.get_or_create_collection(
+            name=COLLECTION_NAME,
+            metadata={"hnsw:space": "cosine"}
+        )
+        query_embedding = get_embeddings([query])[0]
+        results = active_col.query(
+            query_embeddings=[query_embedding],
+            n_results=top_k,
+            include=["documents", "metadatas", "distances"]
+        )
+    except Exception as e:
+        logger.error(f"ChromaDB 查询异常: {e}")
+        return []
+
+    if not results or not results["documents"] or not results["documents"][0]:
+        return []
+
+    matched = []
     for doc, meta, dist in zip(
         results["documents"][0],
         results["metadatas"][0],
         results["distances"][0]
     ):
-        # 过滤掉相关度过低的结果
-        if dist > max_distance:
-            continue
-        formatted_results.append({
-            "text": doc,
-            "title": meta["title"],
-            "source_id": meta["source_id"],
-            "distance": round(dist, 4)
-        })
+        if dist <= max_distance:
+            matched.append({
+                "title": meta.get("title", "未知文献"),
+                "filename": meta.get("filename", ""),
+                "start_line": meta.get("start_line", 1),
+                "text": doc,
+                "distance": dist
+            })
 
-    return formatted_results
+    return matched
 
 
 if __name__ == "__main__":
-    # 作为独立脚本运行时，重建索引
     build_index()

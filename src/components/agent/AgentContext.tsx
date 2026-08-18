@@ -5,7 +5,8 @@ type ChapterType = 'intro' | 'ch1' | 'ch2' | 'ch3'
 
 interface PendingLiteratureNav {
   title: string
-  snippet?: string  // RAG 原始片段文本，用于段落定位
+  snippet?: string  // RAG 原始片段文本
+  startLine?: number // 原文绝对行号，用于行级精确直达
 }
 
 interface AgentContextType {

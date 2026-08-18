@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { useAgent } from './agent/AgentContext'
 import { LiteratureLibrary } from './LiteratureLibrary'
+import { KnowledgeGraphModal } from './KnowledgeGraphModal'
 import { parseColorCards, ColorCardGroup } from './ColorCard'
 import ReactMarkdown from 'react-markdown'
 import './GrottoHub.css'
@@ -18,6 +19,7 @@ interface SourceRef {
   index: number
   title: string
   snippet: string
+  start_line?: number
 }
 
 interface ChatMessage {
@@ -73,9 +75,11 @@ export function GrottoHub({ onBack }: GrottoHubProps) {
   const [view, setView] = useState<'hub' | 'literature'>('hub')
   const [autoSelectTitle, setAutoSelectTitle] = useState<string | null>(null)
   const [autoScrollSnippet, setAutoScrollSnippet] = useState<string | null>(null)
+  const [autoScrollLine, setAutoScrollLine] = useState<number | null>(null)
   const [inputText, setInputText] = useState('')
   const [messages, setMessages] = useState<ChatMessage[]>(loadHistory)
   const [isStreaming, setIsStreaming] = useState(false)
+  const [showGraph, setShowGraph] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
   const [feedback, setFeedback] = useState<'up' | 'down' | null>(null)
   const [copied, setCopied] = useState(false)
@@ -91,6 +95,7 @@ export function GrottoHub({ onBack }: GrottoHubProps) {
     if (pendingLiteratureNav && currentChapter === 'ch3') {
       setAutoSelectTitle(pendingLiteratureNav.title)
       setAutoScrollSnippet(pendingLiteratureNav.snippet || null)
+      setAutoScrollLine(pendingLiteratureNav.startLine || null)
       setView('literature')
       setPendingLiteratureNav(null)
     }
@@ -202,7 +207,7 @@ export function GrottoHub({ onBack }: GrottoHubProps) {
 
   // 如果是文献库二级页面
   if (view === 'literature') {
-    return <LiteratureLibrary onBack={() => { setAutoSelectTitle(null); setAutoScrollSnippet(null); setView('hub') }} autoSelectTitle={autoSelectTitle} autoScrollSnippet={autoScrollSnippet} />
+    return <LiteratureLibrary onBack={() => { setAutoSelectTitle(null); setAutoScrollSnippet(null); setAutoScrollLine(null); setView('hub') }} autoSelectTitle={autoSelectTitle} autoScrollSnippet={autoScrollSnippet} autoScrollLine={autoScrollLine} />
   }
 
   return (
@@ -221,6 +226,17 @@ export function GrottoHub({ onBack }: GrottoHubProps) {
         </div>
 
         <div className="gh-nav__right">
+          <button className="gh-nav__lit" onClick={() => setShowGraph(true)}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <circle cx="6" cy="6" r="3" />
+              <circle cx="18" cy="6" r="3" />
+              <circle cx="12" cy="18" r="3" />
+              <line x1="8.5" y1="7.5" x2="15.5" y2="7.5" />
+              <line x1="7.5" y1="8.5" x2="10.5" y2="15.5" />
+              <line x1="16.5" y1="8.5" x2="13.5" y2="15.5" />
+            </svg>
+            知识图谱
+          </button>
           <button className="gh-nav__lit" onClick={() => {
             try {
               const raw = localStorage.getItem('grottomind_notes')
@@ -312,6 +328,7 @@ export function GrottoHub({ onBack }: GrottoHubProps) {
                             e.stopPropagation()
                             setAutoSelectTitle(sourceTitle)
                             setAutoScrollSnippet(matchedSource?.snippet || null)
+                            setAutoScrollLine(matchedSource?.start_line || null)
                             setView('literature')
                           }}
                         >{props.children}</span>
@@ -348,6 +365,7 @@ export function GrottoHub({ onBack }: GrottoHubProps) {
                               e.stopPropagation()
                               setAutoSelectTitle(sourceTitle)
                               setAutoScrollSnippet(matchedSource?.snippet || null)
+                              setAutoScrollLine(matchedSource?.start_line || null)
                               setView('literature')
                             }}
                           >{props.children}</span>
@@ -652,6 +670,16 @@ export function GrottoHub({ onBack }: GrottoHubProps) {
           </button>
         </div>
       </div>
+
+      {/* 栖霞山石窟知识图谱交互模态框 */}
+      <KnowledgeGraphModal
+        isOpen={showGraph}
+        onClose={() => setShowGraph(false)}
+        onSelectNode={(nodeName) => {
+          setInputText(`请从学术考古与数字复彩角度，详细考据“${nodeName}”在栖霞山石窟造像中的历史演变与艺术特征。`)
+          setTimeout(() => inputRef.current?.focus(), 100)
+        }}
+      />
     </div>
   )
 }

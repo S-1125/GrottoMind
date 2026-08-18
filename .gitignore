@@ -60,3 +60,6 @@ server/test_model.py
 # 色彩复原路径研究（非项目代码）
 色彩复原路径研究/
 手机端截屏
+server/.model_cache/
+*.docx
+*.doc

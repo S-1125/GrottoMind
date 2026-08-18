@@ -4,13 +4,12 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"npm:dev:client\" \"npm:dev:api\"",
-    "dev:local": "concurrently \"npm:dev:client\" \"npm:dev:api\" \"npm:dev:python\"",
+    "dev": "concurrently \"npm:dev:client\" \"npm:dev:python\"",
+    "dev:local": "concurrently \"npm:dev:client\" \"npm:dev:python\"",
     "dev:client": "vite",
-    "dev:api": "tsx watch server/index.ts",
-    "dev:python": ".venv/bin/python server/main.py",
-    "setup:python": "python3 -m venv .venv && .venv/bin/python -m pip install --upgrade pip && .venv/bin/python -m pip install -r server/requirements.txt",
-    "rag:build": ".venv/bin/python server/rag.py",
+    "dev:python": "env -u PYTHONPATH .venv/bin/python server/main.py",
+    "setup:python": "python3 -m venv .venv && env -u PYTHONPATH .venv/bin/python -m pip install --upgrade pip && env -u PYTHONPATH .venv/bin/python -m pip install -r server/requirements.txt",
+    "rag:build": "env -u PYTHONPATH .venv/bin/python server/rag.py",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"

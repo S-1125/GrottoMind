@@ -409,7 +409,7 @@
 
 /* 自定义悬浮 Tooltip */
 .ga-citation::after {
-  content: '📄 ' attr(data-tooltip) '\A\A点击跳转文献库 →';
+  content: '〔考据原卷〕 ' attr(data-tooltip) '\A\A点击查阅文献库 →';
   white-space: pre-wrap;
   position: absolute;
   bottom: calc(100% + 8px);
@@ -581,6 +581,51 @@
   opacity: 0.2;
   cursor: not-allowed;
 }
+
+/* ==========================================================================
+   思考链展示折叠框 (DeepSeek-R1 / Thinking)
+   ========================================================================== */
+.ga-thinking-box {
+  margin-bottom: 12px;
+  background: rgba(246, 206, 160, 0.05);
+  border: 1px dashed rgba(212, 169, 106, 0.35);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.8125rem;
+  color: var(--gold-primary, #f6cea0);
+  transition: background 0.3s ease;
+}
+
+.ga-thinking-box[open] {
+  background: rgba(246, 206, 160, 0.08);
+}
+
+.ga-thinking-summary {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  user-select: none;
+  outline: none;
+}
+
+.ga-thinking-icon {
+  color: var(--gold-line, #d4a96a);
+}
+
+.ga-thinking-content {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(212, 169, 106, 0.18);
+  color: rgba(255, 255, 255, 0.75);
+  font-family: var(--font-serif, serif);
+  line-height: 1.65;
+  white-space: pre-wrap;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
 
 /* ==========================================================================
    移动端适配 — AI Agent 面板 (≤768px)

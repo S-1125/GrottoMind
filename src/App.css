@@ -1438,13 +1438,20 @@ html.large-text {
 /* ==========================================================================
    数学曲线圆形导航指示器 - 参考 persepolis 风格
    ========================================================================== */
+/* ==========================================================================
+   第一章 右侧漫游节点（东方星盘经纬轴线）
+   ========================================================================== */
+/* ==========================================================================
+   第一章 右侧漫游节点（纯净几何菱形光晶）
+   ========================================================================== */
 .curve-nav-index {
   position: absolute;
-  right: clamp(24px, 3.5vw, 52px);
-  top: 50%;
+  right: clamp(24px, 3.2vw, 44px);
+  top: 42%;
   z-index: 12;
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 18px;
   transform: translateY(-50%);
   animation: curve-nav-in 1.4s 0.62s var(--ease-expo) both;
@@ -1453,7 +1460,7 @@ html.large-text {
 @keyframes curve-nav-in {
   from {
     opacity: 0;
-    transform: translateY(-40%);
+    transform: translateY(-35%);
   }
   to {
     opacity: 1;
@@ -1461,98 +1468,173 @@ html.large-text {
   }
 }
 
+/* 垂直贯穿经纬细线 */
+.curve-nav-axis-line {
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 50%;
+  width: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(246, 206, 160, 0.3) 10%,
+    rgba(246, 206, 160, 0.5) 50%,
+    rgba(246, 206, 160, 0.3) 90%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 节点触发器容器 */
 .curve-nav-dot {
   position: relative;
+  z-index: 1;
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  width: 24px;
+  height: 24px;
   padding: 0;
-  color: rgba(212, 169, 106, 0.5);
   background: transparent;
   border: none;
   cursor: pointer;
-  transition: color 0.4s var(--ease-expo), transform 0.3s ease;
+  outline: none;
+  transition: transform 0.35s cubic-bezier(0.2, 0, 0, 1);
 }
 
-.curve-nav-dot:hover,
-.curve-nav-dot:focus-visible {
-  color: rgba(212, 169, 106, 0.85);
-  transform: scale(1.1);
+.curve-nav-dot:hover {
+  transform: scale(1.2);
 }
 
 .curve-nav-dot.is-active {
-  color: #d4a96a;
-  transform: scale(1.15);
+  transform: scale(1.35);
 }
 
 .curve-nav-dot.is-locked {
-  opacity: 0.34;
+  opacity: 0.65;
   cursor: not-allowed;
 }
 
-.curve-nav-dot.is-locked:hover,
-.curve-nav-dot.is-locked:focus-visible {
-  color: rgba(212, 169, 106, 0.5);
-  transform: none;
+.curve-nav-dot.is-locked:hover {
+  transform: scale(1.05);
 }
 
-.curve-nav-dot:disabled {
-  pointer-events: none;
-}
-
-/* SVG 莲花瓣形状 */
-.curve-nav-ring {
+/* 菱形光晶本体 */
+.diamond-crystal-node {
+  position: relative;
+  display: grid;
+  place-items: center;
   width: 100%;
   height: 100%;
-  transition: transform 0.6s var(--ease-expo);
 }
 
-/* 悬停时旋转 */
-.curve-nav-dot:hover .curve-nav-ring,
-.curve-nav-dot:focus-visible .curve-nav-ring {
+/* 外层菱形框 */
+.diamond-outer {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border: 1.2px solid rgba(246, 206, 160, 0.6);
+  background: rgba(22, 20, 18, 0.75);
   transform: rotate(45deg);
+  transition: all 0.35s cubic-bezier(0.2, 0, 0, 1);
 }
 
-.ring-lotus {
-  transition: all 0.4s var(--ease-expo);
+/* 核心光点 */
+.diamond-core {
+  position: absolute;
+  width: 2.5px;
+  height: 2.5px;
+  background: rgba(246, 206, 160, 0.7);
+  transform: rotate(45deg);
+  transition: all 0.35s ease;
 }
 
-.ring-mid {
-  transition: all 0.4s var(--ease-expo);
+/* 悬停状态 */
+.curve-nav-dot:hover .diamond-outer {
+  border-color: #ffffff;
+  background: rgba(246, 206, 160, 0.2);
+  box-shadow: 0 0 12px rgba(246, 206, 160, 0.6);
 }
 
-.ring-inner {
-  transition: r 0.4s var(--ease-expo);
+.curve-nav-dot:hover .diamond-core {
+  background: #ffffff;
+  box-shadow: 0 0 4px #f6cea0;
 }
 
-.ring-glow {
-  animation: ring-pulse 2s ease-in-out infinite;
+/* 激活状态：光芒扩散与高亮 */
+.curve-nav-dot.is-active .diamond-outer {
+  width: 11px;
+  height: 11px;
+  border: 1.4px solid #ffffff;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(246, 206, 160, 0.5));
+  box-shadow:
+    0 0 24px rgba(246, 206, 160, 0.9),
+    0 0 8px rgba(246, 206, 160, 1),
+    inset 0 0 4px rgba(255, 255, 255, 0.8);
+  animation: diamond-crystal-pulse 2.8s ease-in-out infinite alternate;
 }
 
-@keyframes ring-pulse {
-  0%, 100% { opacity: 0.3; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(1.05); }
+@keyframes diamond-crystal-pulse {
+  0% {
+    box-shadow:
+      0 0 16px rgba(246, 206, 160, 0.75),
+      0 0 6px rgba(246, 206, 160, 0.9);
+    transform: rotate(45deg) scale(0.95);
+  }
+  100% {
+    box-shadow:
+      0 0 30px rgba(246, 206, 160, 0.95),
+      0 0 12px rgba(255, 255, 255, 0.9);
+    transform: rotate(45deg) scale(1.15);
+  }
 }
 
-/* 悬停提示 */
+.curve-nav-dot.is-active .diamond-core {
+  width: 3.5px;
+  height: 3.5px;
+  background: #ffffff;
+  box-shadow: 0 0 6px #ffffff;
+}
+
+/* 悬停提示 Tooltip */
 .curve-nav-tooltip {
   position: absolute;
-  right: calc(100% + 12px);
+  right: calc(100% + 14px);
   top: 50%;
-  padding: 6px 12px;
-  font-family: 'Noto Serif SC', serif;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.9);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px 5px 10px;
+  background: rgba(20, 18, 16, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(246, 206, 160, 0.28);
+  border-radius: 0px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
   white-space: nowrap;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(8px);
-  border-radius: 4px;
   opacity: 0;
   visibility: hidden;
-  transform: translateY(-50%) translateX(8px);
-  transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+  transform: translateY(-50%) translateX(6px);
+  transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s cubic-bezier(0.2, 0, 0, 1);
   pointer-events: none;
+}
+
+.curve-nav-tooltip .tooltip-idx {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: #f6cea0;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+.curve-nav-tooltip .tooltip-title {
+  font-family: var(--font-serif);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: rgba(246, 238, 224, 0.95);
 }
 
 .curve-nav-dot:hover .curve-nav-tooltip,
@@ -1633,44 +1715,230 @@ html.large-text {
   border-radius: 50%;
 }
 
-.timeline-tour-progress {
-  position: absolute;
-  left: clamp(42px, 7vw, 120px);
-  bottom: clamp(46px, 6vh, 80px);
-  z-index: 12;
-  width: min(320px, 28vw);
-  height: 1px;
-  overflow: hidden;
-  background: rgba(246, 206, 160, 0.16);
-  pointer-events: none;
+/* ==========================================================================
+   第一章 顶部导航岛（无圆角建筑科技感一体化暗金线框）
+   ========================================================================== */
+.timeline-nav-island {
+  position: fixed;
+  top: clamp(20px, 3vh, 32px);
+  right: clamp(20px, 3vw, 40px);
+  z-index: 999;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px 4px;
+  background: rgba(20, 18, 16, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(246, 206, 160, 0.28);
+  border-radius: 0px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), inset 0 0 12px rgba(246, 206, 160, 0.04);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
 }
 
-.timeline-tour-progress span {
+.timeline-nav-island:hover {
+  border-color: rgba(246, 206, 160, 0.45);
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.6), inset 0 0 16px rgba(246, 206, 160, 0.08);
+}
+
+.nav-island-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 16px;
+  border-radius: 0px;
+  color: rgba(246, 238, 224, 0.88);
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.35s cubic-bezier(0.2, 0, 0, 1);
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+}
+
+.nav-island-ai {
+  color: #f6cea0;
+}
+
+.nav-ai-sparkle {
+  color: #f6cea0;
+  font-size: 10px;
+  line-height: 1;
+  text-shadow: 0 0 8px rgba(246, 206, 160, 0.8);
+  animation: nav-ai-glow 2.4s ease-in-out infinite alternate;
+}
+
+@keyframes nav-ai-glow {
+  0% { transform: scale(0.9); opacity: 0.7; filter: drop-shadow(0 0 2px rgba(246, 206, 160, 0.4)); }
+  100% { transform: scale(1.15); opacity: 1; filter: drop-shadow(0 0 8px rgba(246, 206, 160, 0.9)); }
+}
+
+.nav-island-ai:hover {
+  background: rgba(246, 206, 160, 0.12);
+  color: #ffffff;
+}
+
+.nav-island-divider {
+  width: 1px;
+  height: 16px;
+  background: rgba(246, 206, 160, 0.2);
+  margin: 0 2px;
+  flex-shrink: 0;
+}
+
+.nav-island-next {
+  background: rgba(246, 206, 160, 0.08);
+  border: 1px solid rgba(246, 206, 160, 0.2);
+  border-radius: 0px;
+  color: #f6eee0;
+}
+
+.nav-island-next .nav-next-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 0px;
+  background: rgba(246, 206, 160, 0.15);
+  color: #f6cea0;
+  transition: transform 0.35s cubic-bezier(0.2, 0, 0, 1), background 0.35s ease, color 0.35s ease;
+}
+
+.nav-island-next:hover {
+  background: linear-gradient(135deg, rgba(246, 206, 160, 0.25) 0%, rgba(193, 173, 125, 0.2) 100%);
+  border-color: rgba(246, 206, 160, 0.5);
+  color: #ffffff;
+}
+
+.nav-island-next:hover .nav-next-arrow {
+  transform: translate(2px, -2px);
+  background: #f6cea0;
+  color: #1a1816;
+}
+
+/* ==========================================================================
+   第一章 左下角漫游导览指示器（无圆角建筑几何科技感）
+   ========================================================================== */
+.timeline-scroll-indicator {
+  position: absolute;
+  left: clamp(20px, 3vw, 40px);
+  bottom: clamp(26px, calc(2.5vh + 10px), 38px);
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 11px 16px 9px 14px;
+  background: rgba(18, 16, 14, 0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(246, 206, 160, 0.24);
+  border-radius: 0px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  animation: exhibition-soft-rise 1.4s 0.3s var(--ease-expo) both;
+}
+
+.scroll-indicator-body {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.scroll-mouse-track {
+  width: 14px;
+  height: 22px;
+  border: 1.2px solid rgba(246, 206, 160, 0.45);
+  border-radius: 0px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.scroll-mouse-dot {
+  width: 2px;
+  height: 4px;
+  background: #f6cea0;
+  border-radius: 0px;
+  position: absolute;
+  top: 4px;
+  animation: scroll-wheel-dot 1.8s ease-in-out infinite;
+}
+
+@keyframes scroll-wheel-dot {
+  0% {
+    top: 4px;
+    opacity: 1;
+    transform: translateY(0);
+  }
+  60% {
+    top: 10px;
+    opacity: 0.8;
+    transform: translateY(2px);
+  }
+  100% {
+    top: 12px;
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+.scroll-text-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.scroll-kicker {
+  font-size: 8.5px;
+  letter-spacing: 0.25em;
+  color: rgba(246, 206, 160, 0.65);
+  font-family: var(--font-sans);
+  font-weight: 500;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.scroll-hint-title {
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  color: rgba(246, 238, 224, 0.92);
+  font-family: var(--font-serif);
+  line-height: 1.3;
+}
+
+.timeline-scroll-indicator .timeline-tour-progress {
+  position: relative;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1.5px;
+  overflow: hidden;
+  background: rgba(246, 206, 160, 0.12);
+  border-radius: 0px;
+}
+
+.timeline-scroll-indicator .timeline-tour-progress span {
   display: block;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, rgba(246, 206, 160, 0.16), rgba(246, 206, 160, 0.86));
+  background: linear-gradient(90deg, rgba(246, 206, 160, 0.2), #f6cea0);
   transform-origin: left center;
   transition: transform 0.42s var(--ease-expo);
-}
-
-.timeline-scroll-hint {
-  position: absolute;
-  left: clamp(42px, 7vw, 120px);
-  bottom: clamp(62px, 8vh, 104px);
-  z-index: 12;
-  margin: 0;
-  color: rgba(255, 255, 255, 0.54);
-  font-family: var(--font-sans);
-  font-size: 12px;
-  font-weight: 300;
-  letter-spacing: 0.18em;
-  pointer-events: none;
+  box-shadow: 0 0 8px rgba(246, 206, 160, 0.5);
+  border-radius: 0px;
 }
 
 .stupa-chapter.is-intro-playing .curve-nav-index,
-.stupa-chapter.is-intro-playing .timeline-tour-progress,
-.stupa-chapter.is-intro-playing .timeline-scroll-hint,
+.stupa-chapter.is-intro-playing .timeline-scroll-indicator,
 .stupa-chapter.is-intro-playing .stupa-data-viz {
   opacity: 0;
   visibility: hidden;
@@ -2109,241 +2377,110 @@ html.large-text {
   letter-spacing: 0.08em;
 }
 
-.stupa-info-panel button {
+/* ==========================================================================
+   信息面板操作按钮（无圆角建筑高奢科技线框）
+   ========================================================================== */
+.stupa-info-panel button,
+.stupa-action-btn {
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 16px;
-  margin-top: 34px;
-  padding: 13px 24px;
-  overflow: hidden;
-  color: rgba(255, 255, 255, 0.84);
-  border: 1px solid rgba(246, 206, 160, 0.45);
-  border-radius: 999px;
-  background: transparent;
+  justify-content: center;
+  gap: 10px;
+  height: 40px;
+  padding: 0 22px;
+  border-radius: 0px !important;
+  border: 1px solid rgba(246, 206, 160, 0.35) !important;
+  background: rgba(20, 18, 16, 0.65) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: rgba(246, 238, 224, 0.9) !important;
   font-family: var(--font-sans);
   font-size: 13px;
-  font-weight: 300;
-  letter-spacing: 0.18em;
+  font-weight: 400;
+  letter-spacing: 0.14em;
   cursor: pointer;
-}
-
-.stupa-info-panel button::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: rgba(246, 206, 160, 0.1);
-  transform: translateX(-101%);
-  transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.stupa-info-panel button span {
-  transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-/* 深度阅读按钮 (覆盖原有 button) */
-.stupa-deep-read-btn {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 32px;
-  padding: 10px 24px;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
-  color: white !important;
-  font-family: var(--font-sans);
-  font-size: 14px;
-  letter-spacing: 0.1em;
-  border-radius: 4px !important;
+  outline: none;
   overflow: hidden;
-  transition: border-color 0.4s ease, color 0.4s ease;
+  user-select: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  transition: all 0.35s cubic-bezier(0.2, 0, 0, 1);
+  margin-top: 32px;
 }
 
-.stupa-deep-read-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(212, 169, 106, 0.15) !important;
-  transform: translateX(-101%) !important;
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
-  z-index: 0;
-}
-
-.stupa-deep-read-btn:hover {
-  border-color: #d4a96a !important;
-  color: #d4a96a !important;
-}
-
-.stupa-deep-read-btn:hover::before {
-  transform: translateX(0) !important;
-}
-
-.stupa-deep-read-btn .arrow {
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  position: relative;
-  z-index: 1;
-}
-
-.stupa-deep-read-btn:hover .arrow {
-  transform: translateX(6px);
-}
-
-.stupa-info-panel button:hover,
-.stupa-info-panel button:focus-visible {
-  border-color: rgba(246, 206, 160, 0.86);
-}
-
-.stupa-info-panel button:hover::before,
-.stupa-info-panel button:focus-visible::before {
-  transform: translateX(0);
-}
-
-.stupa-info-panel button:hover span,
-.stupa-info-panel button:focus-visible span {
-  transform: translateX(4px);
-}
-
-.stupa-story-panel {
-  right: clamp(120px, 14vw, 240px);
-  width: min(560px, 38vw);
-}
-
-/* 故事模式操作区：深度阅读 + 进入下一章 水平排列 */
 .stupa-story-actions {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
   margin-top: 32px;
 }
 
-.stupa-story-actions .stupa-deep-read-btn {
-  margin-top: 0;
+.stupa-story-actions .stupa-action-btn,
+.stupa-story-actions button {
+  margin-top: 0 !important;
 }
 
-/* ==========================================================================
-   进入下一章按钮组 — 胶囊 + 圆形图标 (严格复刻分离互换参考图)
-   ========================================================================== */
-.next-chapter-group {
+/* 1. 次级行动：阅读全卷 / 深度阅读 */
+.stupa-deep-read-btn {
+  color: rgba(246, 238, 224, 0.9) !important;
+  border-radius: 0px !important;
+}
+
+.stupa-deep-read-btn .btn-arrow,
+.stupa-deep-read-btn .arrow {
+  color: #f6cea0;
+  transition: transform 0.35s cubic-bezier(0.2, 0, 0, 1);
+  display: inline-block;
+}
+
+.stupa-info-panel button:hover,
+.stupa-deep-read-btn:hover {
+  background: rgba(246, 206, 160, 0.14) !important;
+  border-color: rgba(246, 206, 160, 0.75) !important;
+  color: #ffffff !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+}
+
+.stupa-info-panel button:hover .btn-arrow,
+.stupa-info-panel button:hover .arrow,
+.stupa-deep-read-btn:hover .btn-arrow,
+.stupa-deep-read-btn:hover .arrow {
+  transform: translateX(4px);
+}
+
+/* 2. 主级行动：进入下一章 */
+.stupa-next-chapter-btn {
+  color: #ffffff !important;
+  background: linear-gradient(135deg, rgba(246, 206, 160, 0.22) 0%, rgba(193, 173, 125, 0.15) 100%) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(246, 206, 160, 0.55) !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), inset 0 0 12px rgba(246, 206, 160, 0.08);
+}
+
+.stupa-next-chapter-btn .btn-icon-box {
   display: inline-flex;
   align-items: center;
-  gap: 12px; /* 默认状态：胶囊和圆圈之间有间隙 */
-  cursor: pointer;
-  border: none !important;
-  background: none !important;
-  padding: 0 !important;
-  margin-top: 0 !important;
-  overflow: visible !important;
-}
-
-/* 禁用父级可能存在的伪元素干扰 */
-.next-chapter-group::before {
-  display: none !important;
-}
-
-/* ---- 胶囊形主按钮 ---- */
-.next-pill {
-  position: relative;
-  width: 124px;
-  height: 48px;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: 999px;
-  display: flex;
-  align-items: center;
   justify-content: center;
-  overflow: hidden;
-  transition: all 400ms cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 1;
+  width: 20px;
+  height: 20px;
+  border-radius: 0px;
+  background: rgba(246, 206, 160, 0.2);
+  color: #f6cea0;
+  transition: transform 0.35s cubic-bezier(0.2, 0, 0, 1), background 0.35s ease, color 0.35s ease;
 }
 
-/* 参考图2：从下往上填充的哑光金背景 */
-.next-pill-bg {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 0%;
-  background: #C1AD7D;
-  transition: height 400ms cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 0;
+.stupa-next-chapter-btn:hover {
+  background: linear-gradient(135deg, rgba(246, 206, 160, 0.4) 0%, rgba(193, 173, 125, 0.3) 100%) !important;
+  border-color: rgba(246, 206, 160, 0.85) !important;
+  box-shadow: 0 8px 28px rgba(246, 206, 160, 0.35), inset 0 0 16px rgba(246, 206, 160, 0.18);
+  transform: translateY(-1px);
 }
 
-.next-pill-text {
-  position: relative;
-  z-index: 1;
-  color: #fff;
-  font-family: var(--font-sans);
-  font-size: 13px;
-  letter-spacing: 0.1em;
-  transition: color 400ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* ---- 圆形图标 ---- */
-.next-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: #fff;
-  color: #111;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: all 400ms cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 2;
-}
-
-.next-icon svg {
-  transition: transform 400ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* ============ Hover 交互动效 ============ */
-
-/* Hover 触发：当鼠标悬浮在整个 group 时 */
-
-/* 1. 胶囊：边框变色，向右平移（留出图标的位置，产生贴合感） */
-/* 计算：胶囊左侧边缘需要贴着图标的右侧。图标宽度48px，我们希望它们稍微交叠一点点(4px)让接缝完美，所以移动 48-4 = 44px */
-.next-chapter-group:hover .next-pill,
-.next-chapter-group:focus-visible .next-pill {
-  border-color: #C1AD7D;
-  transform: translateX(44px);
-}
-
-/* 2. 胶囊背景：从底部长满 */
-.next-chapter-group:hover .next-pill-bg,
-.next-chapter-group:focus-visible .next-pill-bg {
-  height: 100%;
-}
-
-/* 3. 胶囊文字：变黑 */
-.next-chapter-group:hover .next-pill-text,
-.next-chapter-group:focus-visible .next-pill-text {
-  color: #111;
-}
-
-/* 4. 圆形图标：变色，从右侧飞到最左侧 */
-/* 计算：图标原始在右侧，相隔了 胶囊宽(124) + 间隙(12) = 136px。
-   要回到左侧0点，需平移 -136px。 */
-.next-chapter-group:hover .next-icon,
-.next-chapter-group:focus-visible .next-icon {
-  background: #C1AD7D;
-  transform: translateX(-136px);
-}
-
-/* 5. 箭头：旋转 45° (↘ 变成 →) */
-.next-chapter-group:hover .next-icon svg,
-.next-chapter-group:focus-visible .next-icon svg {
-  transform: rotate(-45deg);
-}
-
-/* Focus 可见状态增强 */
-.next-chapter-group:focus-visible {
-  outline: 2px solid rgba(193, 173, 125, 0.6);
-  outline-offset: 4px;
+.stupa-next-chapter-btn:hover .btn-icon-box {
+  background: #f6cea0;
+  color: #181614;
+  transform: translate(2px, -2px);
 }
 
 
@@ -2945,7 +3082,7 @@ html.large-text {
 }
 
 /* ============================================================
-   全局自定义光标 (Custom Cursor)
+   全局自定义光标：极简直角菱形/十字测绘准星 (Precision Crosshair Reticle)
 ============================================================ */
 .custom-cursor-container {
   position: fixed;
@@ -2955,50 +3092,129 @@ html.large-text {
   height: 100vh;
   pointer-events: none;
   z-index: 9999;
-  mix-blend-mode: exclusion;
+  mix-blend-mode: normal;
 }
 
-.cursor-dot {
+/* 1. 中心 45° 菱形光晶 (零延迟精准跟随) */
+.cursor-diamond {
   position: fixed;
   top: 0;
   left: 0;
-  width: 6px;
-  height: 6px;
-  margin: -3px 0 0 -3px;
-  background-color: white;
-  border-radius: 50%;
+  width: 5px;
+  height: 5px;
+  margin: -2.5px 0 0 -2.5px;
+  background-color: #f6cea0;
+  transform: rotate(45deg);
   pointer-events: none;
-  transition: opacity 0.2s ease;
+  box-shadow: 0 0 6px rgba(246, 206, 160, 0.9);
+  transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              height 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              margin 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.25s ease,
+              border 0.25s ease,
+              transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform;
 }
 
-.cursor-ring {
+/* 悬停时：中心菱形展开为精致空心框 */
+.cursor-diamond.is-hovering {
+  width: 9px;
+  height: 9px;
+  margin: -4.5px 0 0 -4.5px;
+  background-color: rgba(246, 206, 160, 0.25);
+  border: 1px solid #ffffff;
+  box-shadow: 0 0 10px rgba(246, 206, 160, 1);
+}
+
+/* 点击时：菱形紧缩 */
+.cursor-diamond.is-clicking {
+  transform: rotate(45deg) scale(0.7);
+}
+
+/* 2. 外部四向直角测绘准星 (平滑阻尼物理跟随) */
+.cursor-reticle {
   position: fixed;
   top: 0;
   left: 0;
-  width: 32px;
-  height: 32px;
-  margin: -16px 0 0 -16px;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  margin: -12px 0 0 -12px;
   pointer-events: none;
   transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), 
               height 0.3s cubic-bezier(0.16, 1, 0.3, 1), 
-              margin 0.3s cubic-bezier(0.16, 1, 0.3, 1), 
-              border-color 0.3s ease;
+              margin 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform;
 }
 
-.cursor-ring.is-hovering {
-  width: 48px;
-  height: 48px;
-  margin: -24px 0 0 -24px;
-  border-color: rgba(255, 255, 255, 0.9);
-  background-color: rgba(255, 255, 255, 0.05);
+.reticle-line {
+  position: absolute;
+  background-color: rgba(246, 206, 160, 0.65);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.cursor-dot.is-hovering {
-  opacity: 0;
+/* 顶部指针 */
+.reticle-top {
+  top: 0;
+  left: 50%;
+  width: 1px;
+  height: 4px;
+  transform: translateX(-50%);
+}
+
+/* 底部指针 */
+.reticle-bottom {
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  height: 4px;
+  transform: translateX(-50%);
+}
+
+/* 左侧指针 */
+.reticle-left {
+  left: 0;
+  top: 50%;
+  width: 4px;
+  height: 1px;
+  transform: translateY(-50%);
+}
+
+/* 右侧指针 */
+.reticle-right {
+  right: 0;
+  top: 50%;
+  width: 4px;
+  height: 1px;
+  transform: translateY(-50%);
+}
+
+/* 悬停时：准星向外轻盈弹开并高亮白金 */
+.cursor-reticle.is-hovering {
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+}
+
+.cursor-reticle.is-hovering .reticle-line {
+  background-color: #ffffff;
+  box-shadow: 0 0 6px rgba(246, 206, 160, 0.9);
+}
+
+.cursor-reticle.is-hovering .reticle-top,
+.cursor-reticle.is-hovering .reticle-bottom {
+  height: 5px;
+}
+
+.cursor-reticle.is-hovering .reticle-left,
+.cursor-reticle.is-hovering .reticle-right {
+  width: 5px;
+}
+
+/* 点击时：准星内缩紧咬 */
+.cursor-reticle.is-clicking {
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
 }
 
 /* ============================================================
@@ -4320,64 +4536,28 @@ html.large-text {
     display: none !important;
   }
 
-  /* ---------- 手机端顶部控制栏 ---------- */
-  .timeline-top-nav {
-    top: 20px !important;
-    right: 16px !important;
-    gap: 8px !important;
+  /* ---------- 手机端顶部控制栏（一体化导航岛） ---------- */
+  .timeline-nav-island {
+    top: 16px !important;
+    right: 14px !important;
+    padding: 3px 4px !important;
+    gap: 1px !important;
   }
 
-  /* 统一三个按钮的风格：胶囊形、同高度、同边框 */
-  .fh-nav__contact,
-  .next-chapter-group .next-pill,
-  .timeline-fs-wrapper .intro-ctrl-btn {
-    height: 32px !important;
-    border-radius: 999px !important;
-    border: 1px solid rgba(255, 255, 255, 0.4) !important;
-    background: rgba(255, 255, 255, 0.03) !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    box-sizing: border-box !important;
+  .nav-island-btn {
+    height: 30px !important;
+    padding: 0 12px !important;
+    font-size: 11.5px !important;
+    letter-spacing: 0.04em !important;
   }
 
-  /* 精简“问窟 AI”按钮 */
-  .fh-nav__contact {
-    padding: 0 14px !important;
-    font-size: 13px !important;
-    letter-spacing: 1px !important;
-    color: #fff !important;
+  .nav-island-divider {
+    height: 14px !important;
   }
 
-  /* 精简“进入下一章”按钮组 */
-  .next-chapter-group {
-    gap: 0 !important;
-  }
-  .next-chapter-group .next-icon {
-    display: none !important; /* 隐藏多余的圆形箭头图标 */
-  }
-  .next-chapter-group .next-pill {
-    width: 86px !important;
-  }
-  .next-chapter-group .next-pill-text {
-    font-size: 13px !important;
-  }
-  
-  /* 取消移动端 Hover 的复杂形变，防止误触闪烁 */
-  .next-chapter-group:hover .next-pill,
-  .next-chapter-group:focus-visible .next-pill {
-    transform: none !important;
-  }
-
-  /* 全屏按钮特定修饰 */
-  .timeline-fs-wrapper .intro-ctrl-btn {
-    width: 40px !important;
-    padding: 0 !important;
-    color: #fff !important;
-  }
-  /* 隐藏全屏按钮内置的方形边框 SVG */
-  .timeline-fs-wrapper .intro-ctrl-btn .ctrl-btn-outline {
-    display: none !important;
+  .nav-island-next .nav-next-arrow {
+    width: 16px !important;
+    height: 16px !important;
   }
 
   /* ---------- 调整移动端可视化节点位置（因为移动端模型整体下移了） ---------- */
@@ -4397,28 +4577,23 @@ html.large-text {
     display: none !important;
   }
 
-  /* 移动端专属滑动提示文案替换与位置调整：竖排放在右上方（避开顶部按钮） */
-  .timeline-scroll-hint {
-    display: block !important;
-    position: fixed;
-    top: 80px !important; /* 置于顶部按钮群的下方 */
+  /* 移动端专属滑动提示调整 */
+  .timeline-scroll-indicator {
+    position: fixed !important;
+    top: 68px !important;
     bottom: auto !important;
-    right: 20px !important;
+    right: 14px !important;
     left: auto !important;
-    width: auto !important;
-    writing-mode: vertical-rl; /* 竖排方向 */
-    text-align: left !important;
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 0 !important; /* 隐藏原有的 PC 端文案 */
-    text-shadow: 0 1px 5px rgba(0, 0, 0, 0.8);
-    pointer-events: none;
-    letter-spacing: 0.15em !important; /* 竖排增加一点间距更透气 */
+    padding: 8px 12px !important;
+    border-radius: 8px !important;
   }
 
-  /* 通过 ::after 伪元素注入移动端文案 */
-  .timeline-scroll-hint::after {
-    content: "上下滑动屏幕，游览局部";
-    font-size: 12px;
+  .scroll-kicker {
+    display: none !important;
+  }
+
+  .scroll-hint-title {
+    font-size: 11px !important;
   }
 
   /* 放大镜透镜在手机端缩小 */

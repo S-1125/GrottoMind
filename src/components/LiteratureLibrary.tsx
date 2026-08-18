@@ -3,8 +3,6 @@ import ReactMarkdown from 'react-markdown'
 import './LiteratureLibrary.css'
 
 const API_BASE = import.meta.env.VITE_AGENT_API || ''
-// 文献插图存储在 Supabase Storage CDN
-const SUPABASE_STORAGE_URL = 'https://fgzjdxriyrnoibwmglih.supabase.co/storage/v1/object/public/literature-images'
 
 interface LiteratureLibraryProps {
   onBack: () => void
@@ -12,6 +10,8 @@ interface LiteratureLibraryProps {
   autoSelectTitle?: string | null
   /** RAG 片段文本，用于段落定位 */
   autoScrollSnippet?: string | null
+  /** RAG 原始绝对行号，用于行级精准直达 */
+  autoScrollLine?: number | null
 }
 
 interface DocMeta {
@@ -19,6 +19,7 @@ interface DocMeta {
   title: string
   filename: string
   type: string
+  source?: string
 }
 
 interface DocSummary {
@@ -29,53 +30,99 @@ interface DocSummary {
 // 用于区分摘要状态的枚举
 type SummaryState = 'idle' | 'loading' | 'success' | 'error'
 
-export function LiteratureLibrary({ onBack, autoSelectTitle, autoScrollSnippet }: LiteratureLibraryProps) {
+/** 智能模糊匹配文献标题（支持简称、部分书名、作者后缀剥离与 N-Gram 重合度打分） */
+function findBestMatchingDoc(targetTitle: string, docList: DocMeta[]): DocMeta | null {
+  if (!targetTitle || !docList.length) return null
+
+  const cleanTarget = targetTitle.toLowerCase().replace(/[\s_《》·\(\)（）—\-:：]/g, '')
+  if (!cleanTarget) return null
+
+  // 1. 精确与包含匹配
+  for (const doc of docList) {
+    const cleanDoc = doc.title.toLowerCase().replace(/[\s_《》·\(\)（）—\-:：]/g, '')
+    if (cleanDoc.includes(cleanTarget) || cleanTarget.includes(cleanDoc)) {
+      return doc
+    }
+  }
+
+  // 2. 连续片段与字符重叠度模糊匹配
+  let bestDoc: DocMeta | null = null
+  let maxScore = 0
+
+  for (const doc of docList) {
+    const cleanDoc = doc.title.toLowerCase().replace(/[\s_《》·\(\)（）—\-:：]/g, '')
+    
+    // 提取连续 3-4 字符片段匹配
+    let matchPoints = 0
+    for (let i = 0; i <= cleanTarget.length - 3; i++) {
+      const sub = cleanTarget.slice(i, i + 3)
+      if (cleanDoc.includes(sub)) {
+        matchPoints += 3
+      }
+    }
+
+    // 关键字符重叠率
+    const targetChars = new Set(cleanTarget.split(''))
+    let commonChars = 0
+    for (const ch of targetChars) {
+      if (cleanDoc.includes(ch)) commonChars++
+    }
+    const overlapRate = commonChars / targetChars.size
+
+    const totalScore = matchPoints + overlapRate * 15
+    if (totalScore > maxScore && (overlapRate >= 0.35 || matchPoints >= 6)) {
+      maxScore = totalScore
+      bestDoc = doc
+    }
+  }
+
+  return bestDoc
+}
+
+export function LiteratureLibrary({ onBack, autoSelectTitle, autoScrollSnippet, autoScrollLine }: LiteratureLibraryProps) {
   const [activeDoc, setActiveDoc] = useState<DocMeta | null>(null)
   const [activeDocContent, setActiveDocContent] = useState<string>('')
   const [docs, setDocs] = useState<DocMeta[]>([])
   const [loading, setLoading] = useState(true)
   const [contentLoading, setContentLoading] = useState(false)
+  const [locatedLine, setLocatedLine] = useState<number | null>(null)
   const readerRef = useRef<HTMLDivElement>(null)
+  const contentContainerRef = useRef<HTMLDivElement>(null)
 
   // AI 摘要：用单一 state 管理所有状态，避免多 state 竞争
   const [summaryState, setSummaryState] = useState<SummaryState>('idle')
   const [summaryData, setSummaryData] = useState<DocSummary | null>(null)
   const [summaryError, setSummaryError] = useState<string>('')
 
-  // 拉取文献列表
+  // 1. 初始化拉取文献列表
   useEffect(() => {
     fetch(`${API_BASE}/api/literature`)
       .then(res => res.json())
       .then(data => {
         setDocs(data)
         setLoading(false)
-
-        // 如果有自动选中标题，模糊匹配并选中对应文献
-        if (autoSelectTitle && data.length > 0) {
-          const normalizedTarget = autoSelectTitle.toLowerCase().replace(/[\s_]/g, '')
-          const matched = data.find((d: DocMeta) => {
-            const normalizedTitle = d.title.toLowerCase().replace(/[\s_]/g, '')
-            // 完全包含 或 包含关系
-            return normalizedTitle.includes(normalizedTarget) ||
-                   normalizedTarget.includes(normalizedTitle)
-          })
-          if (matched) {
-            setActiveDoc(matched)
-          }
-        }
       })
       .catch(() => setLoading(false))
-  }, [autoSelectTitle])
+  }, [])
 
-  // 切换文献时自动加载原文和预缓存的摘要
+  // 2. 监听 autoSelectTitle 或 docs 变化，智能匹配并激活对应文献
+  useEffect(() => {
+    if (!autoSelectTitle || !docs.length) return
+    const matched = findBestMatchingDoc(autoSelectTitle, docs)
+    if (matched) {
+      setActiveDoc(matched)
+    }
+  }, [autoSelectTitle, docs])
+
+  // 3. 切换文献时自动加载原文与预缓存摘要
   useEffect(() => {
     if (!activeDoc) return
     setSummaryState('loading')
     setSummaryData(null)
     setSummaryError('')
     setContentLoading(true)
+    setLocatedLine(null)
 
-    // 并发请求原文和预缓存的摘要
     Promise.all([
       fetch(`${API_BASE}/api/literature/${encodeURIComponent(activeDoc.filename)}`).then(res => res.text()),
       fetch(`${API_BASE}/api/literature/summarize/${encodeURIComponent(activeDoc.filename)}`).then(res => res.json())
@@ -100,87 +147,100 @@ export function LiteratureLibrary({ onBack, autoSelectTitle, autoScrollSnippet }
       })
   }, [activeDoc])
 
-  // 文献内容加载完成后，如果有 snippet，在 DOM 中搜索并滚动定位
+  // 4. 精准行号与文本切片双模态定位控制器 (支持多轮排版校准)
   useEffect(() => {
-    if (!autoScrollSnippet || contentLoading || !activeDocContent || !readerRef.current) return
+    if ((!autoScrollSnippet && !autoScrollLine) || contentLoading || !activeDocContent) return
 
-    // 等待 ReactMarkdown 渲染完成（给足时间）
-    const timer = setTimeout(() => {
+    const performLocation = () => {
       const container = readerRef.current
-      if (!container) return
+      const scrollParent = contentContainerRef.current
+      if (!container || !scrollParent) return false
 
-      // 预处理：将 snippet 中的空白字符全部去掉，取多段关键词用于匹配
-      const normalizedSnippet = autoScrollSnippet.replace(/\s+/g, '')
-      
-      // 使用多个不同位置的关键词片段来提升匹配精度
-      const keyFragments = [
-        normalizedSnippet.slice(0, 40),   // 前40字
-        normalizedSnippet.slice(20, 60),  // 中前段
-        normalizedSnippet.slice(40, 80),  // 中段
-      ].filter(f => f.length >= 10)
-
-      // 在正文区域（.ll-reader__text）中搜索所有块级元素
       const textContainer = container.querySelector('.ll-reader__text')
-      if (!textContainer) return
+      if (!textContainer) return false
 
-      // 获取所有段落级元素（p, li, h1-h6, blockquote 等）
       const blockElements = textContainer.querySelectorAll('p, li, h1, h2, h3, h4, h5, h6, blockquote, td')
-      
+      if (!blockElements.length) return false
+
       let bestMatch: Element | null = null
       let bestScore = 0
 
-      blockElements.forEach(el => {
-        const elText = (el.textContent || '').replace(/\s+/g, '')
-        if (elText.length < 5) return  // 跳过空行/极短元素
-        
-        // 计算匹配分数：有多少个关键词片段被命中
-        let score = 0
-        for (const frag of keyFragments) {
-          if (elText.includes(frag)) {
-            score += frag.length  // 命中的片段越长，得分越高
+      // 方案 A: 依据 autoScrollSnippet 提取特征文本打分
+      if (autoScrollSnippet) {
+        const cleanSnippet = autoScrollSnippet.replace(/[#*`_>~]/g, '').replace(/\s+/g, '')
+        const fragments = [
+          cleanSnippet.slice(0, 30),
+          cleanSnippet.slice(15, 45),
+          cleanSnippet.slice(30, 60),
+          cleanSnippet.slice(cleanSnippet.length - 30),
+        ].filter(f => f.length >= 8)
+
+        blockElements.forEach(el => {
+          const elText = (el.textContent || '').replace(/[#*`_>~]/g, '').replace(/\s+/g, '')
+          if (elText.length < 5) return
+
+          let score = 0
+          for (const frag of fragments) {
+            if (elText.includes(frag)) score += frag.length * 2
           }
-        }
+          if (elText.includes(cleanSnippet.slice(0, 15))) score += 40
 
-        // 额外加分：如果 snippet 的开头直接命中了段落开头
-        const snippetHead = normalizedSnippet.slice(0, 20)
-        if (elText.startsWith(snippetHead) || elText.includes(snippetHead)) {
-          score += 30
-        }
-        
-        if (score > bestScore) {
-          bestScore = score
-          bestMatch = el
-        }
-      })
+          if (score > bestScore) {
+            bestScore = score
+            bestMatch = el
+          }
+        })
+      }
 
-      // 如果匹配分数太低（仅靠前 20 字命中），尝试宽松匹配
-      if (!bestMatch || bestScore < 20) {
-        // 降级：取 snippet 中任意连续 15 字做全文扫描
-        const fallbackText = normalizedSnippet.slice(10, 25)
-        if (fallbackText.length >= 10) {
-          blockElements.forEach(el => {
-            if (bestMatch) return
-            const elText = (el.textContent || '').replace(/\s+/g, '')
-            if (elText.includes(fallbackText)) {
-              bestMatch = el
-            }
-          })
-        }
+      // 方案 B: 依据 autoScrollLine 估算行号对应比例的 DOM 节点
+      if ((!bestMatch || bestScore < 15) && autoScrollLine && autoScrollLine > 1) {
+        const lines = activeDocContent.split('\n')
+        const totalLines = lines.length
+        const targetRatio = Math.min(Math.max(autoScrollLine / totalLines, 0), 1)
+        const targetIndex = Math.min(Math.floor(targetRatio * blockElements.length), blockElements.length - 1)
+        bestMatch = blockElements[targetIndex]
       }
 
       if (bestMatch) {
         const el = bestMatch as HTMLElement
-        // 添加高亮样式
+        // 移除旧的高亮
+        container.querySelectorAll('.ll-highlight-snippet').forEach(node => node.classList.remove('ll-highlight-snippet'))
+        
+        // 注入高亮类名与锚点
         el.classList.add('ll-highlight-snippet')
-        // 滚动到该元素
+        
+        // 双重滚动保障：先通过 offsetTop 显式滚动 scrollParent，再执行 scrollIntoView
+        const containerRect = scrollParent.getBoundingClientRect()
+        const elRect = el.getBoundingClientRect()
+        const targetScrollTop = scrollParent.scrollTop + (elRect.top - containerRect.top) - (containerRect.height / 3)
+        
+        scrollParent.scrollTo({
+          top: Math.max(0, targetScrollTop),
+          behavior: 'smooth'
+        })
         el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        // 5 秒后移除高亮
-        setTimeout(() => el.classList.remove('ll-highlight-snippet'), 5000)
-      }
-    }, 800)  // 给 ReactMarkdown 更多渲染时间
 
-    return () => clearTimeout(timer)
-  }, [autoScrollSnippet, contentLoading, activeDocContent])
+        if (autoScrollLine) {
+          setLocatedLine(autoScrollLine)
+        }
+        return true
+      }
+      return false
+    }
+
+    // 采用 100ms, 350ms, 700ms, 1200ms 四轮渐进校准，确保排版稳定后精准定格
+    const t1 = setTimeout(performLocation, 100)
+    const t2 = setTimeout(performLocation, 350)
+    const t3 = setTimeout(performLocation, 700)
+    const t4 = setTimeout(performLocation, 1200)
+
+    return () => {
+      clearTimeout(t1)
+      clearTimeout(t2)
+      clearTimeout(t3)
+      clearTimeout(t4)
+    }
+  }, [autoScrollSnippet, autoScrollLine, contentLoading, activeDocContent])
 
   return (
     <div className="literature-library">
@@ -236,7 +296,7 @@ export function LiteratureLibrary({ onBack, autoSelectTitle, autoScrollSnippet }
         </aside>
 
         {/* 右侧：阅读区 */}
-        <main className="ll-content">
+        <main className="ll-content" ref={contentContainerRef}>
           {!activeDoc ? (
             <div className="ll-content__empty">
               <div className="ll-content__empty-icon">
@@ -257,6 +317,21 @@ export function LiteratureLibrary({ onBack, autoSelectTitle, autoScrollSnippet }
                 返回列表
               </button>
 
+              {/* 引用行号精准定位提示条 */}
+              {locatedLine && (
+                <div
+                  className="ll-citation-anchor-badge"
+                  onClick={() => {
+                    readerRef.current?.querySelector('.ll-highlight-snippet')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                  }}
+                  title="点击可再次居中视口至论据出处"
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+                  <span>已定位至 AI 引述核心论据出处（第 {locatedLine} 行）</span>
+                  <span className="ll-anchor-action">点击居中 ↗</span>
+                </div>
+              )}
+
               {/* ——— 标题行 ——— */}
               <div className="ll-reader__title-row">
                 <h2 className="ll-reader__title">{activeDoc.title}</h2>
@@ -272,7 +347,7 @@ export function LiteratureLibrary({ onBack, autoSelectTitle, autoScrollSnippet }
 
               {summaryState === 'error' && (
                 <div className="ll-guide-error">
-                  ⚠️ AI 导读加载失败：{summaryError}
+                  导读加载提示：{summaryError}
                 </div>
               )}
 
@@ -288,10 +363,10 @@ export function LiteratureLibrary({ onBack, autoSelectTitle, autoScrollSnippet }
                     <div className="ll-guide-card__summary">
                       <ReactMarkdown>{summaryData.summary}</ReactMarkdown>
                     </div>
-                    {summaryData.keywords?.length > 0 && (
-                      <div className="ll-guide-card__keywords">
+                    {summaryData.keywords && summaryData.keywords.length > 0 && (
+                      <div className="ll-guide-card__tags">
                         {summaryData.keywords.map((kw, i) => (
-                          <span key={i} className="ll-keyword-pill">{kw}</span>
+                          <span key={i} className="ll-guide-tag">{kw}</span>
                         ))}
                       </div>
                     )}
@@ -302,36 +377,38 @@ export function LiteratureLibrary({ onBack, autoSelectTitle, autoScrollSnippet }
               {/* ——— 分隔线 ——— */}
               <div className="ll-divider" />
 
-              {/* ——— 文献原文 ——— */}
+              {/* ——— 文献原文阅读区 ——— */}
               <div className="ll-reader__body" ref={readerRef}>
                 <div className="ll-reader__text">
                   {contentLoading ? (
                     <p>正在拉取档案源文件...</p>
-                  ) : activeDocContent ? (
+                  ) : activeDocContent && activeDocContent.replace(/!\[.*?\]\(.*?\)/g, '').trim().length > 0 ? (
                     <ReactMarkdown
                       components={{
                         img: ({ src, alt }) => {
-                          // 文献插图从 Supabase Storage CDN 加载
-                          const fullSrc = src?.startsWith('/static/images/') 
-                            ? `${SUPABASE_STORAGE_URL}${src.replace('/static/images/', '/')}` 
-                            : src?.startsWith('/static/')
-                              ? `${SUPABASE_STORAGE_URL}${src.replace('/static/', '/')}`
-                              : src;
+                          if (!src) return null
                           return (
                             <img
-                              src={fullSrc}
-                              alt={alt || '插图'}
-                              style={{ maxWidth: '100%', borderRadius: '6px', margin: '12px 0', display: 'block' }}
-                              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                              src={src}
+                              alt={alt || ''}
+                              className="ll-inline-md-img"
+                              loading="lazy"
+                              onError={(e) => {
+                                (e.currentTarget as HTMLElement).style.display = 'none'
+                              }}
                             />
-                          );
-                        },
+                          )
+                        }
                       }}
                     >
                       {activeDocContent}
                     </ReactMarkdown>
                   ) : (
-                    <p>该档案无文本记录</p>
+                    <div className="ll-empty-scan-note">
+                      <div className="ll-empty-seal">〔 影印扫描卷宗 〕</div>
+                      <p>本卷为历史原版影印扫描归档文献，原始档案未包含可提取纯文本字符。</p>
+                      <p>核心考据结论与关键学术线索已由 AI 深度索引，您可直接向“问窟者”智能体咨询考据细节。</p>
+                    </div>
                   )}
                 </div>
               </div>

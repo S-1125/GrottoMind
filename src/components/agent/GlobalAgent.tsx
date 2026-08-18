@@ -4,25 +4,27 @@ import { useAgent } from './AgentContext'
 import './GlobalAgent.css'
 
 /* ============================================================
-   GlobalAgent: 悬浮全局的"问窟者"智能体
-   接入 FastAPI + Gemini SSE 流式对话
-   使用 localStorage 持久化对话历史
+   GlobalAgent: 悬浮全局的"问窟者"智能体 (2.0 重构版)
+   接入 FastAPI + DeepSeek-V4-Flash / R1 流式推理与学术引用
+   支持思考链 (Thinking) 折叠、色卡解析与双向学术文献联动
 ============================================================ */
 
 interface SourceRef {
   index: number
   title: string
   snippet: string
+  start_line?: number
 }
 
 interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
+  thinking?: string
   timestamp: number
   sources?: SourceRef[]
 }
 
-const STORAGE_KEY = 'grottomind_chat_history'
+const STORAGE_KEY = 'grottomind_chat_history_v2'
 const API_BASE = import.meta.env.VITE_AGENT_API || ''
 
 /** 从 localStorage 还原历史 */
@@ -30,17 +32,20 @@ function loadHistory(): ChatMessage[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw) return JSON.parse(raw)
-  } catch { /* 忽略解析失败 */ }
+  } catch { /* 忽略解析错误 */ }
   return [
-    { role: 'assistant', content: '你好，我是问窟者。你正在游览栖霞山数字档案馆。有什么我可以帮你的吗？', timestamp: Date.now() }
+    {
+      role: 'assistant',
+      content: '你好，我是“问窟者”。你正在游览南京栖霞山石窟造像数字复彩档案馆。有什么石窟历史、造像艺术或矿物色彩的问题我可以为你解答吗？',
+      timestamp: Date.now()
+    }
   ]
 }
 
 /** 持久化到 localStorage */
 function saveHistory(messages: ChatMessage[]) {
   try {
-    // 只保留最近 100 条，避免爆 localStorage
-    const trimmed = messages.slice(-100)
+    const trimmed = messages.slice(-80)
     localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed))
   } catch { /* 存储满时静默失败 */ }
 }
@@ -91,7 +96,7 @@ export function GlobalAgent() {
     }
   }, [isChatOpen])
 
-  // 阻止面板上的滚轮事件穿透到下层页面（Lenis / 原生滚动）
+  // 阻止面板上的滚轮事件穿透
   useEffect(() => {
     const panel = panelRef.current
     if (!panel || !isChatOpen) return
@@ -108,7 +113,6 @@ export function GlobalAgent() {
       const atTop = scrollTop <= 0 && e.deltaY < 0
       const atBottom = scrollTop + clientHeight >= scrollHeight - 1 && e.deltaY > 0
 
-      // 到达边界时阻止默认行为，防止穿透到外层
       if (atTop || atBottom) {
         e.preventDefault()
       }
@@ -122,10 +126,10 @@ export function GlobalAgent() {
   // 根据章节获取上下文
   const getContextHint = useCallback(() => {
     switch (currentChapter) {
-      case 'intro': return '当前位置：栖霞山远景'
-      case 'ch1': return '当前位置：第一章 · 塔与窟'
-      case 'ch2': return '当前位置：第二章 · 数字焕颜'
-      case 'ch3': return '当前位置：第三章 · 问窟文献库'
+      case 'intro': return '当前位置：序章 · 摄山怀古'
+      case 'ch1': return '当前位置：第一章 · 塔与窟 (3D舍利塔)'
+      case 'ch2': return '当前位置：第二章 · 数字焕颜 (风化与复彩)'
+      case 'ch3': return '当前位置：第三章 · 问窟共创与文献馆'
       default: return ''
     }
   }, [currentChapter])
@@ -140,8 +144,8 @@ export function GlobalAgent() {
     setInputText('')
     setIsStreaming(true)
 
-    // 占位的 AI 消息（后续流式填充）
-    const aiMsg: ChatMessage = { role: 'assistant', content: '', timestamp: Date.now() }
+    // 占位的 AI 消息
+    const aiMsg: ChatMessage = { role: 'assistant', content: '', thinking: '', timestamp: Date.now() }
     setMessages(prev => [...prev, aiMsg])
 
     try {
@@ -150,8 +154,7 @@ export function GlobalAgent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: text,
-          // Gemini 支持超长上下文，提升记忆轮次到 100 条（50轮对话）
-          history: messages.slice(-100).map(m => ({ role: m.role, content: m.content })),
+          history: messages.slice(-40).map(m => ({ role: m.role, content: m.content })),
           chapterContext: getContextHint()
         })
       })
@@ -160,8 +163,9 @@ export function GlobalAgent() {
 
       const reader = response.body?.getReader()
       const decoder = new TextDecoder()
-      let accumulated = ''
-      let sseBuffer = '' // 缓冲不完整的行
+      let accumulatedContent = ''
+      let accumulatedThinking = ''
+      let sseBuffer = ''
 
       if (reader) {
         while (true) {
@@ -169,25 +173,46 @@ export function GlobalAgent() {
           if (done) break
 
           sseBuffer += decoder.decode(value, { stream: true })
-          // 按完整行拆分，保留最后一个不完整的片段
           const lines = sseBuffer.split('\n')
-          sseBuffer = lines.pop() || '' // 最后一段可能不完整，留到下次
+          sseBuffer = lines.pop() || ''
+
+          let currentEvent = 'message'
           for (const line of lines) {
+            if (line.startsWith('event: ')) {
+              currentEvent = line.slice(7).trim()
+              continue
+            }
             if (line.startsWith('data: ')) {
               try {
                 const data = JSON.parse(line.slice(6))
-                if (data.text) {
-                  accumulated += data.text
+                
+                // 处理思考链事件
+                if (currentEvent === 'thinking' && data.delta) {
+                  accumulatedThinking += data.delta
                   setMessages(prev => {
                     const updated = [...prev]
                     updated[updated.length - 1] = {
                       ...updated[updated.length - 1],
-                      content: accumulated
+                      thinking: accumulatedThinking
                     }
                     return updated
                   })
                 }
-                // 接收 RAG 引用源数据
+                
+                // 处理常规正文片段
+                if (data.text) {
+                  accumulatedContent += data.text
+                  setMessages(prev => {
+                    const updated = [...prev]
+                    updated[updated.length - 1] = {
+                      ...updated[updated.length - 1],
+                      content: accumulatedContent
+                    }
+                    return updated
+                  })
+                }
+
+                // 处理学术文献引用
                 if (data.sources) {
                   setMessages(prev => {
                     const updated = [...prev]
@@ -198,18 +223,20 @@ export function GlobalAgent() {
                     return updated
                   })
                 }
+
+                // 处理错误
                 if (data.error) {
-                  accumulated += `\n⚠️ 错误: ${data.error}`
+                  accumulatedContent += `\n〔系统提示〕${data.error}`
                   setMessages(prev => {
                     const updated = [...prev]
                     updated[updated.length - 1] = {
                       ...updated[updated.length - 1],
-                      content: accumulated
+                      content: accumulatedContent
                     }
                     return updated
                   })
                 }
-              } catch { /* 忽略 JSON 解析错误 */ }
+              } catch { /* 忽略格式错误 */ }
             }
           }
         }
@@ -219,7 +246,7 @@ export function GlobalAgent() {
         const updated = [...prev]
         updated[updated.length - 1] = {
           ...updated[updated.length - 1],
-          content: '抱歉，AI 服务暂时无法连接，请稍后再试。'
+          content: '抱歉，智能导览服务暂时无法响应，请稍候再试。'
         }
         return updated
       })
@@ -228,14 +255,26 @@ export function GlobalAgent() {
     }
   }, [inputText, isStreaming, messages, getContextHint])
 
-
   if (!orbVisible) return null
 
-  /** 渲染 AI 消息内容（Markdown + 色卡组件） */
-  const renderAssistantContent = (content: string, sources?: SourceRef[]) => {
+  /** 渲染 AI 消息内容（思考过程 + Markdown + 色卡组件） */
+  const renderAssistantContent = (content: string, thinking?: string, sources?: SourceRef[]) => {
     const segments = parseColorCards(content)
     return (
       <>
+        {/* 思考链展示折叠框 (DeepSeek-R1 / Thinking) */}
+        {thinking && (
+          <details className="ga-thinking-box" open={false}>
+            <summary className="ga-thinking-summary">
+              <span className="ga-thinking-icon">✧</span>
+              <span>推演脉络 (Thinking)</span>
+            </summary>
+            <div className="ga-thinking-content">
+              {thinking}
+            </div>
+          </details>
+        )}
+
         {segments.map((seg, si) => {
           if (seg.type === 'color') {
             return (
@@ -255,51 +294,51 @@ export function GlobalAgent() {
             )
           }
           return (
-            <ReactMarkdown key={si} components={{
-              a: ({ href, children }) => {
-                // 解码 href，兼容 URL 编码的中文
-                const decodedHref = href ? decodeURIComponent(href) : ''
-                
-                // 拦截文献引用链接：格式为 [1](#来源:文献标题)
-                if (decodedHref.includes('来源:') || decodedHref.includes('来源：')) {
-                  // 提取文献标题
-                  const sourceTitle = decodedHref
-                    .replace(/^#/, '')
-                    .replace(/^来源[:：]\s*/, '')
-                  
-                  // 从引用编号中提取数字，查找对应的 RAG snippet
-                  const citationNum = parseInt(String(children), 10)
-                  const matchedSource = sources?.find(s => s.index === citationNum)
-                  
+            <ReactMarkdown
+              key={si}
+              components={{
+                a: ({ href, children }) => {
+                  const decodedHref = href ? decodeURIComponent(href) : ''
+                  if (decodedHref.includes('来源:') || decodedHref.includes('来源：')) {
+                    const sourceTitle = decodedHref
+                      .replace(/^#/, '')
+                      .replace(/^来源[:：]\s*/, '')
+                    
+                    const citationNum = parseInt(String(children), 10)
+                    const matchedSource = sources?.find(s => s.index === citationNum)
+                    
+                    return (
+                      <span
+                        className="ga-citation"
+                        data-tooltip={sourceTitle}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`查看文献引用: ${sourceTitle}`}
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          setPendingLiteratureNav({
+                            title: sourceTitle,
+                            snippet: matchedSource?.snippet,
+                            startLine: matchedSource?.start_line
+                          })
+                          navigateToChapter('ch3')
+                          setChatOpen(false)
+                        }}
+                      >
+                        {children}
+                      </span>
+                    )
+                  }
+                  if (href && href.startsWith('#')) {
+                    return <span className="ga-citation-plain">{children}</span>
+                  }
                   return (
-                    <span
-                      className="ga-citation"
-                      data-tooltip={sourceTitle}
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        // 设置待跳转信息（包含 snippet 用于段落定位）
-                        setPendingLiteratureNav({
-                          title: sourceTitle,
-                          snippet: matchedSource?.snippet
-                        })
-                        navigateToChapter('ch3')
-                        setChatOpen(false)
-                      }}
-                    >
-                      {children}
-                    </span>
+                    <a href={href} target="_blank" rel="noopener noreferrer">{children}</a>
                   )
                 }
-                // 其他 # 链接也阻止默认跳转
-                if (href && href.startsWith('#')) {
-                  return <span className="ga-citation-plain">{children}</span>
-                }
-                return (
-                  <a href={href} target="_blank" rel="noopener noreferrer">{children}</a>
-                )
-              }
-            }}>
+              }}
+            >
               {seg.value}
             </ReactMarkdown>
           )
@@ -309,7 +348,7 @@ export function GlobalAgent() {
   }
 
   return (
-    <div className={`global-agent ${isChatOpen ? 'is-open' : ''}`}>
+    <div className={`global-agent ${isChatOpen ? 'is-open' : ''}`} role="region" aria-label="问窟智能导览助手">
       {/* 聊天面板 */}
       {isChatOpen && (
         <div className="ga-chat-panel" ref={panelRef}>
@@ -318,13 +357,13 @@ export function GlobalAgent() {
             <div className="ga-chat-title">
               <div className="ga-chat-brand">
                 <div className="ga-brand-icon">
-                  <img src="/assets/wenku-logo-final.png" alt="GrottoMind" />
+                  <img src="/assets/wenku-logo-final.png" alt="问窟 GrottoMind Logo" />
                 </div>
                 <div>
-                  <h3>GrottoMind</h3>
+                  <h3 className="ga-brand-heading">问窟者 · AI 导览</h3>
                   <span className="ga-chat-status">
                     <span className="ga-status-dot" />
-                    {isStreaming ? '思考中…' : '在线'}
+                    {isStreaming ? '推演中…' : '在线'}
                   </span>
                 </div>
               </div>
@@ -332,8 +371,13 @@ export function GlobalAgent() {
             <div className="ga-chat-header-actions">
               <button
                 className="ga-header-btn"
+                aria-label="新建对话"
                 onClick={() => {
-                  setMessages([{ role: 'assistant', content: '你好，我是问窟者。你正在游览栖霞山数字档案馆。有什么我可以帮你的吗？', timestamp: Date.now() }])
+                  setMessages([{
+                    role: 'assistant',
+                    content: '你好，我是“问窟者”。有什么石窟历史、造像艺术或矿物色彩的问题我可以为你解答吗？',
+                    timestamp: Date.now()
+                  }])
                 }}
                 title="新建对话"
               >
@@ -341,7 +385,7 @@ export function GlobalAgent() {
                   <path d="M12 5v14M5 12h14"/>
                 </svg>
               </button>
-              <button className="ga-header-btn" onClick={() => setChatOpen(false)} title="关闭">
+              <button className="ga-header-btn" aria-label="关闭问答面板" onClick={() => setChatOpen(false)} title="关闭">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                   <path d="M18 6L6 18"/><path d="M6 6l12 12"/>
                 </svg>
@@ -363,12 +407,16 @@ export function GlobalAgent() {
               <div key={idx} className={`ga-msg ga-msg--${msg.role}`}>
                 {msg.role === 'assistant' && (
                   <div className="ga-msg-avatar">
-                    <img src="/assets/wenku-logo-final.png" alt="AI" />
+                    <img src="/assets/wenku-logo-final.png" alt="问窟智能体头像" />
                   </div>
                 )}
                 <div className="ga-msg-bubble">
                   {msg.role === 'assistant'
-                    ? renderAssistantContent(msg.content || (isStreaming && idx === messages.length - 1 ? '…' : ''), msg.sources)
+                    ? renderAssistantContent(
+                        msg.content || (isStreaming && idx === messages.length - 1 ? '…' : ''),
+                        msg.thinking,
+                        msg.sources
+                      )
                     : (msg.content || '')}
                   {isStreaming && idx === messages.length - 1 && msg.role === 'assistant' && (
                     <span className="ga-typing-cursor" />
@@ -386,7 +434,8 @@ export function GlobalAgent() {
               <input
                 ref={inputRef}
                 type="text"
-                placeholder={isStreaming ? '正在回复中…' : '向问窟者提问…'}
+                aria-label="输入您的问题向问窟者提问"
+                placeholder={isStreaming ? '问窟者正在推演回答中…' : '向问窟者提问（如：舍利塔飞天有何特点？）'}
                 value={inputText}
                 onChange={e => setInputText(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && !e.nativeEvent.isComposing && handleSend()}
@@ -394,6 +443,7 @@ export function GlobalAgent() {
               />
               <button
                 className="ga-btn-send"
+                aria-label="发送问题"
                 onClick={handleSend}
                 disabled={isStreaming || !inputText.trim()}
               >
