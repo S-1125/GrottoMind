@@ -884,8 +884,8 @@ export function FadingHall({ onBack, onNext }: FadingHallProps) {
               </div>
               <div className="fh-intro__images">
                 <img src="/章节2素材/组 5.jpg" alt="TD粒子造像-金" className="fh-intro__img fh-intro__img--1 fh-fade-in" />
-                <img src="/章节2素材/TD粒子截图/截屏2026-04-18 17.02.48.png" alt="TD粒子点云" className="fh-intro__img fh-intro__img--2 fh-fade-in" />
-                <img src="/章节2素材/TD粒子截图/截屏2026-04-17 22.56.20.png" alt="TD粒子造像" className="fh-intro__img fh-intro__img--3 fh-fade-in" />
+                <img src="/章节2素材/TD粒子截图/截屏2026-04-18 17.02.48.jpg" alt="TD粒子点云" className="fh-intro__img fh-intro__img--2 fh-fade-in" />
+                <img src="/章节2素材/TD粒子截图/截屏2026-04-17 22.56.20.jpg" alt="TD粒子造像" className="fh-intro__img fh-intro__img--3 fh-fade-in" />
               </div>
             </div>
           </div>
@@ -915,7 +915,7 @@ export function FadingHall({ onBack, onNext }: FadingHallProps) {
               {[
                 {
                   slug: 'td-detail-1',
-                  img: '/章节2素材/TD粒子截图/截屏2026-05-04 16.22.14.png',
+                  img: '/章节2素材/TD粒子截图/截屏2026-05-04 16.22.14.jpg',
                   title: '宝冠与面容局部解析',
                   material: '高精度扫描与光谱比对',
                   size: '检出泥金(95%)、赭石(91%)、石绿',
@@ -923,35 +923,35 @@ export function FadingHall({ onBack, onNext }: FadingHallProps) {
                 },
                 {
                   slug: 'td-detail-2',
-                  img: '/章节2素材/TD粒子截图/截屏2026-05-04 16.22.25.png',
+                  img: '/章节2素材/TD粒子截图/截屏2026-05-04 16.22.25.jpg',
                   title: '袈裟衣褶的粒子场模拟',
                   material: '点云流体力学渲染',
                   size: '测定石青(86%)与局部朱砂残留',
                 },
                 {
                   slug: 'td-detail-3',
-                  img: '/章节2素材/TD粒子截图/截屏2026-05-04 16.22.35.png',
+                  img: '/章节2素材/TD粒子截图/截屏2026-05-04 16.22.35.jpg',
                   title: '下摆垂幔与结跏趺坐姿',
                   material: '高密度红色素富集区',
                   size: '测定高纯度朱砂(94%)分布带',
                 },
                 {
                   slug: 'td-detail-4',
-                  img: '/章节2素材/TD粒子截图/截屏2026-05-04 16.22.45.png',
+                  img: '/章节2素材/TD粒子截图/截屏2026-05-04 16.22.45.jpg',
                   title: '仰覆莲座三维结构重建',
                   material: '花瓣彩绘层的空间测绘',
                   size: '底层石青与表层泥金(87%)交织',
                 },
                 {
                   slug: 'td-detail-5',
-                  img: '/章节2素材/TD粒子截图/截屏2026-05-04 16.22.54.png',
+                  img: '/章节2素材/TD粒子截图/截屏2026-05-04 16.22.54.jpg',
                   title: '须弥座底座几何纹样',
                   material: '多层复合彩绘剖面分析',
                   size: '检出泥金(91%)与赭石(85%)叠加',
                 },
                 {
                   slug: 'td-detail-6',
-                  img: '/章节2素材/TD粒子截图/796393d81933e0e487037c34f2e66562.png',
+                  img: '/章节2素材/TD粒子截图/796393d81933e0e487037c34f2e66562.jpg',
                   title: '造像色彩全息复原推演',
                   material: '多通道光谱数据映射合成',
                   size: '三维点云空间下的量子化显影',
