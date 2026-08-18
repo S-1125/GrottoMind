@@ -1,33 +1,61 @@
 /* ====================================================================
-   GrottoMind 声音引擎 (Grotto Ambient & Chime Synthesizer)
-   基于 Web Audio API 的程序化石窟金石音频合成器
-   - 0 外部音频依赖 · 0 加载延迟 · 纯净金石空灵音色
-   - 包含：石窟冥想空灵背景音 (Ambient Drone)、金石击磬音 (Chime)、
-          刀刻微音 (Chisel Tick)、古钟禅鸣 (Gong)、矿物色谱音 (Color Pick)
+   GrottoMind 专业博物馆级程序化声学引擎 (Museum Sound Engine Pro)
+   - 纯 Web Audio API 合成，0 外部文件依赖，0 延迟，0 流量开销
+   - 双总线架构 (Ambient Bus + SFX Bus) + 防爆音节流器 (Throttler)
+   - 包含 7 大东方金石专属音色体系
 ==================================================================== */
 
 class SoundEngine {
   private ctx: AudioContext | null = null
-  private isMuted: boolean = false
   private masterGain: GainNode | null = null
   private ambientGain: GainNode | null = null
+  private sfxGain: GainNode | null = null
+
+  // 状态
+  private isMuted: boolean = false
+  private ambientEnabled: boolean = true
+  private sfxEnabled: boolean = true
+  private isAmbientPlaying: boolean = false
+
+  // 氛围合成节点
   private ambientOscs: OscillatorNode[] = []
   private ambientNoise: AudioNode | null = null
-  private isAmbientPlaying: boolean = false
-  private storageKey = 'grottomind_sound_enabled'
+
+  // 防爆音与节流状态
+  private lastFrictionTime: number = 0
+  private lastChimeTime: number = 0
+  private lastTickTime: number = 0
+
+  private storageKey = 'grottomind_sound_v2'
 
   constructor() {
-    // 从本地存储读取静音设置，默认开启
+    this.loadSettings()
+  }
+
+  private loadSettings() {
     try {
-      const saved = localStorage.getItem(this.storageKey)
-      if (saved !== null) {
-        this.isMuted = saved === 'false'
+      const raw = localStorage.getItem(this.storageKey)
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        this.isMuted = parsed.isMuted ?? false
+        this.ambientEnabled = parsed.ambientEnabled ?? true
+        this.sfxEnabled = parsed.sfxEnabled ?? true
       }
     } catch { /* 忽略 */ }
   }
 
+  private saveSettings() {
+    try {
+      localStorage.setItem(this.storageKey, JSON.stringify({
+        isMuted: this.isMuted,
+        ambientEnabled: this.ambientEnabled,
+        sfxEnabled: this.sfxEnabled
+      }))
+    } catch { /* 忽略 */ }
+  }
+
   /**
-   * 初始化 AudioContext (必须由用户交互触发)
+   * 初始化 AudioContext (由用户手势激活)
    */
   private initContext() {
     if (!this.ctx) {
@@ -35,10 +63,20 @@ class SoundEngine {
       if (!AudioCtx) return
       this.ctx = new AudioCtx()
 
-      // 主音量
+      // 1. 主增益
       this.masterGain = this.ctx.createGain()
-      this.masterGain.gain.setValueAtTime(this.isMuted ? 0 : 0.8, this.ctx.currentTime)
+      this.masterGain.gain.setValueAtTime(this.isMuted ? 0 : 0.85, this.ctx.currentTime)
       this.masterGain.connect(this.ctx.destination)
+
+      // 2. 环境音总线 (Ambient Bus)
+      this.ambientGain = this.ctx.createGain()
+      this.ambientGain.gain.setValueAtTime(this.ambientEnabled ? 0.07 : 0, this.ctx.currentTime)
+      this.ambientGain.connect(this.masterGain)
+
+      // 3. 交互音效总线 (SFX Bus)
+      this.sfxGain = this.ctx.createGain()
+      this.sfxGain.gain.setValueAtTime(this.sfxEnabled ? 0.9 : 0, this.ctx.currentTime)
+      this.sfxGain.connect(this.masterGain)
     }
 
     if (this.ctx.state === 'suspended') {
@@ -46,19 +84,18 @@ class SoundEngine {
     }
   }
 
-  /**
-   * 设置全局静音状态
-   */
+  // ==================================================================
+  // 全局控制与分流开关
+  // ==================================================================
+
   public setMuted(muted: boolean) {
     this.isMuted = muted
-    try {
-      localStorage.setItem(this.storageKey, String(!muted))
-    } catch { /* 忽略 */ }
+    this.saveSettings()
 
     if (this.ctx && this.masterGain) {
       const now = this.ctx.currentTime
       this.masterGain.gain.cancelScheduledValues(now)
-      this.masterGain.gain.linearRampToValueAtTime(muted ? 0 : 0.8, now + 0.3)
+      this.masterGain.gain.linearRampToValueAtTime(muted ? 0 : 0.85, now + 0.25)
     }
 
     if (!muted) {
@@ -73,40 +110,67 @@ class SoundEngine {
     return this.isMuted
   }
 
-  /**
-   * 启动石窟空灵背景氛围音 (Ambient Drone & Cave Reverb)
-   */
+  public setAmbientEnabled(enabled: boolean) {
+    this.ambientEnabled = enabled
+    this.saveSettings()
+    if (this.ctx && this.ambientGain) {
+      const now = this.ctx.currentTime
+      this.ambientGain.gain.cancelScheduledValues(now)
+      this.ambientGain.gain.linearRampToValueAtTime(enabled ? 0.07 : 0, now + 0.3)
+    }
+    if (enabled && !this.isMuted) {
+      this.startAmbient()
+    }
+  }
+
+  public getAmbientEnabled(): boolean {
+    return this.ambientEnabled
+  }
+
+  public setSfxEnabled(enabled: boolean) {
+    this.sfxEnabled = enabled
+    this.saveSettings()
+    if (this.ctx && this.sfxGain) {
+      const now = this.ctx.currentTime
+      this.sfxGain.gain.cancelScheduledValues(now)
+      this.sfxGain.gain.setValueAtTime(enabled ? 0.9 : 0, now)
+    }
+  }
+
+  public getSfxEnabled(): boolean {
+    return this.sfxEnabled
+  }
+
+  // ==================================================================
+  // 1. 石窟空灵氛围音 (Cave Ambient Drone)
+  // ==================================================================
+
   public startAmbient() {
-    if (this.isMuted || this.isAmbientPlaying) return
+    if (this.isMuted || !this.ambientEnabled || this.isAmbientPlaying) return
     this.initContext()
-    if (!this.ctx || !this.masterGain) return
+    if (!this.ctx || !this.ambientGain) return
 
     try {
       this.isAmbientPlaying = true
       const now = this.ctx.currentTime
 
-      // 氛围总增益（平缓淡入）
-      this.ambientGain = this.ctx.createGain()
-      this.ambientGain.gain.setValueAtTime(0, now)
-      this.ambientGain.gain.linearRampToValueAtTime(0.065, now + 3.0) // 保持极其柔和空灵的低音量
-      this.ambientGain.connect(this.masterGain)
-
-      // 1. 低频石窟共鸣 (54Hz / 108Hz 纯正弦低鸣)
+      // 54Hz / 108Hz / 216Hz 双耳驻波低鸣
       const freqs = [54, 108, 216]
       this.ambientOscs = freqs.map((f, i) => {
         const osc = this.ctx!.createOscillator()
         const g = this.ctx!.createGain()
         osc.type = 'sine'
-        osc.frequency.setValueAtTime(f + (i === 1 ? 0.3 : 0), now) // 产生极慢的 0.3Hz 呼吸干涉波
+        // 极微小的频偏 (0.25Hz)，创造沉静缓慢的天然呼吸感
+        osc.frequency.setValueAtTime(f + (i === 1 ? 0.25 : 0), now)
 
-        g.gain.setValueAtTime(0.25 / (i + 1), now)
+        g.gain.setValueAtTime(0.2 / (i + 1), now)
         osc.connect(g)
         g.connect(this.ambientGain!)
         osc.start()
         return osc
       })
 
-      // 2. 模拟微风与石窟幽深气流 (低通滤波粉红噪声)
+      // 幽深石窟微风 (粉红噪声经过 260Hz 低通滤波)
       const bufferSize = this.ctx.sampleRate * 2
       const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate)
       const output = noiseBuffer.getChannelData(0)
@@ -119,7 +183,7 @@ class SoundEngine {
         b3 = 0.86650 * b3 + white * 0.3104856
         b4 = 0.55000 * b4 + white * 0.5329522
         b5 = -0.7616 * b5 - white * 0.0168980
-        output[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.04
+        output[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.035
         b6 = white * 0.115926
       }
 
@@ -129,146 +193,85 @@ class SoundEngine {
 
       const filter = this.ctx.createBiquadFilter()
       filter.type = 'lowpass'
-      filter.frequency.setValueAtTime(280, now) // 只保留幽深气流
+      filter.frequency.setValueAtTime(260, now)
 
       const noiseGain = this.ctx.createGain()
-      noiseGain.gain.setValueAtTime(0.35, now)
+      noiseGain.gain.setValueAtTime(0.3, now)
 
       whiteNoise.connect(filter)
       filter.connect(noiseGain)
       noiseGain.connect(this.ambientGain)
       whiteNoise.start()
       this.ambientNoise = whiteNoise
-    } catch { /* 忽略环境音异常 */ }
-  }
-
-  /**
-   * 停止背景氛围音
-   */
-  public stopAmbient() {
-    if (!this.isAmbientPlaying || !this.ctx || !this.ambientGain) return
-    try {
-      const now = this.ctx.currentTime
-      this.ambientGain.gain.cancelScheduledValues(now)
-      this.ambientGain.gain.linearRampToValueAtTime(0, now + 1.0)
-
-      setTimeout(() => {
-        this.ambientOscs.forEach(osc => {
-          try { osc.stop(); osc.disconnect() } catch {}
-        })
-        this.ambientOscs = []
-        if (this.ambientNoise) {
-          try { (this.ambientNoise as any).stop(); this.ambientNoise.disconnect() } catch {}
-          this.ambientNoise = null
-        }
-        this.isAmbientPlaying = false
-      }, 1100)
     } catch {
       this.isAmbientPlaying = false
     }
   }
 
-  /**
-   * 金石击磬音 (用于按钮点击、章节切页、Tab 切换)
-   * 模拟石磬/玉石被木槌敲击的清脆泛音与指数衰减
-   */
-  public playChime(baseFreq = 880, duration = 0.5, volume = 0.18) {
-    if (this.isMuted) return
+  public stopAmbient() {
+    if (!this.isAmbientPlaying || !this.ctx) return
+    try {
+      this.ambientOscs.forEach(osc => {
+        try { osc.stop(); osc.disconnect() } catch {}
+      })
+      this.ambientOscs = []
+      if (this.ambientNoise) {
+        try { (this.ambientNoise as any).stop(); this.ambientNoise.disconnect() } catch {}
+        this.ambientNoise = null
+      }
+      this.isAmbientPlaying = false
+    } catch {
+      this.isAmbientPlaying = false
+    }
+  }
+
+  // ==================================================================
+  // 2. 金石击磬音 (Stone Chime)
+  // ==================================================================
+
+  public playChime(baseFreq = 880, duration = 0.45, volume = 0.18) {
+    if (this.isMuted || !this.sfxEnabled) return
+    const nowMs = performance.now()
+    if (nowMs - this.lastChimeTime < 35) return // 35ms 节流防爆音
+    this.lastChimeTime = nowMs
+
     this.initContext()
-    if (!this.ctx || !this.masterGain) return
+    if (!this.ctx || !this.sfxGain) return
 
     try {
       const now = this.ctx.currentTime
       const osc = this.ctx.createOscillator()
       const gain = this.ctx.createGain()
 
-      // 金石特有泛音混合
       osc.type = 'triangle'
       osc.frequency.setValueAtTime(baseFreq, now)
-      osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.98, now + duration)
+      osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.97, now + duration)
 
       gain.gain.setValueAtTime(0.001, now)
-      gain.gain.linearRampToValueAtTime(volume, now + 0.015) // 极速敲击起音
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration) // 纯净金石余响衰减
+      gain.gain.linearRampToValueAtTime(volume, now + 0.012)
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration)
 
       osc.connect(gain)
-      gain.connect(this.masterGain)
+      gain.connect(this.sfxGain)
 
       osc.start(now)
       osc.stop(now + duration)
     } catch { /* 忽略 */ }
   }
 
-  /**
-   * 悬停流光音 (轻微高频气流，用于重要卡片 Hover)
-   */
-  public playHover() {
-    if (this.isMuted) return
+  // ==================================================================
+  // 3. 宏阔古钟禅鸣 (Gong of Era)
+  // ==================================================================
+
+  public playGong(freq = 160) {
+    if (this.isMuted || !this.sfxEnabled) return
     this.initContext()
-    if (!this.ctx || !this.masterGain) return
+    if (!this.ctx || !this.sfxGain) return
 
     try {
       const now = this.ctx.currentTime
-      const osc = this.ctx.createOscillator()
-      const gain = this.ctx.createGain()
+      const duration = 2.6
 
-      osc.type = 'sine'
-      osc.frequency.setValueAtTime(1200, now)
-      osc.frequency.exponentialRampToValueAtTime(1400, now + 0.08)
-
-      gain.gain.setValueAtTime(0.001, now)
-      gain.gain.linearRampToValueAtTime(0.025, now + 0.02)
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08)
-
-      osc.connect(gain)
-      gain.connect(this.masterGain)
-
-      osc.start(now)
-      osc.stop(now + 0.08)
-    } catch { /* 忽略 */ }
-  }
-
-  /**
-   * 刀刻微音 (用于 AI 打字机吐字或文献行高亮)
-   */
-  public playChiselTick() {
-    if (this.isMuted) return
-    this.initContext()
-    if (!this.ctx || !this.masterGain) return
-
-    try {
-      const now = this.ctx.currentTime
-      const osc = this.ctx.createOscillator()
-      const gain = this.ctx.createGain()
-
-      // 极其短促的木石轻敲音 (12ms)
-      osc.type = 'sine'
-      osc.frequency.setValueAtTime(1800 + Math.random() * 300, now)
-
-      gain.gain.setValueAtTime(0.02, now)
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.015)
-
-      osc.connect(gain)
-      gain.connect(this.masterGain)
-
-      osc.start(now)
-      osc.stop(now + 0.015)
-    } catch { /* 忽略 */ }
-  }
-
-  /**
-   * 宏阔古钟鸣响 (用于章节切换与大模态唤醒)
-   */
-  public playGong(freq = 174) {
-    if (this.isMuted) return
-    this.initContext()
-    if (!this.ctx || !this.masterGain) return
-
-    try {
-      const now = this.ctx.currentTime
-      const duration = 2.4
-
-      // 主钟声
       const osc1 = this.ctx.createOscillator()
       const osc2 = this.ctx.createOscillator()
       const gain = this.ctx.createGain()
@@ -280,12 +283,12 @@ class SoundEngine {
       osc2.frequency.setValueAtTime(freq * 1.498, now) // 五度纯泛音
 
       gain.gain.setValueAtTime(0.001, now)
-      gain.gain.linearRampToValueAtTime(0.22, now + 0.04)
+      gain.gain.linearRampToValueAtTime(0.25, now + 0.035)
       gain.gain.exponentialRampToValueAtTime(0.0001, now + duration)
 
       osc1.connect(gain)
       osc2.connect(gain)
-      gain.connect(this.masterGain)
+      gain.connect(this.sfxGain)
 
       osc1.start(now)
       osc2.start(now)
@@ -294,17 +297,187 @@ class SoundEngine {
     } catch { /* 忽略 */ }
   }
 
-  /**
-   * 矿物色谱挑选音 (朱砂/石青复制色卡时的和弦回响)
-   */
-  public playColorPick() {
-    if (this.isMuted) return
-    const chord = [523.25, 659.25, 783.99, 1046.50] // C大调空灵泛音
-    chord.forEach((freq, idx) => {
+  // ==================================================================
+  // 4. 3D 舍利塔旋转石质微摩擦音 (Stone Drag Friction)
+  // ==================================================================
+
+  public playStoneFriction(intensity = 0.05) {
+    if (this.isMuted || !this.sfxEnabled) return
+    const nowMs = performance.now()
+    if (nowMs - this.lastFrictionTime < 60) return // 60ms 节流
+    this.lastFrictionTime = nowMs
+
+    this.initContext()
+    if (!this.ctx || !this.sfxGain) return
+
+    try {
+      const now = this.ctx.currentTime
+      const osc = this.ctx.createOscillator()
+      const gain = this.ctx.createGain()
+      const filter = this.ctx.createBiquadFilter()
+
+      osc.type = 'triangle'
+      osc.frequency.setValueAtTime(70 + Math.random() * 20, now)
+
+      filter.type = 'bandpass'
+      filter.frequency.setValueAtTime(140, now)
+      filter.Q.setValueAtTime(3.0, now)
+
+      const vol = Math.min(intensity * 0.08, 0.05)
+      gain.gain.setValueAtTime(0.001, now)
+      gain.gain.linearRampToValueAtTime(vol, now + 0.02)
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08)
+
+      osc.connect(filter)
+      filter.connect(gain)
+      gain.connect(this.sfxGain)
+
+      osc.start(now)
+      osc.stop(now + 0.08)
+    } catch { /* 忽略 */ }
+  }
+
+  // ==================================================================
+  // 5. 3D 浮雕热点锁定音 (Hotspot Laser Lock)
+  // ==================================================================
+
+  public playHotspotLock() {
+    if (this.isMuted || !this.sfxEnabled) return
+    this.initContext()
+    if (!this.ctx || !this.sfxGain) return
+
+    try {
+      const now = this.ctx.currentTime
+      const osc = this.ctx.createOscillator()
+      const gain = this.ctx.createGain()
+
+      osc.type = 'sine'
+      // 880Hz → 1320Hz 向上升频，模拟精准锁焦
+      osc.frequency.setValueAtTime(880, now)
+      osc.frequency.exponentialRampToValueAtTime(1320, now + 0.12)
+
+      gain.gain.setValueAtTime(0.001, now)
+      gain.gain.linearRampToValueAtTime(0.15, now + 0.015)
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18)
+
+      osc.connect(gain)
+      gain.connect(this.sfxGain)
+
+      osc.start(now)
+      osc.stop(now + 0.18)
+    } catch { /* 忽略 */ }
+  }
+
+  // ==================================================================
+  // 6. 古籍文献拓片翻卷微音 (Paper / Stela Rustle)
+  // ==================================================================
+
+  public playPaperRustle() {
+    if (this.isMuted || !this.sfxEnabled) return
+    this.initContext()
+    if (!this.ctx || !this.sfxGain) return
+
+    try {
+      const now = this.ctx.currentTime
+      const osc = this.ctx.createOscillator()
+      const filter = this.ctx.createBiquadFilter()
+      const gain = this.ctx.createGain()
+
+      osc.type = 'sawtooth'
+      osc.frequency.setValueAtTime(320, now)
+      osc.frequency.linearRampToValueAtTime(180, now + 0.15)
+
+      filter.type = 'lowpass'
+      filter.frequency.setValueAtTime(600, now)
+
+      gain.gain.setValueAtTime(0.001, now)
+      gain.gain.linearRampToValueAtTime(0.04, now + 0.02)
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.15)
+
+      osc.connect(filter)
+      filter.connect(gain)
+      gain.connect(this.sfxGain)
+
+      osc.start(now)
+      osc.stop(now + 0.15)
+    } catch { /* 忽略 */ }
+  }
+
+  // ==================================================================
+  // 7. 矿物动态色谱和弦 (Mineral Spectral Chord)
+  // ==================================================================
+
+  public playColorPick(hex = '#C03020') {
+    if (this.isMuted || !this.sfxEnabled) return
+
+    // 将 HEX 色彩转化为基频偏移，创造独特的色彩音律
+    const num = parseInt(hex.replace('#', ''), 16) || 0
+    const baseRoot = 440 + (num % 300) // 440Hz ~ 740Hz
+    const ratios = [1, 1.25, 1.5, 2] // 大三和弦泛音
+
+    ratios.forEach((r, idx) => {
       setTimeout(() => {
-        this.playChime(freq, 0.45, 0.12)
-      }, idx * 40)
+        this.playChime(baseRoot * r, 0.38, 0.1)
+      }, idx * 35)
     })
+  }
+
+  // ==================================================================
+  // 8. 辅助轻微音
+  // ==================================================================
+
+  public playHover() {
+    if (this.isMuted || !this.sfxEnabled) return
+    this.initContext()
+    if (!this.ctx || !this.sfxGain) return
+
+    try {
+      const now = this.ctx.currentTime
+      const osc = this.ctx.createOscillator()
+      const gain = this.ctx.createGain()
+
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(1400, now)
+      osc.frequency.exponentialRampToValueAtTime(1600, now + 0.06)
+
+      gain.gain.setValueAtTime(0.001, now)
+      gain.gain.linearRampToValueAtTime(0.02, now + 0.015)
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.06)
+
+      osc.connect(gain)
+      gain.connect(this.sfxGain)
+
+      osc.start(now)
+      osc.stop(now + 0.06)
+    } catch { /* 忽略 */ }
+  }
+
+  public playChiselTick() {
+    if (this.isMuted || !this.sfxEnabled) return
+    const nowMs = performance.now()
+    if (nowMs - this.lastTickTime < 25) return // 25ms 节流
+    this.lastTickTime = nowMs
+
+    this.initContext()
+    if (!this.ctx || !this.sfxGain) return
+
+    try {
+      const now = this.ctx.currentTime
+      const osc = this.ctx.createOscillator()
+      const gain = this.ctx.createGain()
+
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(2000 + Math.random() * 400, now)
+
+      gain.gain.setValueAtTime(0.015, now)
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.012)
+
+      osc.connect(gain)
+      gain.connect(this.sfxGain)
+
+      osc.start(now)
+      osc.stop(now + 0.012)
+    } catch { /* 忽略 */ }
   }
 }
 

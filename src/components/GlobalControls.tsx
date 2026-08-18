@@ -10,6 +10,8 @@ export function GlobalControls() {
   // ---- 全局状态 ----
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [soundOn, setSoundOn] = useState(() => !soundEngine.getMuted())
+  const [ambientOn, setAmbientOn] = useState(() => soundEngine.getAmbientEnabled())
+  const [sfxOn, setSfxOn] = useState(() => soundEngine.getSfxEnabled())
   const [reduceMotion, setReduceMotion] = useState(false)
   const [highContrast, setHighContrast] = useState(false)
   const [largeText, setLargeText] = useState(false)
@@ -34,7 +36,7 @@ export function GlobalControls() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [settingsOpen])
 
-  // ---- 切换声音 ----
+  // ---- 切换声音总控 ----
   const handleToggleSound = () => {
     const nextState = !soundOn
     setSoundOn(nextState)
@@ -49,7 +51,7 @@ export function GlobalControls() {
       {/* 1. 问窟 AI 唤醒按钮 */}
       <AgentTriggerButton />
       
-      {/* 2. 音效开关 (连接 Web Audio 合成器) */}
+      {/* 2. 音效总开关 */}
       <button
         className={`intro-ctrl-btn ${soundOn ? 'is-active' : ''}`}
         aria-label={soundOn ? '静音' : '开启音效'}
@@ -79,13 +81,13 @@ export function GlobalControls() {
       <div className="ctrl-btn-wrapper" ref={settingsRef}>
         <button
           className={`intro-ctrl-btn ${settingsOpen ? 'is-active' : ''}`}
-          aria-label="无障碍选项"
+          aria-label="无障碍与声学选项"
           aria-expanded={settingsOpen}
           onClick={() => {
             soundEngine.playChime(740, 0.25)
             setSettingsOpen(!settingsOpen)
           }}
-          title="系统与无障碍设置"
+          title="系统与声学设置"
         >
           <svg className="ctrl-icon settings-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <circle cx="12" cy="12" r="3" />
@@ -94,13 +96,44 @@ export function GlobalControls() {
         </button>
 
         {settingsOpen && (
-          <div className="settings-panel" role="dialog" aria-label="无障碍设置">
+          <div className="settings-panel" role="dialog" aria-label="无障碍与声学设置">
             <div className="settings-panel__header">
-              <span className="settings-panel__title">视觉与交互体验</span>
-              <span className="settings-panel__sub">ACCESSIBILITY</span>
+              <span className="settings-panel__title">声学与视觉交互体验</span>
+              <span className="settings-panel__sub">ACOUSTIC & ACCESSIBILITY</span>
             </div>
             
             <div className="settings-group">
+              {/* 声学分流控制 */}
+              <label className="settings-item">
+                <span>石窟空灵背景音 (Ambient)</span>
+                <input
+                  type="checkbox"
+                  checked={ambientOn}
+                  onChange={e => {
+                    const next = e.target.checked
+                    setAmbientOn(next)
+                    soundEngine.setAmbientEnabled(next)
+                  }}
+                />
+              </label>
+
+              <label className="settings-item">
+                <span>金石交互音效 (SFX)</span>
+                <input
+                  type="checkbox"
+                  checked={sfxOn}
+                  onChange={e => {
+                    const next = e.target.checked
+                    setSfxOn(next)
+                    soundEngine.setSfxEnabled(next)
+                    if (next) soundEngine.playChime(640, 0.2)
+                  }}
+                />
+              </label>
+
+              <div className="settings-divider" style={{ height: '1px', background: 'rgba(212, 169, 106, 0.15)', margin: '4px 0' }} />
+
+              {/* 视觉与无障碍 */}
               <label className="settings-item">
                 <span>减少动效 (Reduce Motion)</span>
                 <input

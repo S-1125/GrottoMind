@@ -9,6 +9,7 @@ import gsap from 'gsap'
 import { AtmosphereEffects } from './AtmosphereEffects'
 import { AtmosphereShader } from './AtmosphereShader'
 import { GrottoModelScene, type GrottoModelSceneHandle } from './GrottoModelScene'
+import { soundEngine } from '../utils/soundEngine'
 
 /* ============================================================
    停靠点数据：每个停靠点定义了相机位置、UI 内容和透镜参数
@@ -258,6 +259,10 @@ export function TimelineHall({ onDeepRead, onNextChapter, onGoToAI, isPaused }: 
     if (isAnimating) return
     if (targetIndex < 0 || targetIndex >= stupaStops.length) return
     if (targetIndex === currentStop) return
+
+    // 播放 3D 浮雕锁定音与石质旋转摩擦音
+    soundEngine.playHotspotLock()
+    soundEngine.playStoneFriction(0.6)
 
     // 强制顺序浏览：只能点击前后相邻的节点，禁止跨步飞转
     if (Math.abs(targetIndex - currentStop) > 1) return

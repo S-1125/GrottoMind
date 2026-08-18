@@ -3,6 +3,7 @@ import { useAgent } from './agent/AgentContext'
 import { LiteratureLibrary } from './LiteratureLibrary'
 import { KnowledgeGraphModal } from './KnowledgeGraphModal'
 import { parseColorCards, ColorCardGroup } from './ColorCard'
+import { soundEngine } from '../utils/soundEngine'
 import ReactMarkdown from 'react-markdown'
 import './GrottoHub.css'
 
@@ -384,6 +385,7 @@ export function GrottoHub({ onBack }: GrottoHubProps) {
                     className={`gh-action-btn gh-action-btn--save ${saved ? 'is-active' : ''}`}
                     onClick={() => {
                       if (saved) return
+                      soundEngine.playChime(980, 0.35)
                       try {
                         const notes = JSON.parse(localStorage.getItem('grottomind_notes') || '[]')
                         notes.push({
@@ -409,6 +411,7 @@ export function GrottoHub({ onBack }: GrottoHubProps) {
                       className={`gh-action-icon ${copied ? 'is-active' : ''}`}
                       title="复制"
                       onClick={() => {
+                        soundEngine.playChime(720, 0.25)
                         const contentToCopy = latestMessage.content
                         if (navigator.clipboard && navigator.clipboard.writeText) {
                           navigator.clipboard.writeText(contentToCopy)

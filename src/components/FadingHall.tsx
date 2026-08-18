@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { InkReveal } from './InkReveal'
+import { soundEngine } from '../utils/soundEngine'
 import './FadingHall.css'
 
 /* ============================================================
@@ -41,6 +42,9 @@ export function FadingHall({ onBack, onNext }: FadingHallProps) {
     if (recolorPhase !== 3) return
     const currentSlot = cardSlots[cardIndex]
     if (currentSlot === 1) return // 已在中央，不动
+    
+    soundEngine.playChime(760, 0.3)
+
     // 找到当前在中央的卡片
     const centerCard = cardSlots.indexOf(1)
     setCardSlots(prev => {
