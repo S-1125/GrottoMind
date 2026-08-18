@@ -968,33 +968,17 @@ html.lenis body {
   width: 59px;
   height: 25px;
   display: block;
-  opacity: 1;
-  background-color: #ffffff;
-  -webkit-mask-image: url('/assets/logo.png');
-  -webkit-mask-position: left center;
-  -webkit-mask-repeat: no-repeat;
-  -webkit-mask-size: contain;
-  mask-image: url('/assets/logo.png');
-  mask-position: left center;
-  mask-repeat: no-repeat;
-  mask-size: contain;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
 }
 
 .site-logo-img-en {
   width: 134px;
   height: 18px;
   display: block;
-  opacity: 1;
-  background-color: #ffffff;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
   transform: translateY(2px);
-  -webkit-mask-image: url('/assets/logo-en.png');
-  -webkit-mask-position: left center;
-  -webkit-mask-repeat: no-repeat;
-  -webkit-mask-size: contain;
-  mask-image: url('/assets/logo-en.png');
-  mask-position: left center;
-  mask-repeat: no-repeat;
-  mask-size: contain;
 }
 
 /* ==========================================================================

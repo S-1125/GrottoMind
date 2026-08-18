@@ -523,8 +523,8 @@ export function IntroAnimation({ onEnter }: IntroAnimationProps) {
 
         {/* 左上角 Logo 组合 */}
         <div className="intro-brand-logo" aria-label="GrottoMind">
-          <div className="site-logo-img" />
-          <div className="site-logo-img-en" />
+          <img src="/assets/logo.png" alt="问窟" className="site-logo-img" />
+          <img src="/assets/logo-en.png" alt="GrottoMind" className="site-logo-img-en" />
         </div>
 
         {/* 激光进度条 */}

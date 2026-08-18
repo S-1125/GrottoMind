@@ -501,8 +501,8 @@ export function TimelineHall({ onDeepRead, onNextChapter, onGoToAI, isPaused }: 
 
       {/* Logo */}
       <div className="intro-brand-logo exhibition-logo" aria-label="GrottoMind">
-        <div className="site-logo-img" />
-        <div className="site-logo-img-en" />
+        <img src="/assets/logo.png" alt="问窟" className="site-logo-img" />
+        <img src="/assets/logo-en.png" alt="GrottoMind" className="site-logo-img-en" />
       </div>
 
       {/* 顶部导航岛（问窟 AI + 进入下一章，高奢东方暗金琉璃一体化设计） */}
