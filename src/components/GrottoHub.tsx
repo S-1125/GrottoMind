@@ -30,7 +30,7 @@ interface ChatMessage {
 }
 
 const STORAGE_KEY = 'grottomind_chat_history'
-const API_BASE = import.meta.env.VITE_AGENT_API || ''
+const API_BASE = import.meta.env.VITE_AGENT_API || 'https://grottomind.onrender.com'
 
 function loadHistory(): ChatMessage[] {
   try {

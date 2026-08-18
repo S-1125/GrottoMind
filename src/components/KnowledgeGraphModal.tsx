@@ -33,7 +33,7 @@ interface KnowledgeGraphModalProps {
   onSelectNode?: (nodeName: string) => void
 }
 
-const API_BASE = import.meta.env.VITE_AGENT_API || ''
+const API_BASE = import.meta.env.VITE_AGENT_API || 'https://grottomind.onrender.com'
 
 export function KnowledgeGraphModal({ isOpen, onClose, onSelectNode }: KnowledgeGraphModalProps) {
   const [data, setData] = useState<GraphData | null>(null)

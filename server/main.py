@@ -137,7 +137,7 @@ app = FastAPI(
 # 允许跨域请求
 ALLOWED_ORIGINS = os.environ.get(
     "ALLOWED_ORIGINS",
-    "http://localhost:5180,http://localhost:3000,http://127.0.0.1:5180"
+    "http://localhost:5180,http://localhost:3000,http://127.0.0.1:5180,https://www.wenku-ai.com,https://wenku-ai.com"
 ).split(",")
 
 app.add_middleware(

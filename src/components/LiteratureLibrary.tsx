@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
 import './LiteratureLibrary.css'
 
-const API_BASE = import.meta.env.VITE_AGENT_API || ''
+const API_BASE = import.meta.env.VITE_AGENT_API || 'https://grottomind.onrender.com'
 
 interface LiteratureLibraryProps {
   onBack: () => void
