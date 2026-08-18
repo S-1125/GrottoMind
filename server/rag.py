@@ -179,43 +179,129 @@ def build_index():
     logger.info(f"✅ ChromaDB 索引重构完毕，当前总条数: {new_collection.count()}")
 
 
+def search_keyword_fallback(query: str, top_k: int = 4) -> List[Dict[str, Any]]:
+    """关键词与摘要全文回退检索引擎（当向量索引不可用或未命中时的双轨保障）"""
+    meta_path = os.path.join(KNOWLEDGE_DIR, "metadata.json")
+    if not os.path.exists(meta_path):
+        return []
+
+    try:
+        with open(meta_path, "r", encoding="utf-8") as f:
+            metadata_list = json.load(f)
+    except Exception:
+        return []
+
+    # 提取查询词中的核心字词（长度>=2）
+    keywords = [w for w in re.split(r'[\s,，。！？、]+', query) if len(w) >= 2]
+    if not keywords:
+        keywords = [query.strip()]
+
+    scored_items = []
+    for meta in metadata_list:
+        title = meta.get("title", "")
+        filename = meta.get("filename", "")
+        file_path = os.path.join(KNOWLEDGE_DIR, filename)
+        summary_path = os.path.join(KNOWLEDGE_DIR, filename.replace(".txt", "_summary.json"))
+
+        summary_text = ""
+        kw_list = []
+        if os.path.exists(summary_path):
+            try:
+                with open(summary_path, "r", encoding="utf-8") as sf:
+                    s_data = json.load(sf)
+                    summary_text = s_data.get("summary", "")
+                    kw_list = s_data.get("keywords", [])
+            except Exception:
+                pass
+
+        score = 0
+        matched_snippet = summary_text or ""
+        matched_line = 1
+
+        for kw in keywords:
+            if kw in title:
+                score += 5
+            for doc_kw in kw_list:
+                if kw in doc_kw:
+                    score += 4
+            if summary_text and kw in summary_text:
+                score += 3
+
+        # 如果摘要未命中且分数为0，尝试在全文中搜索片段
+        if score == 0 and os.path.exists(file_path):
+            try:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+                for kw in keywords:
+                    idx = content.find(kw)
+                    if idx != -1:
+                        score += 2
+                        start = max(0, idx - 60)
+                        end = min(len(content), idx + 200)
+                        matched_snippet = content[start:end]
+                        matched_line = content[:idx].count("\n") + 1
+                        break
+            except Exception:
+                pass
+
+        if score > 0:
+            snippet = matched_snippet or f"《{title}》收录了栖霞山造像与南唐色彩的考据文献。"
+            scored_items.append({
+                "score": score,
+                "item": {
+                    "title": title,
+                    "filename": filename,
+                    "start_line": matched_line,
+                    "text": snippet,
+                    "distance": 0.5
+                }
+            })
+
+    scored_items.sort(key=lambda x: x["score"], reverse=True)
+    return [x["item"] for x in scored_items[:top_k]]
+
+
 def search(query: str, top_k: int = 4, max_distance: float = 0.85) -> List[Dict[str, Any]]:
-    """根据查询词搜索最相关的学术文献片段，返回标题、精准行号与文本"""
+    """根据查询词搜索最相关的学术文献片段，返回标题、精准行号与文本（双轨容灾）"""
     if not query.strip():
         return []
 
+    matched = []
+    # 1. 尝试向量检索
     try:
         active_col = chroma_client.get_or_create_collection(
             name=COLLECTION_NAME,
             metadata={"hnsw:space": "cosine"}
         )
-        query_embedding = get_embeddings([query])[0]
-        results = active_col.query(
-            query_embeddings=[query_embedding],
-            n_results=top_k,
-            include=["documents", "metadatas", "distances"]
-        )
+        if active_col.count() > 0:
+            embeddings = get_embeddings([query])
+            if embeddings and len(embeddings[0]) > 0:
+                query_embedding = embeddings[0]
+                results = active_col.query(
+                    query_embeddings=[query_embedding],
+                    n_results=top_k,
+                    include=["documents", "metadatas", "distances"]
+                )
+                if results and results.get("documents") and results["documents"][0]:
+                    for doc, meta, dist in zip(
+                        results["documents"][0],
+                        results["metadatas"][0],
+                        results["distances"][0]
+                    ):
+                        if dist <= max_distance:
+                            matched.append({
+                                "title": meta.get("title", "未知文献"),
+                                "filename": meta.get("filename", ""),
+                                "start_line": meta.get("start_line", 1),
+                                "text": doc,
+                                "distance": dist
+                            })
     except Exception as e:
-        logger.error(f"ChromaDB 查询异常: {e}")
-        return []
+        logger.warning(f"向量检索未命中或异常，自动切换到关键词回退引擎: {e}")
 
-    if not results or not results["documents"] or not results["documents"][0]:
-        return []
-
-    matched = []
-    for doc, meta, dist in zip(
-        results["documents"][0],
-        results["metadatas"][0],
-        results["distances"][0]
-    ):
-        if dist <= max_distance:
-            matched.append({
-                "title": meta.get("title", "未知文献"),
-                "filename": meta.get("filename", ""),
-                "start_line": meta.get("start_line", 1),
-                "text": doc,
-                "distance": dist
-            })
+    # 2. 如果向量检索未获取到足够结果，使用关键词与摘要回退引擎
+    if not matched:
+        matched = search_keyword_fallback(query, top_k=top_k)
 
     return matched
 

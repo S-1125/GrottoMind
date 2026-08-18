@@ -235,6 +235,11 @@ def get_embeddings(texts: List[str]) -> List[List[float]]:
                 logger.warning(f"本地 FastEmbed 提取向量失败，尝试切换 API 模式: {e}")
 
     # 2. 回退到外部 OpenAI 兼容 Embedding API
+    # 过滤掉 DeepSeek 官方域名（DeepSeek 官方不提供 /embeddings 接口）
+    if "api.deepseek.com" in EMBEDDING_API_BASE:
+        logger.info("ℹ️ 当前大模型为 DeepSeek（官方不提供 Embedding 向量接口），使用本地模型或关键词混合检索。")
+        return []
+
     try:
         client = OpenAI(
             api_key=EMBEDDING_API_KEY or "dummy-key",
@@ -247,5 +252,5 @@ def get_embeddings(texts: List[str]) -> List[List[float]]:
         )
         return [item.embedding for item in response.data]
     except Exception as e:
-        logger.error(f"调用 Embedding API 失败: {e}")
-        raise e
+        logger.warning(f"调用 Embedding API 失败: {e}")
+        return []
