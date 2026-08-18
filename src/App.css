@@ -4608,3 +4608,703 @@ html.large-text {
     display: none !important;
   }
 }
+/* ====================================================================
+   GlobalAgent — 问窟者 AI 聊天面板
+   设计语言: Apple Intelligence × Google Gemini
+   深色、极简、呼吸感、无多余装饰
+==================================================================== */
+
+.global-agent {
+  position: fixed;
+  bottom: 40px;
+  right: 40px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  pointer-events: none;
+}
+
+.ga-orb-container,
+.ga-chat-panel { pointer-events: auto; }
+
+/* ---- 悬浮球 ---- */
+.ga-orb-container {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  cursor: grab;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  touch-action: none;
+}
+.ga-orb-container:active { cursor: grabbing; transform: scale(0.95); }
+.ga-orb-container:hover { transform: scale(1.05); }
+.ga-orb-mic {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  color: rgba(255,255,255,0.8);
+  pointer-events: none;
+  z-index: 2;
+  filter: drop-shadow(0 0 4px rgba(0,0,0,0.5));
+}
+
+
+/* ====================================================================
+   面板主体
+==================================================================== */
+.ga-chat-panel {
+  position: absolute;
+  bottom: 80px;
+  right: 0;
+  width: 400px;
+  height: 580px;
+  background: rgba(28, 28, 30, 0.88);
+  backdrop-filter: blur(60px) saturate(1.8);
+  -webkit-backdrop-filter: blur(60px) saturate(1.8);
+  border: 0.5px solid rgba(255, 255, 255, 0.08);
+  border-radius: 22px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow:
+    0 0 1px rgba(255, 255, 255, 0.05),
+    0 12px 40px rgba(0, 0, 0, 0.55),
+    0 0 80px rgba(0, 0, 0, 0.15);
+  animation: ga-enter 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  transform-origin: bottom right;
+  cursor: auto !important;
+  overscroll-behavior: contain;
+}
+
+.ga-chat-panel * { cursor: auto; }
+.ga-chat-panel button,
+.ga-chat-panel a { cursor: pointer; }
+.ga-chat-panel input[type="text"] { cursor: text; }
+
+@keyframes ga-enter {
+  0% { opacity: 0; transform: scale(0.88) translateY(20px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+
+/* ====================================================================
+   Header
+==================================================================== */
+.ga-chat-header {
+  padding: 14px 16px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ga-chat-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ga-brand-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.ga-brand-icon img {
+  width: 17px;
+  height: 17px;
+  object-fit: contain;
+  filter: invert(1) brightness(0.9);
+  opacity: 0.85;
+}
+
+.ga-chat-title h3 {
+  font-size: 15px;
+  color: #fff;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.ga-chat-status {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 0;
+}
+
+.ga-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #30d158;
+  box-shadow: 0 0 4px rgba(48, 209, 88, 0.4);
+}
+
+.ga-chat-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.ga-header-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+.ga-header-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+
+/* ====================================================================
+   章节位置条（Gemini 式 subtle chip）
+==================================================================== */
+.ga-chat-context-bar {
+  padding: 0 16px 10px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.28);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  letter-spacing: 0.01em;
+}
+.ga-chat-context-bar svg {
+  opacity: 0.4;
+}
+
+
+/* ====================================================================
+   消息列表
+==================================================================== */
+.ga-chat-history {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 16px 16px; /* 使用内部 spacer div 撑开空间，避免跨浏览器 padding 兼容性问题 */
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  /* 确保 iOS 上平滑滚动 */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 滚动条 — 解决排版闪烁问题（固定宽度，靠透明度显示） */
+.ga-chat-history::-webkit-scrollbar { width: 4px; }
+.ga-chat-history::-webkit-scrollbar-track { background: transparent; }
+.ga-chat-history::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 10px;
+}
+.ga-chat-history:hover::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+
+/* ---- 消息通用 ---- */
+.ga-msg {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  max-width: 100%;
+  animation: ga-msgFade 0.35s ease-out;
+}
+@keyframes ga-msgFade {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.ga-msg--user {
+  justify-content: flex-end;
+}
+
+/* ---- AI 头像（Gemini 风格小圆） ---- */
+.ga-msg-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+  overflow: hidden;
+}
+.ga-msg-avatar img {
+  width: 13px;
+  height: 13px;
+  object-fit: contain;
+  filter: invert(1) brightness(0.85);
+  opacity: 0.7;
+}
+
+/* ---- AI 消息（Gemini 风格：无气泡，自然流淌） ---- */
+.ga-msg--assistant .ga-msg-bubble {
+  background: none;
+  border: none;
+  padding: 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 13.5px;
+  line-height: 1.7;
+  letter-spacing: 0.005em;
+}
+
+/* ---- 用户消息（Apple 风格：柔和药丸） ---- */
+.ga-msg--user .ga-msg-bubble {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  padding: 10px 16px;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 13.5px;
+  line-height: 1.55;
+  max-width: 80%;
+}
+
+/* 打字光标 */
+.ga-typing-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 15px;
+  background: rgba(255, 255, 255, 0.45);
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  border-radius: 1px;
+  animation: ga-blink 1s ease-in-out infinite;
+}
+@keyframes ga-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+
+/* ====================================================================
+   Markdown 排版（AI 消息）
+==================================================================== */
+.ga-msg-bubble p {
+  margin: 0 0 10px 0;
+}
+.ga-msg-bubble p:last-child { margin-bottom: 0; }
+
+/* 标题 */
+.ga-msg-bubble h1,
+.ga-msg-bubble h2,
+.ga-msg-bubble h3 {
+  color: rgba(255, 255, 255, 0.92);
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+.ga-msg-bubble h1 { font-size: 16px; margin: 16px 0 8px; }
+.ga-msg-bubble h2 { font-size: 15px; margin: 14px 0 6px; }
+.ga-msg-bubble h3 { font-size: 14px; margin: 12px 0 6px; }
+.ga-msg-bubble h1:first-child,
+.ga-msg-bubble h2:first-child,
+.ga-msg-bubble h3:first-child { margin-top: 0; }
+
+/* 列表 — Gemini 风格干净间距 */
+.ga-msg-bubble ul,
+.ga-msg-bubble ol {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+.ga-msg-bubble li {
+  margin-bottom: 6px;
+  line-height: 1.6;
+}
+.ga-msg-bubble li::marker {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+/* 加粗 */
+.ga-msg-bubble strong {
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 600;
+}
+
+/* 行内代码 */
+.ga-msg-bubble code {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.75);
+  padding: 2px 6px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-family: 'SF Mono', 'Menlo', monospace;
+}
+
+/* 代码块 */
+.ga-msg-bubble pre {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  padding: 14px 16px;
+  overflow-x: auto;
+  margin: 10px 0;
+}
+.ga-msg-bubble pre code {
+  background: none;
+  padding: 0;
+  font-size: 12px;
+}
+
+/* 引用 */
+.ga-msg-bubble blockquote {
+  border-left: 2px solid rgba(255, 255, 255, 0.12);
+  margin: 10px 0;
+  padding: 2px 14px;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* 分割线 */
+.ga-msg-bubble hr {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin: 14px 0;
+}
+
+/* 链接 */
+.ga-msg-bubble a {
+  color: #64a8f8;
+  text-decoration: none;
+}
+.ga-msg-bubble a:hover {
+  text-decoration: underline;
+}
+
+/* 文献引用角标 */
+.ga-citation {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 600;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  margin: 0 2px;
+  vertical-align: super;
+  line-height: 1;
+  color: #64a8f8;
+  background: rgba(100, 168, 248, 0.1);
+  border: 1px solid rgba(100, 168, 248, 0.2);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+}
+.ga-citation:hover {
+  background: rgba(100, 168, 248, 0.25);
+  border-color: rgba(100, 168, 248, 0.5);
+  color: #fff;
+  transform: scale(1.1);
+}
+
+/* 自定义悬浮 Tooltip */
+.ga-citation::after {
+  content: '〔考据原卷〕 ' attr(data-tooltip) '\A\A点击查阅文献库 →';
+  white-space: pre-wrap;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: rgba(20, 20, 24, 0.95);
+  backdrop-filter: blur(12px);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.5;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  width: max-content;
+  max-width: 220px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 100;
+}
+.ga-citation:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* 不带 tooltip 的纯引用标记 */
+.ga-citation-plain {
+  display: inline;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 10px;
+  vertical-align: super;
+}
+
+
+/* ====================================================================
+   自定义组件：色卡 (Color Card)
+==================================================================== */
+.ga-color-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 10px;
+  margin: 10px 0;
+}
+
+.ga-color-swatch {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+}
+
+.ga-color-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.ga-color-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ga-color-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.ga-color-hex {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  font-family: 'SF Mono', 'Menlo', monospace;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.ga-color-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.ga-color-period {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.ga-color-material {
+  opacity: 0.8;
+}
+
+/* ====================================================================
+   输入区（Apple Messages 风格 + 悬浮渐变遮罩）
+==================================================================== */
+.ga-chat-input-area {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 30px 16px 16px;
+  background: linear-gradient(to top, rgba(28, 28, 30, 1) 50%, rgba(28, 28, 30, 0));
+  pointer-events: none; /* 让背景渐变可以穿透点击 */
+  z-index: 10;
+}
+
+.ga-input-wrapper {
+  pointer-events: auto; /* 恢复内部元素的交互 */
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 22px;
+  padding: 4px 5px 4px 18px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.ga-input-wrapper:focus-within {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.ga-input-wrapper input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 14px;
+  outline: none;
+  padding: 8px 0;
+  font-weight: 400;
+}
+.ga-input-wrapper input::placeholder {
+  color: rgba(255, 255, 255, 0.22);
+  font-weight: 400;
+}
+
+.ga-btn-send {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+.ga-btn-send:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.8);
+}
+.ga-btn-send:disabled {
+  opacity: 0.2;
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   思考链展示折叠框 (DeepSeek-R1 / Thinking)
+   ========================================================================== */
+.ga-thinking-box {
+  margin-bottom: 12px;
+  background: rgba(246, 206, 160, 0.05);
+  border: 1px dashed rgba(212, 169, 106, 0.35);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.8125rem;
+  color: var(--gold-primary, #f6cea0);
+  transition: background 0.3s ease;
+}
+
+.ga-thinking-box[open] {
+  background: rgba(246, 206, 160, 0.08);
+}
+
+.ga-thinking-summary {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  user-select: none;
+  outline: none;
+}
+
+.ga-thinking-icon {
+  color: var(--gold-line, #d4a96a);
+}
+
+.ga-thinking-content {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(212, 169, 106, 0.18);
+  color: rgba(255, 255, 255, 0.75);
+  font-family: var(--font-serif, serif);
+  line-height: 1.65;
+  white-space: pre-wrap;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+
+/* ==========================================================================
+   移动端适配 — AI Agent 面板 (≤768px)
+   仅追加覆盖规则，桌面端代码零改动
+   ========================================================================== */
+@media (max-width: 768px) {
+
+  /* 整体容器紧贴右下角 */
+  .global-agent {
+    right: 12px;
+    bottom: 12px;
+  }
+
+  /* 悬浮球缩小 */
+  .ga-orb-container {
+    width: 64px;
+    height: 64px;
+  }
+
+  /* 聊天面板：改为全屏弹出，完美适配键盘弹出时的 viewport (dvh) 自动缩放 */
+  .ga-chat-panel {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100dvh;
+    border-radius: 0; /* 移除圆角，呈现全屏沉浸态 */
+    transform-origin: bottom center;
+  }
+
+  /* 标题栏适配 */
+  .ga-chat-header {
+    padding: 12px 16px;
+  }
+
+  .ga-chat-header h2 {
+    font-size: 14px;
+  }
+
+  /* 消息区域适配 */
+  .ga-messages {
+    padding: 12px 14px;
+  }
+
+  .ga-msg-bubble {
+    max-width: 85%;
+    font-size: 14px;
+  }
+
+  /* 输入框适配：增加底部安全区 padding */
+  .ga-input-bar {
+    padding: 12px 16px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  }
+
+  .ga-input-bar input {
+    font-size: 15px;
+  }
+
+  /* 建议卡片适配 */
+  .ga-suggestions {
+    padding: 0 12px 8px;
+    gap: 6px;
+  }
+
+  .ga-suggestion-chip {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+}
