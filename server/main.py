@@ -118,7 +118,12 @@ async def lifespan(app: FastAPI):
     logger.info("正在初始化 GrottoMind 后端服务...")
     try:
         count = rag.collection.count()
-        logger.info(f"✅ 知识库向量索引就绪，当前共包含 {count} 个片段。")
+        if count == 0:
+            logger.info("ℹ️ 当前向量数据库为空，正在后台自动构建 73 篇学术文献向量索引...")
+            import threading
+            threading.Thread(target=rag.build_index, daemon=True).start()
+        else:
+            logger.info(f"✅ 知识库向量索引就绪，当前共包含 {count} 个片段。")
     except Exception as e:
         logger.warning(f"⚠️ 向量索引检查提示: {e}")
     yield
