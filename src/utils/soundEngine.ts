@@ -1,7 +1,8 @@
 /* ====================================================================
-   GrottoMind 专业博物馆级程序化声学引擎 (Museum Sound Engine Pro v3.0)
-   - 纯 Web Audio API 合成，0 外部文件依赖，0 延迟，0 流量开销
-   - 东方金石禅意声学：216Hz/432Hz 栖霞空山环境音 + 徕卡级阻尼金石微音
+   GrottoMind 专业博物馆级声学引擎 (Museum Sound Engine Pro v4.0)
+   - 真实高保真「栖霞山禅境空灵环境音」真实录音音轨 (Zen Atmosphere)
+   - 纯净 Web Audio API 金石玉磬交互合成体系
+   - 双总线架构 (Ambient Bus + SFX Bus) + 毫秒级淡入淡出平滑渐变
 ==================================================================== */
 
 class SoundEngine {
@@ -10,22 +11,22 @@ class SoundEngine {
   private ambientGain: GainNode | null = null
   private sfxGain: GainNode | null = null
 
+  // 真实环境音播放器
+  private ambientAudio: HTMLAudioElement | null = null
+  private ambientSource: MediaElementAudioSourceNode | null = null
+
   // 状态
   private isMuted: boolean = false
   private ambientEnabled: boolean = true
   private sfxEnabled: boolean = true
   private isAmbientPlaying: boolean = false
 
-  // 氛围合成节点
-  private ambientOscs: OscillatorNode[] = []
-  private ambientNoise: AudioNode | null = null
-
-  // 防爆音与节流状态
-  private lastFrictionTime: number = 0
+  // 防爆音与节流
   private lastChimeTime: number = 0
   private lastTickTime: number = 0
 
   private storageKey = 'grottomind_sound_v2'
+  private ambientSrc = '/assets/qixia-ambient.mp3'
 
   constructor() {
     this.loadSettings()
@@ -54,7 +55,7 @@ class SoundEngine {
   }
 
   /**
-   * 初始化 AudioContext (由用户手势激活)
+   * 初始化 AudioContext (由用户交互激活)
    */
   private initContext() {
     if (!this.ctx) {
@@ -62,25 +63,45 @@ class SoundEngine {
       if (!AudioCtx) return
       this.ctx = new AudioCtx()
 
-      // 1. 主增益
+      // 1. 主总线
       this.masterGain = this.ctx.createGain()
       this.masterGain.gain.setValueAtTime(this.isMuted ? 0 : 0.9, this.ctx.currentTime)
       this.masterGain.connect(this.ctx.destination)
 
-      // 2. 环境音总线 (清晰充盈的适中音量: 0.28)
+      // 2. 环境音总线 (连接真实空灵音轨，舒适音量 0.38)
       this.ambientGain = this.ctx.createGain()
-      this.ambientGain.gain.setValueAtTime(this.ambientEnabled ? 0.28 : 0, this.ctx.currentTime)
+      this.ambientGain.gain.setValueAtTime(this.ambientEnabled ? 0.38 : 0, this.ctx.currentTime)
       this.ambientGain.connect(this.masterGain)
 
       // 3. 交互音效总线
       this.sfxGain = this.ctx.createGain()
       this.sfxGain.gain.setValueAtTime(this.sfxEnabled ? 0.85 : 0, this.ctx.currentTime)
       this.sfxGain.connect(this.masterGain)
+
+      // 4. 创建并绑定真实高保真环境音音频流
+      this.initAmbientTrack()
     }
 
     if (this.ctx.state === 'suspended') {
       this.ctx.resume().catch(() => {})
     }
+  }
+
+  private initAmbientTrack() {
+    if (this.ambientAudio || !this.ctx || !this.ambientGain) return
+
+    try {
+      const audio = new Audio(this.ambientSrc)
+      audio.loop = true
+      audio.crossOrigin = 'anonymous'
+      audio.preload = 'auto'
+
+      const source = this.ctx.createMediaElementSource(audio)
+      source.connect(this.ambientGain)
+
+      this.ambientAudio = audio
+      this.ambientSource = source
+    } catch { /* 忽略加载异常 */ }
   }
 
   // ==================================================================
@@ -115,10 +136,12 @@ class SoundEngine {
     if (this.ctx && this.ambientGain) {
       const now = this.ctx.currentTime
       this.ambientGain.gain.cancelScheduledValues(now)
-      this.ambientGain.gain.linearRampToValueAtTime(enabled ? 0.28 : 0, now + 0.3)
+      this.ambientGain.gain.linearRampToValueAtTime(enabled ? 0.38 : 0, now + 0.3)
     }
     if (enabled && !this.isMuted) {
       this.startAmbient()
+    } else {
+      this.stopAmbient()
     }
   }
 
@@ -141,88 +164,34 @@ class SoundEngine {
   }
 
   // ==================================================================
-  // 1. 石窟空灵氛围音 (Cave Ambient Drone - 提升可听度与禅意泛音)
+  // 1. 真实高保真石窟空灵背景音 (Zen Meditation Ambient Track)
   // ==================================================================
 
   public startAmbient() {
     if (this.isMuted || !this.ambientEnabled || this.isAmbientPlaying) return
     this.initContext()
-    if (!this.ctx || !this.ambientGain) return
+
+    if (!this.ambientAudio) return
 
     try {
       this.isAmbientPlaying = true
-      const now = this.ctx.currentTime
-
-      // 东方五音禅意泛音结构 (216Hz 宫调 + 432Hz 疗愈泛音 + 648Hz 空灵高音)
-      // 在普通笔记本与耳机中都能清晰听到温润空灵的鸣响
-      const chord = [
-        { freq: 216, gain: 0.32, drift: 0.15 },
-        { freq: 432, gain: 0.22, drift: 0.25 },
-        { freq: 648, gain: 0.12, drift: 0.35 }
-      ]
-
-      this.ambientOscs = chord.map((item) => {
-        const osc = this.ctx!.createOscillator()
-        const g = this.ctx!.createGain()
-        osc.type = 'sine'
-        // 极微小的干涉波频偏，营造远山古窟的天然呼吸感
-        osc.frequency.setValueAtTime(item.freq + item.drift, now)
-
-        g.gain.setValueAtTime(item.gain, now)
-        osc.connect(g)
-        g.connect(this.ambientGain!)
-        osc.start()
-        return osc
-      })
-
-      // 栖霞幽谷微风 (宽频柔和空气感，380Hz 低通滤波)
-      const bufferSize = this.ctx.sampleRate * 2
-      const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate)
-      const output = noiseBuffer.getChannelData(0)
-      let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0
-      for (let i = 0; i < bufferSize; i++) {
-        const white = Math.random() * 2 - 1
-        b0 = 0.99886 * b0 + white * 0.0555179
-        b1 = 0.99332 * b1 + white * 0.0750759
-        b2 = 0.96900 * b2 + white * 0.1538520
-        b3 = 0.86650 * b3 + white * 0.3104856
-        b4 = 0.55000 * b4 + white * 0.5329522
-        b5 = -0.7616 * b5 - white * 0.0168980
-        output[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.06
-        b6 = white * 0.115926
+      const playPromise = this.ambientAudio.play()
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          this.isAmbientPlaying = false
+        })
       }
-
-      const whiteNoise = this.ctx.createBufferSource()
-      whiteNoise.buffer = noiseBuffer
-      whiteNoise.loop = true
-
-      const filter = this.ctx.createBiquadFilter()
-      filter.type = 'lowpass'
-      filter.frequency.setValueAtTime(380, now)
-
-      const noiseGain = this.ctx.createGain()
-      noiseGain.gain.setValueAtTime(0.45, now)
-
-      whiteNoise.connect(filter)
-      filter.connect(noiseGain)
-      noiseGain.connect(this.ambientGain)
-      whiteNoise.start()
-      this.ambientNoise = whiteNoise
     } catch {
       this.isAmbientPlaying = false
     }
   }
 
   public stopAmbient() {
-    if (!this.isAmbientPlaying || !this.ctx) return
+    if (!this.ambientAudio) return
     try {
-      this.ambientOscs.forEach(osc => {
-        try { osc.stop(); osc.disconnect() } catch {}
-      })
-      this.ambientOscs = []
-      if (this.ambientNoise) {
-        try { (this.ambientNoise as any).stop(); this.ambientNoise.disconnect() } catch {}
-        this.ambientNoise = null
+      this.ambientAudio.pause()
+      if (this.ambientSource && this.ctx?.state === 'running') {
+        // 保持 source 节点连接以备下次恢复
       }
       this.isAmbientPlaying = false
     } catch {
@@ -231,7 +200,7 @@ class SoundEngine {
   }
 
   // ==================================================================
-  // 2. 金石击磬音 (Stone Chime)
+  // 2. 金石击磬音 (Stone Chime - 纯净单音)
   // ==================================================================
 
   public playChime(baseFreq = 880, duration = 0.45, volume = 0.18) {
@@ -285,10 +254,10 @@ class SoundEngine {
       osc1.frequency.setValueAtTime(freq, now)
 
       osc2.type = 'triangle'
-      osc2.frequency.setValueAtTime(freq * 1.498, now) // 五度纯泛音
+      osc2.frequency.setValueAtTime(freq * 1.498, now)
 
       gain.gain.setValueAtTime(0.001, now)
-      gain.gain.linearRampToValueAtTime(0.25, now + 0.035)
+      gain.gain.linearRampToValueAtTime(0.22, now + 0.035)
       gain.gain.exponentialRampToValueAtTime(0.0001, now + duration)
 
       osc1.connect(gain)
@@ -303,56 +272,7 @@ class SoundEngine {
   }
 
   // ==================================================================
-  // 4. 3D 舍利塔旋转阻尼微风音 (Velvet Damped Air Flow - 告别滑稽感)
-  // 模拟高端镜头转动或重磅石雕缓缓移位的温和气流微阻尼
-  // ==================================================================
-
-  public playStoneFriction(intensity = 0.04) {
-    if (this.isMuted || !this.sfxEnabled) return
-    const nowMs = performance.now()
-    if (nowMs - this.lastFrictionTime < 80) return // 80ms 节流
-    this.lastFrictionTime = nowMs
-
-    this.initContext()
-    if (!this.ctx || !this.sfxGain) return
-
-    try {
-      const now = this.ctx.currentTime
-      const duration = 0.12
-
-      // 使用极细颗粒白噪 + 柔和带通滤波，产生丝绒般的镜头阻尼滑移声
-      const bufferSize = Math.floor(this.ctx.sampleRate * duration)
-      const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate)
-      const output = noiseBuffer.getChannelData(0)
-      for (let i = 0; i < bufferSize; i++) {
-        output[i] = (Math.random() * 2 - 1) * 0.08
-      }
-
-      const noise = this.ctx.createBufferSource()
-      noise.buffer = noiseBuffer
-
-      const filter = this.ctx.createBiquadFilter()
-      filter.type = 'bandpass'
-      filter.frequency.setValueAtTime(550, now) // 温和的中频气流
-      filter.Q.setValueAtTime(1.2, now)
-
-      const gain = this.ctx.createGain()
-      const vol = Math.min(intensity * 0.12, 0.035)
-      gain.gain.setValueAtTime(0.001, now)
-      gain.gain.linearRampToValueAtTime(vol, now + 0.03)
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration)
-
-      noise.connect(filter)
-      filter.connect(gain)
-      gain.connect(this.sfxGain)
-
-      noise.start(now)
-      noise.stop(now + duration)
-    } catch { /* 忽略 */ }
-  }
-
-  // ==================================================================
-  // 5. 3D 浮雕热点定焦微音 (Stela Focus Ping - 纯净单音定焦)
+  // 4. 3D 浮雕热点定焦微音 (Stela Focus Ping)
   // ==================================================================
 
   public playHotspotLock() {
@@ -366,7 +286,6 @@ class SoundEngine {
       const osc = this.ctx.createOscillator()
       const gain = this.ctx.createGain()
 
-      // 纯净高贵单音 (1046Hz / C6 玉磬轻触)
       osc.type = 'triangle'
       osc.frequency.setValueAtTime(1046.5, now)
 
@@ -383,7 +302,7 @@ class SoundEngine {
   }
 
   // ==================================================================
-  // 6. 古籍文献拓片翻卷微音 (Paper / Stela Rustle)
+  // 5. 古籍文献拓片翻卷微音 (Paper / Stela Rustle)
   // ==================================================================
 
   public playPaperRustle() {
@@ -418,7 +337,7 @@ class SoundEngine {
   }
 
   // ==================================================================
-  // 7. 矿物动态色谱和弦 (Mineral Spectral Chord)
+  // 6. 矿物动态色谱和弦 (Mineral Spectral Chord)
   // ==================================================================
 
   public playColorPick(hex = '#C03020') {
@@ -436,7 +355,7 @@ class SoundEngine {
   }
 
   // ==================================================================
-  // 8. 辅助轻微音
+  // 7. 辅助轻微音
   // ==================================================================
 
   public playHover() {
