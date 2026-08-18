@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect } from 'react'
+import { useCallback, useState } from 'react'
 import { Exhibition } from './components/Exhibition'
 import { IntroAnimation } from './components/IntroAnimation'
 import { CustomCursor } from './components/CustomCursor'
@@ -15,23 +15,6 @@ import './App.css'
 function App() {
   const [showExhibition, setShowExhibition] = useState(false)
   const [isVeiling, setIsVeiling] = useState(false)
-
-  // 监听用户首次手势/点击，平滑淡入石窟空灵背景音
-  useEffect(() => {
-    const handleFirstGesture = () => {
-      soundEngine.startAmbient()
-      window.removeEventListener('pointerdown', handleFirstGesture)
-      window.removeEventListener('keydown', handleFirstGesture)
-    }
-
-    window.addEventListener('pointerdown', handleFirstGesture, { once: true })
-    window.addEventListener('keydown', handleFirstGesture, { once: true })
-
-    return () => {
-      window.removeEventListener('pointerdown', handleFirstGesture)
-      window.removeEventListener('keydown', handleFirstGesture)
-    }
-  }, [])
 
   const enterExhibition = useCallback(() => {
     if (isVeiling) return

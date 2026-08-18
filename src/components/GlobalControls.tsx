@@ -10,8 +10,6 @@ export function GlobalControls() {
   // ---- 全局状态 ----
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [soundOn, setSoundOn] = useState(() => !soundEngine.getMuted())
-  const [ambientOn, setAmbientOn] = useState(() => soundEngine.getAmbientEnabled())
-  const [sfxOn, setSfxOn] = useState(() => soundEngine.getSfxEnabled())
   const [reduceMotion, setReduceMotion] = useState(false)
   const [highContrast, setHighContrast] = useState(false)
   const [largeText, setLargeText] = useState(false)
@@ -51,12 +49,12 @@ export function GlobalControls() {
       {/* 1. 问窟 AI 唤醒按钮 */}
       <AgentTriggerButton />
       
-      {/* 2. 音效总开关 */}
+      {/* 2. 金石音效开关 */}
       <button
         className={`intro-ctrl-btn ${soundOn ? 'is-active' : ''}`}
-        aria-label={soundOn ? '静音' : '开启音效'}
+        aria-label={soundOn ? '静音' : '开启金石音效'}
         onClick={handleToggleSound}
-        title={soundOn ? '静音 (Mute)' : '开启石窟音效 (Sound On)'}
+        title={soundOn ? '静音 (Mute)' : '开启金石交互音效 (Sound On)'}
       >
         <svg className="ctrl-icon sound-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           {soundOn ? (
@@ -98,34 +96,21 @@ export function GlobalControls() {
         {settingsOpen && (
           <div className="settings-panel" role="dialog" aria-label="无障碍与声学设置">
             <div className="settings-panel__header">
-              <span className="settings-panel__title">声学与视觉交互体验</span>
+              <span className="settings-panel__title">视觉与交互体验</span>
               <span className="settings-panel__sub">ACOUSTIC & ACCESSIBILITY</span>
             </div>
             
             <div className="settings-group">
-              {/* 声学分流控制 */}
+              {/* 声学反馈控制 */}
               <label className="settings-item">
-                <span>石窟空灵背景音 (Ambient)</span>
+                <span>金石交互音效 (Interactive SFX)</span>
                 <input
                   type="checkbox"
-                  checked={ambientOn}
+                  checked={soundOn}
                   onChange={e => {
                     const next = e.target.checked
-                    setAmbientOn(next)
-                    soundEngine.setAmbientEnabled(next)
-                  }}
-                />
-              </label>
-
-              <label className="settings-item">
-                <span>金石交互音效 (SFX)</span>
-                <input
-                  type="checkbox"
-                  checked={sfxOn}
-                  onChange={e => {
-                    const next = e.target.checked
-                    setSfxOn(next)
-                    soundEngine.setSfxEnabled(next)
+                    setSoundOn(next)
+                    soundEngine.setMuted(!next)
                     if (next) soundEngine.playChime(640, 0.2)
                   }}
                 />

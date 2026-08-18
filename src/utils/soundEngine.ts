@@ -1,32 +1,24 @@
 /* ====================================================================
-   GrottoMind 专业博物馆级声学引擎 (Museum Sound Engine Pro v4.0)
-   - 真实高保真「栖霞山禅境空灵环境音」真实录音音轨 (Zen Atmosphere)
-   - 纯净 Web Audio API 金石玉磬交互合成体系
-   - 双总线架构 (Ambient Bus + SFX Bus) + 毫秒级淡入淡出平滑渐变
+   GrottoMind 专业博物馆级声学引擎 (Museum Sound Engine Pro v5.0)
+   设计准则: 宁静致远 · 东方金石玉磬雅音 · 绝无嘈杂背景音乐
+   - 默认保持展厅纯净静谧环境，拒绝任何轰鸣/现代电子迷幻音
+   - 专注提供极致清脆、典雅的玉磬 (Chime)、古钟 (Gong) 与矿物和弦交互反馈
 ==================================================================== */
 
 class SoundEngine {
   private ctx: AudioContext | null = null
   private masterGain: GainNode | null = null
-  private ambientGain: GainNode | null = null
   private sfxGain: GainNode | null = null
-
-  // 真实环境音播放器
-  private ambientAudio: HTMLAudioElement | null = null
-  private ambientSource: MediaElementAudioSourceNode | null = null
 
   // 状态
   private isMuted: boolean = false
-  private ambientEnabled: boolean = true
   private sfxEnabled: boolean = true
-  private isAmbientPlaying: boolean = false
 
   // 防爆音与节流
   private lastChimeTime: number = 0
   private lastTickTime: number = 0
 
-  private storageKey = 'grottomind_sound_v2'
-  private ambientSrc = '/assets/qixia-ambient.mp3'
+  private storageKey = 'grottomind_sound_v3'
 
   constructor() {
     this.loadSettings()
@@ -38,7 +30,6 @@ class SoundEngine {
       if (raw) {
         const parsed = JSON.parse(raw)
         this.isMuted = parsed.isMuted ?? false
-        this.ambientEnabled = parsed.ambientEnabled ?? true
         this.sfxEnabled = parsed.sfxEnabled ?? true
       }
     } catch { /* 忽略 */ }
@@ -48,7 +39,6 @@ class SoundEngine {
     try {
       localStorage.setItem(this.storageKey, JSON.stringify({
         isMuted: this.isMuted,
-        ambientEnabled: this.ambientEnabled,
         sfxEnabled: this.sfxEnabled
       }))
     } catch { /* 忽略 */ }
@@ -65,21 +55,13 @@ class SoundEngine {
 
       // 1. 主总线
       this.masterGain = this.ctx.createGain()
-      this.masterGain.gain.setValueAtTime(this.isMuted ? 0 : 0.9, this.ctx.currentTime)
+      this.masterGain.gain.setValueAtTime(this.isMuted ? 0 : 0.85, this.ctx.currentTime)
       this.masterGain.connect(this.ctx.destination)
 
-      // 2. 环境音总线 (连接真实空灵音轨，舒适音量 0.38)
-      this.ambientGain = this.ctx.createGain()
-      this.ambientGain.gain.setValueAtTime(this.ambientEnabled ? 0.38 : 0, this.ctx.currentTime)
-      this.ambientGain.connect(this.masterGain)
-
-      // 3. 交互音效总线
+      // 2. 纯净金石交互总线
       this.sfxGain = this.ctx.createGain()
-      this.sfxGain.gain.setValueAtTime(this.sfxEnabled ? 0.85 : 0, this.ctx.currentTime)
+      this.sfxGain.gain.setValueAtTime(this.sfxEnabled ? 0.9 : 0, this.ctx.currentTime)
       this.sfxGain.connect(this.masterGain)
-
-      // 4. 创建并绑定真实高保真环境音音频流
-      this.initAmbientTrack()
     }
 
     if (this.ctx.state === 'suspended') {
@@ -87,25 +69,8 @@ class SoundEngine {
     }
   }
 
-  private initAmbientTrack() {
-    if (this.ambientAudio || !this.ctx || !this.ambientGain) return
-
-    try {
-      const audio = new Audio(this.ambientSrc)
-      audio.loop = true
-      audio.crossOrigin = 'anonymous'
-      audio.preload = 'auto'
-
-      const source = this.ctx.createMediaElementSource(audio)
-      source.connect(this.ambientGain)
-
-      this.ambientAudio = audio
-      this.ambientSource = source
-    } catch { /* 忽略加载异常 */ }
-  }
-
   // ==================================================================
-  // 全局控制与分流开关
+  // 全局控制与开关
   // ==================================================================
 
   public setMuted(muted: boolean) {
@@ -115,14 +80,11 @@ class SoundEngine {
     if (this.ctx && this.masterGain) {
       const now = this.ctx.currentTime
       this.masterGain.gain.cancelScheduledValues(now)
-      this.masterGain.gain.linearRampToValueAtTime(muted ? 0 : 0.9, now + 0.25)
+      this.masterGain.gain.linearRampToValueAtTime(muted ? 0 : 0.85, now + 0.15)
     }
 
     if (!muted) {
-      this.startAmbient()
       this.playChime(660, 0.2)
-    } else {
-      this.stopAmbient()
     }
   }
 
@@ -130,23 +92,12 @@ class SoundEngine {
     return this.isMuted
   }
 
-  public setAmbientEnabled(enabled: boolean) {
-    this.ambientEnabled = enabled
-    this.saveSettings()
-    if (this.ctx && this.ambientGain) {
-      const now = this.ctx.currentTime
-      this.ambientGain.gain.cancelScheduledValues(now)
-      this.ambientGain.gain.linearRampToValueAtTime(enabled ? 0.38 : 0, now + 0.3)
-    }
-    if (enabled && !this.isMuted) {
-      this.startAmbient()
-    } else {
-      this.stopAmbient()
-    }
+  public setAmbientEnabled(_enabled: boolean) {
+    // 展厅保持清净无吵闹BGM
   }
 
   public getAmbientEnabled(): boolean {
-    return this.ambientEnabled
+    return false
   }
 
   public setSfxEnabled(enabled: boolean) {
@@ -155,7 +106,7 @@ class SoundEngine {
     if (this.ctx && this.sfxGain) {
       const now = this.ctx.currentTime
       this.sfxGain.gain.cancelScheduledValues(now)
-      this.sfxGain.gain.setValueAtTime(enabled ? 0.85 : 0, now)
+      this.sfxGain.gain.setValueAtTime(enabled ? 0.9 : 0, now)
     }
   }
 
@@ -163,47 +114,20 @@ class SoundEngine {
     return this.sfxEnabled
   }
 
-  // ==================================================================
-  // 1. 真实高保真石窟空灵背景音 (Zen Meditation Ambient Track)
-  // ==================================================================
-
   public startAmbient() {
-    if (this.isMuted || !this.ambientEnabled || this.isAmbientPlaying) return
+    // 彻底停用嘈杂 BGM，展厅保持高级静谧
     this.initContext()
-
-    if (!this.ambientAudio) return
-
-    try {
-      this.isAmbientPlaying = true
-      const playPromise = this.ambientAudio.play()
-      if (playPromise !== undefined) {
-        playPromise.catch(() => {
-          this.isAmbientPlaying = false
-        })
-      }
-    } catch {
-      this.isAmbientPlaying = false
-    }
   }
 
   public stopAmbient() {
-    if (!this.ambientAudio) return
-    try {
-      this.ambientAudio.pause()
-      if (this.ambientSource && this.ctx?.state === 'running') {
-        // 保持 source 节点连接以备下次恢复
-      }
-      this.isAmbientPlaying = false
-    } catch {
-      this.isAmbientPlaying = false
-    }
+    // 空函数
   }
 
   // ==================================================================
-  // 2. 金石击磬音 (Stone Chime - 纯净单音)
+  // 1. 金石击磬音 (Stone Chime - 纯净玉石相击)
   // ==================================================================
 
-  public playChime(baseFreq = 880, duration = 0.45, volume = 0.18) {
+  public playChime(baseFreq = 880, duration = 0.4, volume = 0.18) {
     if (this.isMuted || !this.sfxEnabled) return
     const nowMs = performance.now()
     if (nowMs - this.lastChimeTime < 35) return
@@ -219,10 +143,10 @@ class SoundEngine {
 
       osc.type = 'triangle'
       osc.frequency.setValueAtTime(baseFreq, now)
-      osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.97, now + duration)
+      osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.98, now + duration)
 
       gain.gain.setValueAtTime(0.001, now)
-      gain.gain.linearRampToValueAtTime(volume, now + 0.012)
+      gain.gain.linearRampToValueAtTime(volume, now + 0.01)
       gain.gain.exponentialRampToValueAtTime(0.0001, now + duration)
 
       osc.connect(gain)
@@ -234,7 +158,7 @@ class SoundEngine {
   }
 
   // ==================================================================
-  // 3. 宏阔古钟禅鸣 (Gong of Era)
+  // 2. 宏阔古钟禅鸣 (Gong of Era - 章节切换)
   // ==================================================================
 
   public playGong(freq = 160) {
@@ -244,7 +168,7 @@ class SoundEngine {
 
     try {
       const now = this.ctx.currentTime
-      const duration = 2.6
+      const duration = 2.4
 
       const osc1 = this.ctx.createOscillator()
       const osc2 = this.ctx.createOscillator()
@@ -257,7 +181,7 @@ class SoundEngine {
       osc2.frequency.setValueAtTime(freq * 1.498, now)
 
       gain.gain.setValueAtTime(0.001, now)
-      gain.gain.linearRampToValueAtTime(0.22, now + 0.035)
+      gain.gain.linearRampToValueAtTime(0.2, now + 0.03)
       gain.gain.exponentialRampToValueAtTime(0.0001, now + duration)
 
       osc1.connect(gain)
@@ -272,7 +196,7 @@ class SoundEngine {
   }
 
   // ==================================================================
-  // 4. 3D 浮雕热点定焦微音 (Stela Focus Ping)
+  // 3. 3D 浮雕热点定焦微音 (Stela Focus Ping)
   // ==================================================================
 
   public playHotspotLock() {
@@ -282,7 +206,7 @@ class SoundEngine {
 
     try {
       const now = this.ctx.currentTime
-      const duration = 0.18
+      const duration = 0.16
       const osc = this.ctx.createOscillator()
       const gain = this.ctx.createGain()
 
@@ -290,7 +214,7 @@ class SoundEngine {
       osc.frequency.setValueAtTime(1046.5, now)
 
       gain.gain.setValueAtTime(0.001, now)
-      gain.gain.linearRampToValueAtTime(0.12, now + 0.01)
+      gain.gain.linearRampToValueAtTime(0.12, now + 0.008)
       gain.gain.exponentialRampToValueAtTime(0.0001, now + duration)
 
       osc.connect(gain)
@@ -302,7 +226,7 @@ class SoundEngine {
   }
 
   // ==================================================================
-  // 5. 古籍文献拓片翻卷微音 (Paper / Stela Rustle)
+  // 4. 古籍文献拓片翻卷微音 (Paper / Stela Rustle)
   // ==================================================================
 
   public playPaperRustle() {
@@ -317,45 +241,45 @@ class SoundEngine {
       const gain = this.ctx.createGain()
 
       osc.type = 'sawtooth'
-      osc.frequency.setValueAtTime(320, now)
-      osc.frequency.linearRampToValueAtTime(180, now + 0.15)
+      osc.frequency.setValueAtTime(300, now)
+      osc.frequency.linearRampToValueAtTime(160, now + 0.14)
 
       filter.type = 'lowpass'
-      filter.frequency.setValueAtTime(600, now)
+      filter.frequency.setValueAtTime(500, now)
 
       gain.gain.setValueAtTime(0.001, now)
-      gain.gain.linearRampToValueAtTime(0.04, now + 0.02)
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.15)
+      gain.gain.linearRampToValueAtTime(0.035, now + 0.015)
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14)
 
       osc.connect(filter)
       filter.connect(gain)
       gain.connect(this.sfxGain)
 
       osc.start(now)
-      osc.stop(now + 0.15)
+      osc.stop(now + 0.14)
     } catch { /* 忽略 */ }
   }
 
   // ==================================================================
-  // 6. 矿物动态色谱和弦 (Mineral Spectral Chord)
+  // 5. 矿物动态色谱和弦 (Mineral Spectral Chord - 清脆怡人)
   // ==================================================================
 
   public playColorPick(hex = '#C03020') {
     if (this.isMuted || !this.sfxEnabled) return
 
     const num = parseInt(hex.replace('#', ''), 16) || 0
-    const baseRoot = 440 + (num % 300)
+    const baseRoot = 523.25 + (num % 220) // C5 ~ G5
     const ratios = [1, 1.25, 1.5, 2]
 
     ratios.forEach((r, idx) => {
       setTimeout(() => {
-        this.playChime(baseRoot * r, 0.38, 0.1)
+        this.playChime(baseRoot * r, 0.35, 0.09)
       }, idx * 35)
     })
   }
 
   // ==================================================================
-  // 7. 辅助轻微音
+  // 6. 辅助轻微音
   // ==================================================================
 
   public playHover() {
@@ -369,18 +293,18 @@ class SoundEngine {
       const gain = this.ctx.createGain()
 
       osc.type = 'sine'
-      osc.frequency.setValueAtTime(1400, now)
-      osc.frequency.exponentialRampToValueAtTime(1600, now + 0.06)
+      osc.frequency.setValueAtTime(1200, now)
+      osc.frequency.exponentialRampToValueAtTime(1400, now + 0.05)
 
       gain.gain.setValueAtTime(0.001, now)
-      gain.gain.linearRampToValueAtTime(0.02, now + 0.015)
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.06)
+      gain.gain.linearRampToValueAtTime(0.015, now + 0.01)
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.05)
 
       osc.connect(gain)
       gain.connect(this.sfxGain)
 
       osc.start(now)
-      osc.stop(now + 0.06)
+      osc.stop(now + 0.05)
     } catch { /* 忽略 */ }
   }
 
@@ -399,16 +323,16 @@ class SoundEngine {
       const gain = this.ctx.createGain()
 
       osc.type = 'sine'
-      osc.frequency.setValueAtTime(2000 + Math.random() * 400, now)
+      osc.frequency.setValueAtTime(1800 + Math.random() * 300, now)
 
-      gain.gain.setValueAtTime(0.015, now)
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.012)
+      gain.gain.setValueAtTime(0.012, now)
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.01)
 
       osc.connect(gain)
       gain.connect(this.sfxGain)
 
       osc.start(now)
-      osc.stop(now + 0.012)
+      osc.stop(now + 0.01)
     } catch { /* 忽略 */ }
   }
 }
