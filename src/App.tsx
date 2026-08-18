@@ -1,22 +1,43 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useState, useEffect } from 'react'
 import { Exhibition } from './components/Exhibition'
 import { IntroAnimation } from './components/IntroAnimation'
 import { CustomCursor } from './components/CustomCursor'
 import { AgentProvider } from './components/agent/AgentContext'
 import { GlobalAgent } from './components/agent/GlobalAgent'
 import { GlobalControls } from './components/GlobalControls'
+import { soundEngine } from './utils/soundEngine'
 import './App.css'
 
 /* ============================================================
-   App：序章 → 第一章的直接过渡
-   移除了纹样加载页，改为纯黑幕淡入淡出过渡
+   App：栖霞山数字复彩档案馆主容器
+   集成 Web Audio 东方金石与石窟空灵程序化音效系统
 ============================================================ */
 function App() {
   const [showExhibition, setShowExhibition] = useState(false)
   const [isVeiling, setIsVeiling] = useState(false)
 
+  // 监听用户首次手势/点击，平滑淡入石窟空灵背景音
+  useEffect(() => {
+    const handleFirstGesture = () => {
+      soundEngine.startAmbient()
+      window.removeEventListener('pointerdown', handleFirstGesture)
+      window.removeEventListener('keydown', handleFirstGesture)
+    }
+
+    window.addEventListener('pointerdown', handleFirstGesture, { once: true })
+    window.addEventListener('keydown', handleFirstGesture, { once: true })
+
+    return () => {
+      window.removeEventListener('pointerdown', handleFirstGesture)
+      window.removeEventListener('keydown', handleFirstGesture)
+    }
+  }, [])
+
   const enterExhibition = useCallback(() => {
     if (isVeiling) return
+
+    // 播放进入大展厅的深沉宏阔古钟鸣响
+    soundEngine.playGong(160)
 
     // 黑幕淡入
     setIsVeiling(true)

@@ -4,6 +4,7 @@ import { DeepReadArticle } from './DeepReadArticle'
 import { FadingHall } from './FadingHall'
 import { GrottoHub } from './GrottoHub'
 import { useAgent } from './agent/AgentContext'
+import { soundEngine } from '../utils/soundEngine'
 
 
 /* ============================================================
@@ -41,6 +42,7 @@ export function Exhibition() {
   }, [activeChapter, setCurrentChapter])
 
   const handleDeepRead = (nodeId: string) => {
+    soundEngine.playChime(640, 0.3)
     setBlackout(true)
     setTimeout(() => {
       setActiveDeepReadId(nodeId)
@@ -49,6 +51,7 @@ export function Exhibition() {
   }
 
   const handleBackToExhibition = () => {
+    soundEngine.playChime(540, 0.25)
     setBlackout(true)
     setTimeout(() => {
       setActiveDeepReadId(null)
@@ -58,6 +61,7 @@ export function Exhibition() {
 
   /* 进入下一章：黑屏过渡 → 直接切到第二章（Lumen 模板自带加载页） */
   const handleNextChapter = () => {
+    soundEngine.playGong(180)
     setBlackout(true)
     setTimeout(() => {
       setActiveChapter('ch2')

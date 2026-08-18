@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { useAgent } from './AgentContext'
+import { soundEngine } from '../../utils/soundEngine'
 import './GlobalAgent.css'
 
 /* ============================================================
@@ -137,6 +138,7 @@ export function GlobalAgent() {
   }, [currentChapter])
 
   const handleCopyColor = (hex: string) => {
+    soundEngine.playColorPick()
     navigator.clipboard.writeText(hex).then(() => {
       setCopiedHex(hex)
       setTimeout(() => setCopiedHex(null), 1500)
@@ -144,6 +146,7 @@ export function GlobalAgent() {
   }
 
   const handleCopyMessage = (text: string, idx: number) => {
+    soundEngine.playChime(720, 0.25)
     navigator.clipboard.writeText(text).then(() => {
       setCopiedIdx(idx)
       setTimeout(() => setCopiedIdx(null), 1500)
@@ -153,6 +156,8 @@ export function GlobalAgent() {
   const handleSendMessage = async (textToSend?: string) => {
     const query = (textToSend || inputText).trim()
     if (!query || isStreaming) return
+
+    soundEngine.playChime(640, 0.3)
 
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()

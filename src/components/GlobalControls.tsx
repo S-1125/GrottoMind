@@ -2,13 +2,14 @@ import { useState, useEffect, useRef } from 'react'
 import { useAgent } from './agent/AgentContext'
 import { AgentTriggerButton } from './agent/AgentTriggerButton'
 import { FullscreenButton } from './FullscreenButton'
+import { soundEngine } from '../utils/soundEngine'
 
 export function GlobalControls() {
   const { currentChapter } = useAgent()
   
   // ---- 全局状态 ----
   const [settingsOpen, setSettingsOpen] = useState(false)
-  const [soundOn, setSoundOn] = useState(true)
+  const [soundOn, setSoundOn] = useState(() => !soundEngine.getMuted())
   const [reduceMotion, setReduceMotion] = useState(false)
   const [highContrast, setHighContrast] = useState(false)
   const [largeText, setLargeText] = useState(false)
@@ -33,6 +34,13 @@ export function GlobalControls() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [settingsOpen])
 
+  // ---- 切换声音 ----
+  const handleToggleSound = () => {
+    const nextState = !soundOn
+    setSoundOn(nextState)
+    soundEngine.setMuted(!nextState)
+  }
+
   // 如果在问窟 AI（第三章），完全隐藏该控件组
   if (currentChapter === 'ch3') return null
 
@@ -41,12 +49,12 @@ export function GlobalControls() {
       {/* 1. 问窟 AI 唤醒按钮 */}
       <AgentTriggerButton />
       
-      {/* 2. 音效开关 */}
+      {/* 2. 音效开关 (连接 Web Audio 合成器) */}
       <button
         className={`intro-ctrl-btn ${soundOn ? 'is-active' : ''}`}
         aria-label={soundOn ? '静音' : '开启音效'}
-        onClick={() => setSoundOn(!soundOn)}
-        title={soundOn ? '静音' : '开启音效'}
+        onClick={handleToggleSound}
+        title={soundOn ? '静音 (Mute)' : '开启石窟音效 (Sound On)'}
       >
         <svg className="ctrl-icon sound-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           {soundOn ? (
@@ -73,7 +81,10 @@ export function GlobalControls() {
           className={`intro-ctrl-btn ${settingsOpen ? 'is-active' : ''}`}
           aria-label="无障碍选项"
           aria-expanded={settingsOpen}
-          onClick={() => setSettingsOpen(!settingsOpen)}
+          onClick={() => {
+            soundEngine.playChime(740, 0.25)
+            setSettingsOpen(!settingsOpen)
+          }}
           title="系统与无障碍设置"
         >
           <svg className="ctrl-icon settings-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -95,7 +106,10 @@ export function GlobalControls() {
                 <input
                   type="checkbox"
                   checked={reduceMotion}
-                  onChange={e => setReduceMotion(e.target.checked)}
+                  onChange={e => {
+                    soundEngine.playChime(600, 0.2)
+                    setReduceMotion(e.target.checked)
+                  }}
                 />
               </label>
               
@@ -104,7 +118,10 @@ export function GlobalControls() {
                 <input
                   type="checkbox"
                   checked={highContrast}
-                  onChange={e => setHighContrast(e.target.checked)}
+                  onChange={e => {
+                    soundEngine.playChime(600, 0.2)
+                    setHighContrast(e.target.checked)
+                  }}
                 />
               </label>
               
@@ -113,7 +130,10 @@ export function GlobalControls() {
                 <input
                   type="checkbox"
                   checked={largeText}
-                  onChange={e => setLargeText(e.target.checked)}
+                  onChange={e => {
+                    soundEngine.playChime(600, 0.2)
+                    setLargeText(e.target.checked)
+                  }}
                 />
               </label>
             </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { soundEngine } from '../utils/soundEngine'
 
 export function FullscreenButton() {
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -64,6 +65,7 @@ export function FullscreenButton() {
   if (!isFullscreenAvailable()) return null
 
   const toggleFullscreen = async () => {
+    soundEngine.playChime(isFullscreen ? 600 : 960, 0.25)
     try {
       if (getFullscreenElement()) {
         await exitPageFullscreen()

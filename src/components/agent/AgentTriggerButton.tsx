@@ -1,4 +1,5 @@
 import { useAgent } from './AgentContext'
+import { soundEngine } from '../../utils/soundEngine'
 
 export function AgentTriggerButton() {
   const { isChatOpen, setChatOpen, orbVisible } = useAgent()
@@ -8,7 +9,10 @@ export function AgentTriggerButton() {
   return (
     <button
       className={`intro-ctrl-btn ${isChatOpen ? 'is-active' : ''}`}
-      onClick={() => setChatOpen(!isChatOpen)}
+      onClick={() => {
+        soundEngine.playChime(isChatOpen ? 580 : 880, 0.3)
+        setChatOpen(!isChatOpen)
+      }}
       aria-label="唤醒问窟者"
       title="问窟者 AI 导览"
     >
