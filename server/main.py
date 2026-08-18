@@ -51,6 +51,23 @@ except ImportError:
 logger = logging.getLogger("main_server")
 logging.basicConfig(level=logging.INFO)
 
+import time
+from collections import defaultdict
+
+# 内存单 IP 访问频次限制器 (滑动窗口 60 秒，单 IP 最多 25 次请求)
+_ip_request_timestamps = defaultdict(list)
+MAX_REQUESTS_PER_MINUTE = 25
+
+def check_ip_rate_limit(client_ip: str) -> bool:
+    now = time.time()
+    timestamps = _ip_request_timestamps[client_ip]
+    # 清除 60 秒以前的记录
+    _ip_request_timestamps[client_ip] = [t for t in timestamps if now - t < 60]
+    if len(_ip_request_timestamps[client_ip]) >= MAX_REQUESTS_PER_MINUTE:
+        return False
+    _ip_request_timestamps[client_ip].append(now)
+    return True
+
 # ==============================================================================
 # "问窟者" 深度知识库 System Prompt
 # ==============================================================================
@@ -386,6 +403,10 @@ async def get_literature_content(filename: str):
 @app.post("/api/ask")
 async def ask_question(request: Request):
     """快速问答端点（兼容原 Express /api/ask 接口）"""
+    client_ip = request.client.host if request.client else "unknown"
+    if not check_ip_rate_limit(client_ip):
+        raise HTTPException(status_code=429, detail="请求过于频繁，请稍候再试")
+
     body = await request.json()
     question = str(body.get("question") or body.get("message") or "").strip()
     audience_type = body.get("audienceType", "文化爱好者")
@@ -429,6 +450,10 @@ async def ask_question(request: Request):
 @app.post("/api/recolor-card")
 async def generate_recolor_card(request: Request):
     """生成意象色彩卡片端点（兼容原 Express /api/recolor-card 接口）"""
+    client_ip = request.client.host if request.client else "unknown"
+    if not check_ip_rate_limit(client_ip):
+        raise HTTPException(status_code=429, detail="请求过于频繁，请稍候再试")
+
     body = await request.json()
     imagery = body.get("imagery")
     emotion = body.get("emotion")
@@ -480,9 +505,14 @@ async def generate_recolor_card(request: Request):
 async def agent_chat(request: Request):
     """
     SSE 流式对话端点
-    支持 DeepSeek-V3 极速生成与 DeepSeek-R1 思考链 (Thinking) 解耦推送
+    支持 NVIDIA NIM / MiniMax-M3 / DeepSeek-V3 极速生成与思考链 (Thinking) 解耦推送
     请求体: { message: string, history: [{role, content}], chapterContext: string, useReasoning: bool }
     """
+    client_ip = request.client.host if request.client else "unknown"
+    if not check_ip_rate_limit(client_ip):
+        logger.warning(f"客户端 IP {client_ip} 触发速率限制")
+        raise HTTPException(status_code=429, detail="请求过于频繁，请稍候再试 (Rate limit exceeded)")
+
     body = await request.json()
     user_message = str(body.get("message") or "").strip()
     history = body.get("history", [])
