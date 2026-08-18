@@ -11,24 +11,34 @@ import asyncio
 import logging
 from typing import Optional, List, Dict, Any
 
-# 确保项目根目录在 sys.path 中
+# 确保项目根目录与 server 目录均在 sys.path 中
 SERVER_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(SERVER_DIR)
-if PROJECT_ROOT not in sys.path:
-    sys.path.insert(0, PROJECT_ROOT)
+for p in [PROJECT_ROOT, SERVER_DIR]:
+    if p not in sys.path:
+        sys.path.insert(0, p)
 
 from dotenv import load_dotenv
 load_dotenv(os.path.join(PROJECT_ROOT, ".env"))
 
 from lightrag import LightRAG, QueryParam
 from lightrag.utils import EmbeddingFunc
-from server.llm_adapter import (
-    get_async_client,
-    get_embeddings,
-    LLM_MODEL,
-    LLM_API_BASE,
-    LLM_API_KEY,
-)
+try:
+    from server.llm_adapter import (
+        get_async_client,
+        get_embeddings,
+        LLM_MODEL,
+        LLM_API_BASE,
+        LLM_API_KEY,
+    )
+except ImportError:
+    from llm_adapter import (
+        get_async_client,
+        get_embeddings,
+        LLM_MODEL,
+        LLM_API_BASE,
+        LLM_API_KEY,
+    )
 
 logger = logging.getLogger("lightrag_engine")
 logging.basicConfig(level=logging.INFO)

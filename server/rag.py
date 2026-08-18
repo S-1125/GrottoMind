@@ -13,16 +13,20 @@ import chromadb
 from typing import List, Dict, Any
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-# 确保项目根目录在 sys.path 中
+# 确保项目根目录与 server 目录均在 sys.path 中
 SERVER_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(SERVER_DIR)
-if PROJECT_ROOT not in sys.path:
-    sys.path.insert(0, PROJECT_ROOT)
+for p in [PROJECT_ROOT, SERVER_DIR]:
+    if p not in sys.path:
+        sys.path.insert(0, p)
 
 from dotenv import load_dotenv
 load_dotenv(os.path.join(PROJECT_ROOT, ".env"))
 
-from server.llm_adapter import get_embeddings
+try:
+    from server.llm_adapter import get_embeddings
+except ImportError:
+    from llm_adapter import get_embeddings
 
 logger = logging.getLogger("rag_engine")
 logging.basicConfig(level=logging.INFO)

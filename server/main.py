@@ -19,30 +19,35 @@ from fastapi.responses import PlainTextResponse, JSONResponse
 from sse_starlette.sse import EventSourceResponse
 from dotenv import load_dotenv
 
-# 确保项目根目录在 sys.path 中
+# 确保项目根目录与 server 目录均在 sys.path 中
 SERVER_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(SERVER_DIR)
-if PROJECT_ROOT not in sys.path:
-    sys.path.insert(0, PROJECT_ROOT)
+for p in [PROJECT_ROOT, SERVER_DIR]:
+    if p not in sys.path:
+        sys.path.insert(0, p)
 
 load_dotenv(os.path.join(PROJECT_ROOT, ".env"))
-
-# 导入统一适配层与现有 RAG 模块
-from server.llm_adapter import (
-    stream_chat_completion,
-    generate_json,
-    LLM_MODEL,
-    LLM_REASONING_MODEL,
-    LLM_API_KEY,
-)
-import server.rag as rag
-
-# 加载根目录环境变量
-SERVER_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_ROOT = os.path.dirname(SERVER_DIR)
 KNOWLEDGE_DIR = os.path.join(SERVER_DIR, "knowledge")
 
-load_dotenv(os.path.join(PROJECT_ROOT, ".env"))
+# 导入统一适配层与现有 RAG 模块（支持相对路径与包路径导入）
+try:
+    from server.llm_adapter import (
+        stream_chat_completion,
+        generate_json,
+        LLM_MODEL,
+        LLM_REASONING_MODEL,
+        LLM_API_KEY,
+    )
+    import server.rag as rag
+except ImportError:
+    from llm_adapter import (
+        stream_chat_completion,
+        generate_json,
+        LLM_MODEL,
+        LLM_REASONING_MODEL,
+        LLM_API_KEY,
+    )
+    import rag
 logger = logging.getLogger("main_server")
 logging.basicConfig(level=logging.INFO)
 
@@ -217,7 +222,10 @@ async def summarize_literature(filename: str):
 @app.get("/api/knowledge/graph")
 async def get_graph():
     """获取栖霞山石窟知识图谱实体与拓扑关系网络"""
-    from server.knowledge_graph import get_knowledge_graph
+    try:
+        from server.knowledge_graph import get_knowledge_graph
+    except ImportError:
+        from knowledge_graph import get_knowledge_graph
     return get_knowledge_graph()
 
 
@@ -258,7 +266,10 @@ async def literature_focused_qa(request: Request):
 3. 标注出文献中的论述依据。
 """
     try:
-        from server.llm_adapter import get_async_client, LLM_MODEL
+        try:
+            from server.llm_adapter import get_async_client, LLM_MODEL
+        except ImportError:
+            from llm_adapter import get_async_client, LLM_MODEL
         client = get_async_client()
         resp = await client.chat.completions.create(
             model=LLM_MODEL,
