@@ -91,19 +91,8 @@ os.makedirs(LOCAL_MODEL_CACHE, exist_ok=True)
 
 
 def get_local_embed_model():
-    """获取或初始化本地轻量级 BGE-small-zh Embedding 模型"""
-    global _local_embed_model
-    if _local_embed_model is None:
-        try:
-            from fastembed import TextEmbedding
-            logger.info(f"初始化本地 FastEmbed BAAI/bge-small-zh-v1.5 模型 (缓存路径: {LOCAL_MODEL_CACHE})...")
-            _local_embed_model = TextEmbedding(
-                model_name="BAAI/bge-small-zh-v1.5",
-                cache_dir=LOCAL_MODEL_CACHE,
-            )
-        except Exception as e:
-            logger.warning(f"无法初始化本地 fastembed 模型: {e}")
-    return _local_embed_model
+    """轻量模式下直接使用 RAG 内存全文/关键词索引"""
+    return None
 
 
 # ==============================================================================

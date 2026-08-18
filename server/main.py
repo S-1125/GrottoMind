@@ -114,18 +114,13 @@ ACADEMIC_BOUNDARY = "当涉及历史色彩、造像原貌、文物修复时，�
 # ==============================================================================
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """应用生命周期管理：启动时自动检查与就绪向量库"""
+    """应用生命周期管理：启动时预热文献索引"""
     logger.info("正在初始化 GrottoMind 后端服务...")
     try:
-        count = rag.collection.count()
-        if count == 0:
-            logger.info("ℹ️ 当前向量数据库为空，正在后台自动构建 73 篇学术文献向量索引...")
-            import threading
-            threading.Thread(target=rag.build_index, daemon=True).start()
-        else:
-            logger.info(f"✅ 知识库向量索引就绪，当前共包含 {count} 个片段。")
+        count = rag.load_knowledge_cache()
+        logger.info(f"✅ 知识库索引就绪，已载入 {count} 篇学术文献。")
     except Exception as e:
-        logger.warning(f"⚠️ 向量索引检查提示: {e}")
+        logger.warning(f"⚠️ 知识库加载提示: {e}")
     yield
     logger.info("GrottoMind 后端服务已安全停止。")
 
