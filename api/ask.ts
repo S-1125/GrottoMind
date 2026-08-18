@@ -1,6 +1,18 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import OpenAI from 'openai'
-import type { AskRequest, AskResponse } from '../src/types'
+
+export type AskRequest = {
+  question?: string
+  audienceType?: string
+  scene?: string
+}
+
+export type AskResponse = {
+  answer: string
+  caveat: string
+  suggestedQuestions: string[]
+  source: 'fallback' | 'openai'
+}
 
 const model = process.env.OPENAI_MODEL || 'gpt-5.4-mini'
 const apiKey = process.env.OPENAI_API_KEY

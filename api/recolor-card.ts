@@ -1,6 +1,19 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import OpenAI from 'openai'
-import type { RecolorCardRequest, RecolorCardResponse } from '../src/types'
+
+export type RecolorCardRequest = {
+  imagery?: string
+  emotion?: string
+  colorTone?: string
+}
+
+export type RecolorCardResponse = {
+  title: string
+  keywords: string[]
+  palette: string[]
+  interpretation: string
+  source: 'fallback' | 'openai'
+}
 
 const model = process.env.OPENAI_MODEL || 'gpt-5.4-mini'
 const apiKey = process.env.OPENAI_API_KEY
