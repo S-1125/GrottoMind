@@ -85,7 +85,7 @@ def get_sync_client() -> OpenAI:
     return _sync_client
 
 
-os.environ.setdefault("HF_ENDPOINT", "https://hf-mirror.com")
+# 模型缓存路径配置（优先使用本地已随仓库打包的模型）
 LOCAL_MODEL_CACHE = os.path.join(SERVER_DIR, ".model_cache")
 os.makedirs(LOCAL_MODEL_CACHE, exist_ok=True)
 
