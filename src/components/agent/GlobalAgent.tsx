@@ -4,9 +4,8 @@ import { useAgent } from './AgentContext'
 import './GlobalAgent.css'
 
 /* ============================================================
-   GlobalAgent: 悬浮全局的"问窟者"智能体 (2.0 重构版)
-   接入 FastAPI + DeepSeek-V4-Flash / R1 流式推理与学术引用
-   支持思考链 (Thinking) 折叠、色卡解析与双向学术文献联动
+   GlobalAgent: 悬浮全局的"问窟者"智能体 (3.0 东方金石高定版)
+   融合: 栖霞山金石美学 × Apple Intelligence 玻璃拟态 × DeepSeek 思考流
 ============================================================ */
 
 interface SourceRef {
@@ -36,7 +35,7 @@ function loadHistory(): ChatMessage[] {
   return [
     {
       role: 'assistant',
-      content: '你好，我是“问窟者”。你正在游览南京栖霞山石窟造像数字复彩档案馆。有什么石窟历史、造像艺术或矿物色彩的问题我可以为你解答吗？',
+      content: '你好，我是“问窟者”。你正游览南京栖霞山石窟造像数字复彩档案馆。关于舍利塔造像、南唐矿物色彩或数字复彩考据，我随时为你解答。',
       timestamp: Date.now()
     }
   ]
@@ -74,29 +73,48 @@ function parseColorCards(text: string): ContentSegment[] {
   return parts.length ? parts : [{ type: 'text', value: text }]
 }
 
+// 章节智能推荐提问词
+const CHAPTER_SUGGESTIONS: Record<string, string[]> = {
+  intro: ['栖霞山千佛岩有何历史？', '为什么称摄山为金陵明珠？', '南朝造像有何艺术风格？'],
+  ch1: ['舍利塔浮雕飞天有何特点？', '舍利塔基座八相成道考据？', '舍利塔的建造年代与南唐复修？'],
+  ch2: ['南唐壁画主要使用了哪些矿物颜料？', '朱砂与石青在石窟中的风化机理？', '数字复彩推演的科学依据是什么？'],
+  ch3: ['如何查阅《韩熙载夜宴图》服饰考据？', '知识图谱中无量寿佛与舍利塔的关联？', '如何参与数字复彩共创？']
+}
+
 export function GlobalAgent() {
-  const { currentChapter, navigateToChapter, isChatOpen, setChatOpen, orbVisible, setPendingLiteratureNav } = useAgent()
+  const { currentChapter, isChatOpen, setChatOpen, setPendingLiteratureNav } = useAgent()
   const [inputText, setInputText] = useState('')
   const [messages, setMessages] = useState<ChatMessage[]>(loadHistory)
   const [isStreaming, setIsStreaming] = useState(false)
+  const [copiedHex, setCopiedHex] = useState<string | null>(null)
+  const [copiedMsgIdx, setCopiedMsgIdx] = useState<number | null>(null)
+  
   const historyEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
 
-  // 消息变化时持久化 + 自动滚到底部
+  // 组件卸载时中止未完成的请求
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort()
+    }
+  }, [])
+
+  // 消息变化时持久化 + 自动平滑滚到底部
   useEffect(() => {
     saveHistory(messages)
     historyEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+  }, [messages, isStreaming])
 
   // 聊天框打开时聚焦输入框
   useEffect(() => {
     if (isChatOpen) {
-      setTimeout(() => inputRef.current?.focus(), 100)
+      setTimeout(() => inputRef.current?.focus(), 120)
     }
   }, [isChatOpen])
 
-  // 阻止面板上的滚轮事件穿透
+  // 阻止面板上的滚轮事件穿透到底层 3D/视频
   useEffect(() => {
     const panel = panelRef.current
     if (!panel || !isChatOpen) return
@@ -123,86 +141,122 @@ export function GlobalAgent() {
     return () => panel.removeEventListener('wheel', handleWheel)
   }, [isChatOpen])
 
-  // 根据章节获取上下文
+  // 获取当前章节名称提示
   const getContextHint = useCallback(() => {
     switch (currentChapter) {
-      case 'intro': return '当前位置：序章 · 摄山怀古'
-      case 'ch1': return '当前位置：第一章 · 塔与窟 (3D舍利塔)'
-      case 'ch2': return '当前位置：第二章 · 数字焕颜 (风化与复彩)'
-      case 'ch3': return '当前位置：第三章 · 问窟共创与文献馆'
-      default: return ''
+      case 'intro': return '序章 · 摄山怀古'
+      case 'ch1': return '第一章 · 塔与窟 (3D舍利塔)'
+      case 'ch2': return '第二章 · 数字焕颜 (风化与复彩)'
+      case 'ch3': return '第三章 · 问窟共创与文献馆'
+      default: return '千佛石窟 · 全域导览'
     }
   }, [currentChapter])
 
-  /** 发送消息并接收 SSE 流式回复 */
-  const handleSend = useCallback(async () => {
-    const text = inputText.trim()
-    if (!text || isStreaming) return
+  // 复制十六进制色值
+  const handleCopyColor = (hex: string) => {
+    navigator.clipboard.writeText(hex).then(() => {
+      setCopiedHex(hex)
+      setTimeout(() => setCopiedHex(null), 1800)
+    }).catch(() => {})
+  }
 
-    const userMsg: ChatMessage = { role: 'user', content: text, timestamp: Date.now() }
+  // 复制单条 AI 回复文本
+  const handleCopyMessage = (text: string, idx: number) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiedMsgIdx(idx)
+      setTimeout(() => setCopiedMsgIdx(null), 1800)
+    }).catch(() => {})
+  }
+
+  // 发送消息核心逻辑
+  const handleSendMessage = async (textToSend?: string) => {
+    const query = (textToSend || inputText).trim()
+    if (!query || isStreaming) return
+
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+    const controller = new AbortController()
+    abortControllerRef.current = controller
+
+    const userMsg: ChatMessage = { role: 'user', content: query, timestamp: Date.now() }
     setMessages(prev => [...prev, userMsg])
     setInputText('')
     setIsStreaming(true)
 
-    // 占位的 AI 消息
-    const aiMsg: ChatMessage = { role: 'assistant', content: '', thinking: '', timestamp: Date.now() }
-    setMessages(prev => [...prev, aiMsg])
+    // 创建 Assistant 占位消息
+    setMessages(prev => [
+      ...prev,
+      { role: 'assistant', content: '', thinking: '', timestamp: Date.now() }
+    ])
+
+    let accumulatedContent = ''
+    let accumulatedThinking = ''
 
     try {
       const response = await fetch(`${API_BASE}/api/agent/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
-          message: text,
+          message: query,
           history: messages.slice(-40).map(m => ({ role: m.role, content: m.content })),
-          chapterContext: getContextHint()
+          chapterContext: getContextHint(),
+          useReasoning: true
         })
       })
 
-      if (!response.ok) throw new Error(`HTTP ${response.status}`)
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
 
       const reader = response.body?.getReader()
+      if (!reader) throw new Error('流式读取不可用')
+
       const decoder = new TextDecoder()
-      let accumulatedContent = ''
-      let accumulatedThinking = ''
-      let sseBuffer = ''
+      let buffer = ''
+      let currentEvent = 'message'
 
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read()
-          if (done) break
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
 
-          sseBuffer += decoder.decode(value, { stream: true })
-          const lines = sseBuffer.split('\n')
-          sseBuffer = lines.pop() || ''
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() || ''
 
-          let currentEvent = 'message'
-          for (const line of lines) {
-            if (line.startsWith('event: ')) {
-              currentEvent = line.slice(7).trim()
-              continue
-            }
-            if (line.startsWith('data: ')) {
-              try {
-                const data = JSON.parse(line.slice(6))
-                
-                // 处理思考链事件
-                if (currentEvent === 'thinking' && data.delta) {
-                  accumulatedThinking += data.delta
-                  setMessages(prev => {
-                    const updated = [...prev]
-                    updated[updated.length - 1] = {
-                      ...updated[updated.length - 1],
-                      thinking: accumulatedThinking
-                    }
-                    return updated
-                  })
-                }
-                
-                // 处理常规正文片段
+        for (const line of lines) {
+          const trimmed = line.trim()
+          if (!trimmed) continue
+
+          if (trimmed.startsWith('event:')) {
+            currentEvent = trimmed.slice(6).trim()
+            continue
+          }
+
+          if (trimmed.startsWith('data:')) {
+            const dataStr = trimmed.slice(5).trim()
+            if (!dataStr) continue
+
+            try {
+              const data = JSON.parse(dataStr)
+
+              if (currentEvent === 'thinking' && data.delta) {
+                accumulatedThinking += data.delta
+                setMessages(prev => {
+                  if (!prev.length) return prev
+                  const updated = [...prev]
+                  updated[updated.length - 1] = {
+                    ...updated[updated.length - 1],
+                    thinking: accumulatedThinking
+                  }
+                  return updated
+                })
+              } else if (currentEvent === 'message' || currentEvent === '') {
                 if (data.text) {
                   accumulatedContent += data.text
                   setMessages(prev => {
+                    if (!prev.length) return prev
                     const updated = [...prev]
                     updated[updated.length - 1] = {
                       ...updated[updated.length - 1],
@@ -211,38 +265,42 @@ export function GlobalAgent() {
                     return updated
                   })
                 }
+              }
 
-                // 处理学术文献引用
-                if (data.sources) {
-                  setMessages(prev => {
-                    const updated = [...prev]
-                    updated[updated.length - 1] = {
-                      ...updated[updated.length - 1],
-                      sources: data.sources
-                    }
-                    return updated
-                  })
-                }
+              if (data.sources) {
+                setMessages(prev => {
+                  if (!prev.length) return prev
+                  const updated = [...prev]
+                  updated[updated.length - 1] = {
+                    ...updated[updated.length - 1],
+                    sources: data.sources
+                  }
+                  return updated
+                })
+              }
 
-                // 处理错误
-                if (data.error) {
-                  accumulatedContent += `\n〔系统提示〕${data.error}`
-                  setMessages(prev => {
-                    const updated = [...prev]
-                    updated[updated.length - 1] = {
-                      ...updated[updated.length - 1],
-                      content: accumulatedContent
-                    }
-                    return updated
-                  })
-                }
-              } catch { /* 忽略格式错误 */ }
+              if (data.error) {
+                accumulatedContent += `\n〔系统提示〕${data.error}`
+                setMessages(prev => {
+                  if (!prev.length) return prev
+                  const updated = [...prev]
+                  updated[updated.length - 1] = {
+                    ...updated[updated.length - 1],
+                    content: accumulatedContent
+                  }
+                  return updated
+                })
+              }
+            } catch {
+              // 忽略单行解析失败
             }
           }
         }
       }
-    } catch {
+    } catch (err: any) {
+      if (err.name === 'AbortError') return
       setMessages(prev => {
+        if (!prev.length) return prev
         const updated = [...prev]
         updated[updated.length - 1] = {
           ...updated[updated.length - 1],
@@ -252,140 +310,176 @@ export function GlobalAgent() {
       })
     } finally {
       setIsStreaming(false)
+      abortControllerRef.current = null
     }
-  }, [inputText, isStreaming, messages, getContextHint])
+  }
 
-  if (!orbVisible) return null
-
-  /** 渲染 AI 消息内容（思考过程 + Markdown + 色卡组件） */
-  const renderAssistantContent = (content: string, thinking?: string, sources?: SourceRef[]) => {
+  // 渲染 Assistant 内容（含思维链折叠胶囊、矿物色卡与文献角标）
+  const renderAssistantContent = (content: string, thinking?: string, sources?: SourceRef[], msgIdx?: number) => {
     const segments = parseColorCards(content)
+
     return (
-      <>
-        {/* 思考链展示折叠框 (DeepSeek-R1 / Thinking) */}
-        {thinking && (
-          <details className="ga-thinking-box" open={false}>
-            <summary className="ga-thinking-summary">
-              <span className="ga-thinking-icon">✧</span>
-              <span>推演脉络 (Thinking)</span>
+      <div className="ga-assistant-flow">
+        {/* 思维链（Thinking Capsule） */}
+        {thinking && thinking.trim() && (
+          <details className="ga-thinking-capsule">
+            <summary className="ga-thinking-trigger">
+              <span className="ga-thinking-badge">
+                <svg className="ga-sparkle-icon" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z" />
+                </svg>
+                <span>考据推演脉络</span>
+                <span className="ga-thinking-tag">Thinking</span>
+              </span>
+              <span className="ga-thinking-toggle-arrow">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </span>
             </summary>
-            <div className="ga-thinking-content">
-              {thinking}
+            <div className="ga-thinking-panel">
+              <div className="ga-thinking-inner-scroll">
+                {thinking}
+              </div>
             </div>
           </details>
         )}
 
-        {segments.map((seg, si) => {
-          if (seg.type === 'color') {
-            return (
-              <div key={si} className="ga-color-card">
-                <div className="ga-color-swatch" style={{ backgroundColor: seg.hex }} />
-                <div className="ga-color-info">
-                  <div className="ga-color-header">
-                    <span className="ga-color-name">{seg.name}</span>
-                    <span className="ga-color-hex">{seg.hex}</span>
-                  </div>
-                  <div className="ga-color-meta">
-                    <span className="ga-color-period">{seg.period}</span>
-                    {seg.material && <span className="ga-color-material">{seg.material}</span>}
+        {/* 正文与色卡 */}
+        <div className="ga-markdown-body">
+          {segments.map((seg, i) => {
+            if (seg.type === 'color') {
+              const isCopied = copiedHex === seg.hex
+              return (
+                <div key={i} className="ga-color-card-pro" onClick={() => handleCopyColor(seg.hex)}>
+                  <div className="ga-color-swatch-glow" style={{ backgroundColor: seg.hex, boxShadow: `0 8px 24px ${seg.hex}44` }} />
+                  <div className="ga-color-details">
+                    <div className="ga-color-main-row">
+                      <span className="ga-color-title">{seg.name}</span>
+                      <span className="ga-color-era-chip">{seg.period}</span>
+                    </div>
+                    <div className="ga-color-sub-row">
+                      <span className="ga-color-material-tag">{seg.material}</span>
+                      <button className="ga-color-hex-btn" title="点击复制颜色 Hex 代码">
+                        {isCopied ? '已复制 ✓' : seg.hex}
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )
-          }
-          return (
-            <ReactMarkdown
-              key={si}
-              components={{
-                a: ({ href, children }) => {
-                  const decodedHref = href ? decodeURIComponent(href) : ''
-                  if (decodedHref.includes('来源:') || decodedHref.includes('来源：')) {
-                    const sourceTitle = decodedHref
-                      .replace(/^#/, '')
-                      .replace(/^来源[:：]\s*/, '')
-                    
-                    const citationNum = parseInt(String(children), 10)
-                    const matchedSource = sources?.find(s => s.index === citationNum)
-                    
+              )
+            }
+
+            return (
+              <ReactMarkdown
+                key={i}
+                components={{
+                  a: ({ href, children }) => {
+                    const match = href?.match(/^#来源:(.+)$/)
+                    if (match) {
+                      const docTitle = decodeURIComponent(match[1])
+                      const sourceObj = sources?.find(s => s.title.includes(docTitle) || docTitle.includes(s.title))
+                      return (
+                        <span
+                          className="ga-citation-pill"
+                          data-tooltip={sourceObj?.snippet || `查阅考据文献: ${docTitle}`}
+                          onClick={() => {
+                            setPendingLiteratureNav({
+                              title: docTitle,
+                              snippet: sourceObj?.snippet,
+                              startLine: sourceObj?.start_line
+                            })
+                            setChatOpen(false)
+                          }}
+                        >
+                          〔考据〕{children}
+                        </span>
+                      )
+                    }
+                    if (href && href.startsWith('#')) {
+                      return <span className="ga-citation-plain">{children}</span>
+                    }
                     return (
-                      <span
-                        className="ga-citation"
-                        data-tooltip={sourceTitle}
-                        role="button"
-                        tabIndex={0}
-                        aria-label={`查看文献引用: ${sourceTitle}`}
-                        onClick={(e) => {
-                          e.preventDefault()
-                          e.stopPropagation()
-                          setPendingLiteratureNav({
-                            title: sourceTitle,
-                            snippet: matchedSource?.snippet,
-                            startLine: matchedSource?.start_line
-                          })
-                          navigateToChapter('ch3')
-                          setChatOpen(false)
-                        }}
-                      >
-                        {children}
-                      </span>
+                      <a href={href} target="_blank" rel="noopener noreferrer">{children}</a>
                     )
                   }
-                  if (href && href.startsWith('#')) {
-                    return <span className="ga-citation-plain">{children}</span>
-                  }
-                  return (
-                    <a href={href} target="_blank" rel="noopener noreferrer">{children}</a>
-                  )
-                }
-              }}
+                }}
+              >
+                {seg.value}
+              </ReactMarkdown>
+            )
+          })}
+        </div>
+
+        {/* 底部小工具条（复制回复） */}
+        {content && !isStreaming && msgIdx !== undefined && (
+          <div className="ga-msg-footer">
+            <button
+              className="ga-copy-msg-btn"
+              onClick={() => handleCopyMessage(content, msgIdx)}
+              title="复制完整回答"
             >
-              {seg.value}
-            </ReactMarkdown>
-          )
-        })}
-      </>
+              {copiedMsgIdx === msgIdx ? (
+                <>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#30d158" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span>已复制</span>
+                </>
+              ) : (
+                <>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  <span>复制</span>
+                </>
+              )}
+            </button>
+          </div>
+        )}
+      </div>
     )
   }
+
+  const currentSuggestions = CHAPTER_SUGGESTIONS[currentChapter] || CHAPTER_SUGGESTIONS.intro
 
   return (
     <div className={`global-agent ${isChatOpen ? 'is-open' : ''}`} role="region" aria-label="问窟智能导览助手">
       {/* 聊天面板 */}
       {isChatOpen && (
         <div className="ga-chat-panel" ref={panelRef}>
-          {/* 顶部栏 */}
+          {/* 顶部金石栏 */}
           <div className="ga-chat-header">
-            <div className="ga-chat-title">
-              <div className="ga-chat-brand">
-                <div className="ga-brand-icon">
-                  <img src="/assets/wenku-logo-final.png" alt="问窟 GrottoMind Logo" />
+            <div className="ga-chat-brand">
+              <div className="ga-brand-icon">
+                <img src="/assets/wenku-logo-final.png" alt="问窟 GrottoMind Logo" />
+              </div>
+              <div className="ga-brand-text">
+                <div className="ga-brand-title-wrap">
+                  <h3 className="ga-brand-heading">问窟者</h3>
+                  <span className="ga-brand-sub">AI 导览智能体</span>
                 </div>
-                <div>
-                  <h3 className="ga-brand-heading">问窟者 · AI 导览</h3>
-                  <span className="ga-chat-status">
-                    <span className="ga-status-dot" />
-                    {isStreaming ? '推演中…' : '在线'}
-                  </span>
+                <div className="ga-chat-status">
+                  <span className="ga-status-dot" />
+                  <span>{isStreaming ? '正在考据推演…' : getContextHint()}</span>
                 </div>
               </div>
             </div>
             <div className="ga-chat-header-actions">
               <button
                 className="ga-header-btn"
-                aria-label="新建对话"
+                aria-label="清空新建对话"
                 onClick={() => {
+                  abortControllerRef.current?.abort()
+                  setIsStreaming(false)
                   setMessages([{
                     role: 'assistant',
                     content: '你好，我是“问窟者”。有什么石窟历史、造像艺术或矿物色彩的问题我可以为你解答吗？',
                     timestamp: Date.now()
                   }])
                 }}
-                title="新建对话"
+                title="清空对话"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 5v14M5 12h14"/>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
                 </svg>
               </button>
-              <button className="ga-header-btn" aria-label="关闭问答面板" onClick={() => setChatOpen(false)} title="关闭">
+              <button className="ga-header-btn ga-close-btn" aria-label="收起面板" onClick={() => setChatOpen(false)} title="收起">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                   <path d="M18 6L6 18"/><path d="M6 6l12 12"/>
                 </svg>
@@ -393,21 +487,13 @@ export function GlobalAgent() {
             </div>
           </div>
 
-          {/* 章节位置条 */}
-          <div className="ga-chat-context-bar">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <circle cx="12" cy="12" r="10"/><path d="M12 8v4l2 2"/>
-            </svg>
-            {getContextHint()}
-          </div>
-
-          {/* 消息列表 */}
+          {/* 消息列表主体（带平滑阻尼与柔和滚动条） */}
           <div className="ga-chat-history">
             {messages.map((msg, idx) => (
               <div key={idx} className={`ga-msg ga-msg--${msg.role}`}>
                 {msg.role === 'assistant' && (
                   <div className="ga-msg-avatar">
-                    <img src="/assets/wenku-logo-final.png" alt="问窟智能体头像" />
+                    <img src="/assets/wenku-logo-final.png" alt="问窟智能体" />
                   </div>
                 )}
                 <div className="ga-msg-bubble">
@@ -415,7 +501,8 @@ export function GlobalAgent() {
                     ? renderAssistantContent(
                         msg.content || (isStreaming && idx === messages.length - 1 ? '…' : ''),
                         msg.thinking,
-                        msg.sources
+                        msg.sources,
+                        idx
                       )
                     : (msg.content || '')}
                   {isStreaming && idx === messages.length - 1 && msg.role === 'assistant' && (
@@ -424,33 +511,76 @@ export function GlobalAgent() {
                 </div>
               </div>
             ))}
-            <div className="ga-chat-spacer" style={{ height: '140px', flexShrink: 0 }} />
+
+            {/* 智能推荐提问气泡（无流式且消息少于3条时展示） */}
+            {!isStreaming && messages.length <= 2 && (
+              <div className="ga-suggestions-wrap">
+                <div className="ga-suggestions-title">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z" />
+                  </svg>
+                  <span>猜你想问 · 当前场景考据</span>
+                </div>
+                <div className="ga-suggestions-list">
+                  {currentSuggestions.map((item, i) => (
+                    <button
+                      key={i}
+                      className="ga-suggestion-chip"
+                      onClick={() => handleSendMessage(item)}
+                    >
+                      {item}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 底部缓冲空间：确保最长内容滚动到底部绝不被输入框遮挡 */}
+            <div className="ga-chat-bottom-anchor" style={{ height: '24px', flexShrink: 0 }} />
             <div ref={historyEndRef} />
           </div>
 
-          {/* 输入区 */}
-          <div className="ga-chat-input-area">
+          {/* 底部一体化输入区 */}
+          <div className="ga-chat-input-island">
             <div className="ga-input-wrapper">
               <input
                 ref={inputRef}
                 type="text"
-                aria-label="输入您的问题向问窟者提问"
-                placeholder={isStreaming ? '问窟者正在推演回答中…' : '向问窟者提问（如：舍利塔飞天有何特点？）'}
+                aria-label="向问窟者提问"
+                placeholder={isStreaming ? '问窟者正在考据推演中…' : '向问窟者提问（如：舍利塔飞天有何特点？）'}
                 value={inputText}
                 onChange={e => setInputText(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && !e.nativeEvent.isComposing && handleSend()}
+                onKeyDown={e => e.key === 'Enter' && !e.nativeEvent.isComposing && handleSendMessage()}
                 disabled={isStreaming}
               />
-              <button
-                className="ga-btn-send"
-                aria-label="发送问题"
-                onClick={handleSend}
-                disabled={isStreaming || !inputText.trim()}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/>
-                </svg>
-              </button>
+              {isStreaming ? (
+                <button
+                  className="ga-btn-stop"
+                  onClick={() => {
+                    abortControllerRef.current?.abort()
+                    setIsStreaming(false)
+                  }}
+                  title="停止推演"
+                  aria-label="停止推演"
+                >
+                  <span className="ga-stop-square" />
+                </button>
+              ) : (
+                <button
+                  className={`ga-btn-send ${inputText.trim() ? 'is-active' : ''}`}
+                  aria-label="发送问题"
+                  onClick={() => handleSendMessage()}
+                  disabled={!inputText.trim()}
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="19" x2="12" y2="5" />
+                    <polyline points="5 12 12 5 19 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+            <div className="ga-input-footnote">
+              由 DeepSeek-R1 / Flash 推演 · 内容基于 73 篇学术文献数字化归档
             </div>
           </div>
         </div>
