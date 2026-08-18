@@ -318,21 +318,52 @@ async def get_literature_pdf(filename: str):
 
 @app.post("/api/literature/upload-pdf")
 async def upload_literature_pdf(request: Request):
-    """上传并挂载原始 PDF 扫描件或论文原件"""
+    """上传并挂载原始 PDF 扫描件或论文原件（带类型、大小与路径安全校验）"""
     import shutil
-    form = await request.form()
-    file = form.get("file")
-    if not file:
-        raise HTTPException(status_code=400, detail="未收到上传的文件")
+    try:
+        form = await request.form()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"解析表单失败: {e}")
 
+    file = form.get("file")
+    if not file or not getattr(file, "filename", None):
+        raise HTTPException(status_code=400, detail="未收到有效的上传文件")
+
+    raw_filename = file.filename
+    safe_filename = os.path.basename(raw_filename).strip()
+
+    # 1. 严格校验文件扩展名
+    if not safe_filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="仅支持上传 PDF 格式文献 (.pdf)")
+
+    # 2. 限制文件名长度与非法字符
+    if len(safe_filename) > 150 or not safe_filename:
+        raise HTTPException(status_code=400, detail="文件名过长或不合法")
+
+    # 3. 校验并限制文件大小 (最大 50MB)
+    MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
     pdfs_dir = os.path.join(KNOWLEDGE_DIR, "pdfs")
     os.makedirs(pdfs_dir, exist_ok=True)
-    target_path = os.path.join(pdfs_dir, os.path.basename(file.filename))
+    target_path = os.path.abspath(os.path.join(pdfs_dir, safe_filename))
 
+    # 路径安全防护：确保目标路径位于 pdfs 目录内
+    if not target_path.startswith(os.path.abspath(pdfs_dir) + os.sep):
+        raise HTTPException(status_code=400, detail="不合法的文件路径")
+
+    # 读取并流式计算大小
+    written_size = 0
     with open(target_path, "wb") as f:
-        shutil.copyfileobj(file.file, f)
+        while chunk := await file.read(64 * 1024):
+            written_size += len(chunk)
+            if written_size > MAX_FILE_SIZE:
+                f.close()
+                if os.path.exists(target_path):
+                    os.remove(target_path)
+                raise HTTPException(status_code=413, detail="文件超出大小限制 (最大 50MB)")
+            f.write(chunk)
 
-    return {"status": "ok", "filename": file.filename}
+    logger.info(f"✅ 文献 PDF 上传成功: {safe_filename} (大小: {written_size} 字节)")
+    return {"status": "ok", "filename": safe_filename, "size": written_size}
 
 
 @app.get("/api/literature/{filename}")
@@ -453,10 +484,13 @@ async def agent_chat(request: Request):
     请求体: { message: string, history: [{role, content}], chapterContext: string, useReasoning: bool }
     """
     body = await request.json()
-    user_message = body.get("message", "")
+    user_message = str(body.get("message") or "").strip()
     history = body.get("history", [])
     chapter_context = body.get("chapterContext", "")
     use_reasoning = body.get("useReasoning", False)
+
+    if not user_message:
+        raise HTTPException(status_code=400, detail="提问内容不能为空")
 
     # 1. 组装 System Prompt 与上下文
     enhanced_system = SYSTEM_PROMPT

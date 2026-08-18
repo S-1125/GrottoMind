@@ -29,7 +29,7 @@ interface ChatMessage {
   sources?: SourceRef[]
 }
 
-const STORAGE_KEY = 'grottomind_chat_history'
+const STORAGE_KEY = 'grottomind_chat_history_v2'
 const API_BASE = import.meta.env.VITE_AGENT_API || 'https://grottomind.onrender.com'
 
 function loadHistory(): ChatMessage[] {
@@ -409,10 +409,35 @@ export function GrottoHub({ onBack }: GrottoHubProps) {
                       className={`gh-action-icon ${copied ? 'is-active' : ''}`}
                       title="复制"
                       onClick={() => {
-                        navigator.clipboard.writeText(latestMessage.content).then(() => {
-                          setCopied(true)
-                          setTimeout(() => setCopied(false), 2000)
-                        })
+                        const contentToCopy = latestMessage.content
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                          navigator.clipboard.writeText(contentToCopy)
+                            .then(() => {
+                              setCopied(true)
+                              setTimeout(() => setCopied(false), 2000)
+                            })
+                            .catch(() => {
+                              fallbackCopy(contentToCopy)
+                            })
+                        } else {
+                          fallbackCopy(contentToCopy)
+                        }
+
+                        function fallbackCopy(text: string) {
+                          try {
+                            const textArea = document.createElement('textarea')
+                            textArea.value = text
+                            textArea.style.position = 'fixed'
+                            textArea.style.opacity = '0'
+                            document.body.appendChild(textArea)
+                            textArea.focus()
+                            textArea.select()
+                            document.execCommand('copy')
+                            document.body.removeChild(textArea)
+                            setCopied(true)
+                            setTimeout(() => setCopied(false), 2000)
+                          } catch { /* 忽略复制异常 */ }
+                        }
                       }}
                     >
                       {copied ? (

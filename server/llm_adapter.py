@@ -38,8 +38,8 @@ LLM_API_KEY = (
     or ""
 )
 
-LLM_MODEL = os.environ.get("LLM_MODEL") or "deepseek-v4-flash"
-LLM_REASONING_MODEL = os.environ.get("LLM_REASONING_MODEL") or "deepseek-v4-pro"
+LLM_MODEL = os.environ.get("LLM_MODEL") or "deepseek-chat"
+LLM_REASONING_MODEL = os.environ.get("LLM_REASONING_MODEL") or "deepseek-reasoner"
 
 # Embedding 向量模型配置
 EMBEDDING_API_BASE = (

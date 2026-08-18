@@ -32,8 +32,14 @@ function fallbackAsk(question: string): AskResponse {
 
 async function generateText(input: string) {
   if (!client) return null
-  const response = await client.responses.create({ model, input })
-  return response.output_text
+  const response = await client.chat.completions.create({
+    model,
+    messages: [
+      { role: 'user', content: input }
+    ],
+    temperature: 0.3,
+  })
+  return response.choices[0]?.message?.content || null
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -59,7 +65,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const text = await generateText(`
 你是"问窟者"，一个栖霞山石窟造像 AI 数字复彩交互档案馆中的中文智能体。
-用户身份：${body.audienceType}
+用户身份：${body.audienceType || '文化爱好者'}
 当前场景：${body.scene || '栖霞山石窟造像数字复彩网站'}
 用户问题：${question}
 
@@ -69,11 +75,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 3. 解释要清楚，不神秘化，不夸大 AI。
 4. 必须区分文化资料、设计推演与 AI 想象。
 5. ${boundary}
-6. 输出 JSON，格式为：
+6. 严格输出合法的 JSON 格式，不要添加额外文本：
 {"answer":"...","caveat":"...","suggestedQuestions":["...","...","..."]}
 `)
 
-    const parsed = JSON.parse(text || '{}') as Omit<AskResponse, 'source'>
+    let cleanText = (text || '{}').trim()
+    if (cleanText.startsWith('```')) {
+      const lines = cleanText.split('\n')
+      if (lines[0].startsWith('```')) lines.shift()
+      if (lines.length && lines[lines.length - 1].trim() === '```') lines.pop()
+      cleanText = lines.join('\n').trim()
+    }
+
+    const parsed = JSON.parse(cleanText) as Partial<AskResponse>
     res.json({
       answer: parsed.answer || fallbackAsk(question).answer,
       caveat: parsed.caveat || boundary,
@@ -81,7 +95,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       source: 'openai',
     } satisfies AskResponse)
   } catch (error) {
-    console.error(error)
+    console.error('API /api/ask 异常:', error)
     res.json(fallbackAsk(question))
   }
 }

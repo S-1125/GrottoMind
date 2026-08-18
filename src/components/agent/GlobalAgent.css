@@ -1,768 +1,595 @@
 /* ====================================================================
-   GlobalAgent 3.0 — 问窟者 · 东方金石高定导览舱
-   设计语言: 栖霞金石美学 × Apple Intelligence 拟态 × 极简暗黑
-   特性: 完美自适应布局、绝不遮挡文字、Thinking流光胶囊、矿物高定色卡
+   GlobalAgent 6.0 — 问窟者 · 数字博物馆科技舱 (Museum Cyber HUD)
+   美学特征: 零圆角 (0px) · 激光定位十字 · 纳米黑曜石晶体 · 碑铭宋体
 ==================================================================== */
 
 :root {
-  --ga-bg-glass: rgba(18, 18, 22, 0.88);
-  --ga-border-gold: rgba(212, 169, 106, 0.22);
-  --ga-gold-accent: #f6cea0;
-  --ga-gold-primary: #d4a96a;
-  --ga-gold-glow: rgba(212, 169, 106, 0.35);
-  --ga-text-main: rgba(255, 255, 255, 0.92);
-  --ga-text-muted: rgba(255, 255, 255, 0.52);
-  --ga-font-serif: 'Noto Serif SC', 'Cormorant Garamond', serif;
-  --ga-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --hud-bg: rgba(10, 12, 16, 0.88);
+  --hud-border: rgba(212, 169, 106, 0.38);
+  --hud-gold: #f6cea0;
+  --hud-gold-dark: #d4a96a;
+  --hud-laser-red: #c03020;
+  --hud-font-serif: 'Noto Serif SC', 'Cormorant Garamond', serif;
+  --hud-font-mono: 'SF Mono', 'Menlo', 'Courier New', monospace;
 }
 
 /* 浮动容器 */
 .global-agent {
   position: fixed;
-  bottom: 32px;
-  right: 32px;
+  bottom: 24px;
+  right: 24px;
   z-index: 9999;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   pointer-events: none;
-  font-family: var(--ga-font-sans);
 }
 
 .global-agent.is-open,
-.ga-chat-panel {
+.museum-hud {
   pointer-events: auto;
 }
 
 /* ====================================================================
-   面板主体 (标准 Flexbox 纵向布局，底部绝不遮挡)
+   HUD 终端主体 (纯直角 0px 晶体)
 ==================================================================== */
-.ga-chat-panel {
+.museum-hud {
   width: 420px;
-  height: 620px;
-  max-height: calc(100vh - 80px);
-  background: var(--ga-bg-glass);
-  backdrop-filter: blur(50px) saturate(190%);
-  -webkit-backdrop-filter: blur(50px) saturate(190%);
-  border: 1px solid var(--ga-border-gold);
-  border-radius: 24px;
+  height: 600px;
+  max-height: calc(100vh - 48px);
+  background: var(--hud-bg);
+  backdrop-filter: blur(50px) saturate(200%);
+  -webkit-backdrop-filter: blur(50px) saturate(200%);
+  border: 1px solid var(--hud-border);
+  border-radius: 0px !important;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow:
-    0 0 1px rgba(255, 255, 255, 0.1),
-    0 20px 50px rgba(0, 0, 0, 0.65),
-    0 0 60px rgba(212, 169, 106, 0.08);
-  animation: ga-panel-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  transform-origin: bottom right;
   position: relative;
-  user-select: text;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.9),
+    0 24px 60px rgba(0, 0, 0, 0.85),
+    inset 0 0 40px rgba(0, 0, 0, 0.6);
+  animation: hud-enter 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: bottom right;
 }
 
-@keyframes ga-panel-enter {
-  0% {
-    opacity: 0;
-    transform: scale(0.92) translateY(24px);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-/* ====================================================================
-   1. 顶部栏 (Header)
-==================================================================== */
-.ga-chat-header {
-  padding: 16px 20px 14px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0) 100%);
-  flex-shrink: 0;
-}
-
-.ga-chat-brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.ga-brand-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, rgba(246, 206, 160, 0.2), rgba(0, 0, 0, 0.4));
-  border: 1px solid rgba(212, 169, 106, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  flex-shrink: 0;
-  box-shadow: 0 0 16px rgba(212, 169, 106, 0.15);
-}
-
-.ga-brand-icon img {
-  width: 18px;
-  height: 18px;
-  object-fit: contain;
-  filter: brightness(1.2);
-}
-
-.ga-brand-title-wrap {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-}
-
-.ga-brand-heading {
-  font-family: var(--ga-font-serif);
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--ga-gold-accent);
-  letter-spacing: 0.04em;
-  margin: 0;
-}
-
-.ga-brand-sub {
-  font-size: 11px;
-  color: var(--ga-text-muted);
-  letter-spacing: 0.02em;
-}
-
-.ga-chat-status {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.45);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 2px;
-}
-
-.ga-status-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #30d158;
-  box-shadow: 0 0 8px rgba(48, 209, 88, 0.6);
-  animation: ga-pulse 2s infinite ease-in-out;
-}
-
-@keyframes ga-pulse {
-  0%, 100% { opacity: 0.8; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.2); }
-}
-
-.ga-chat-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.ga-header-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.55);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
-
-.ga-header-btn:hover {
-  background: rgba(212, 169, 106, 0.12);
-  border-color: rgba(212, 169, 106, 0.3);
-  color: var(--ga-gold-accent);
-  transform: translateY(-1px);
-}
-
-.ga-header-btn:active {
-  transform: scale(0.95);
-}
-
-/* ====================================================================
-   2. 消息流区域 (Message History)
-==================================================================== */
-.ga-chat-history {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 16px 20px 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
-}
-
-/* 典雅细微滚动条 */
-.ga-chat-history::-webkit-scrollbar {
-  width: 4px;
-}
-.ga-chat-history::-webkit-scrollbar-track {
-  background: transparent;
-}
-.ga-chat-history::-webkit-scrollbar-thumb {
-  background: rgba(212, 169, 106, 0.15);
-  border-radius: 4px;
-}
-.ga-chat-history:hover::-webkit-scrollbar-thumb {
-  background: rgba(212, 169, 106, 0.35);
-}
-
-/* 消息通用行 */
-.ga-msg {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  max-width: 100%;
-  animation: ga-msg-fade 0.3s ease-out;
-}
-
-@keyframes ga-msg-fade {
+@keyframes hud-enter {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-.ga-msg--user {
-  justify-content: flex-end;
+/* 四角激光瞄准十字 */
+.hud-crosshair {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  font-family: var(--hud-font-mono);
+  font-size: 11px;
+  line-height: 10px;
+  color: var(--hud-gold-dark);
+  pointer-events: none;
+  z-index: 20;
+  opacity: 0.6;
 }
-
-.ga-msg-avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: rgba(246, 206, 160, 0.08);
-  border: 1px solid rgba(212, 169, 106, 0.25);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.ga-msg-avatar img {
-  width: 14px;
-  height: 14px;
-  object-fit: contain;
-  filter: brightness(1.1);
-}
-
-/* AI 消息气泡 */
-.ga-msg--assistant .ga-msg-bubble {
-  flex: 1;
-  background: transparent;
-  padding: 0;
-  color: var(--ga-text-main);
-  font-size: 14px;
-  line-height: 1.75;
-}
-
-/* 用户消息气泡 */
-.ga-msg--user .ga-msg-bubble {
-  background: linear-gradient(135deg, rgba(212, 169, 106, 0.16) 0%, rgba(255, 255, 255, 0.06) 100%);
-  border: 1px solid rgba(212, 169, 106, 0.28);
-  border-radius: 18px 18px 4px 18px;
-  padding: 10px 16px;
-  color: rgba(255, 255, 255, 0.95);
-  font-size: 14px;
-  line-height: 1.55;
-  max-width: 82%;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-}
+.hud-crosshair--tl { top: 4px; left: 4px; }
+.hud-crosshair--tr { top: 4px; right: 4px; }
+.hud-crosshair--bl { bottom: 4px; left: 4px; }
+.hud-crosshair--br { bottom: 4px; right: 4px; }
 
 /* ====================================================================
-   3. Thinking Capsule (推演脉络微章与折叠框)
+   1. 终端顶栏 (Header)
 ==================================================================== */
-.ga-thinking-capsule {
-  margin-bottom: 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(212, 169, 106, 0.2);
-  background: rgba(212, 169, 106, 0.04);
-  overflow: hidden;
-  transition: all 0.25s ease;
-}
-
-.ga-thinking-capsule[open] {
-  background: rgba(212, 169, 106, 0.08);
-  border-color: rgba(212, 169, 106, 0.35);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-}
-
-.ga-thinking-trigger {
-  padding: 7px 12px;
+.hud-header {
+  height: 50px;
+  padding: 0 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  cursor: pointer;
-  user-select: none;
-  list-style: none;
-  font-size: 12px;
-  color: var(--ga-gold-accent);
-  transition: background 0.2s ease;
+  border-bottom: 1px solid var(--hud-border);
+  background: linear-gradient(180deg, rgba(212, 169, 106, 0.1) 0%, rgba(0, 0, 0, 0.2) 100%);
+  flex-shrink: 0;
 }
 
-.ga-thinking-trigger::-webkit-details-marker {
-  display: none;
-}
-
-.ga-thinking-trigger:hover {
-  background: rgba(212, 169, 106, 0.08);
-}
-
-.ga-thinking-badge {
+.hud-header__main {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-weight: 500;
+  gap: 10px;
 }
 
-.ga-sparkle-icon {
-  color: var(--ga-gold-primary);
-  animation: ga-sparkle-pulse 2.5s infinite;
+.hud-logo-cube {
+  width: 22px;
+  height: 22px;
+  background: var(--hud-laser-red);
+  color: #fff;
+  font-family: var(--hud-font-serif);
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0px !important;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 10px rgba(192, 48, 32, 0.5);
 }
 
-@keyframes ga-sparkle-pulse {
-  0%, 100% { opacity: 0.6; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.15); filter: drop-shadow(0 0 4px var(--ga-gold-primary)); }
+.hud-header__titles {
+  display: flex;
+  flex-direction: column;
 }
 
-.ga-thinking-tag {
+.hud-brand-title {
+  font-family: var(--hud-font-serif);
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: 0.05em;
+}
+
+.hud-brand-loc {
+  font-family: var(--hud-font-mono);
   font-size: 10px;
-  padding: 1px 6px;
-  border-radius: 8px;
-  background: rgba(212, 169, 106, 0.15);
-  color: var(--ga-gold-accent);
-  font-family: var(--ga-font-sans);
-  border: 0.5px solid rgba(212, 169, 106, 0.3);
+  color: var(--hud-gold-dark);
+  letter-spacing: 0.02em;
 }
 
-.ga-thinking-toggle-arrow {
-  color: rgba(255, 255, 255, 0.4);
-  transition: transform 0.2s ease;
+.hud-header__btns {
   display: flex;
   align-items: center;
+  gap: 4px;
 }
 
-.ga-thinking-capsule[open] .ga-thinking-toggle-arrow {
-  transform: rotate(180deg);
-  color: var(--ga-gold-accent);
+.hud-ctrl-btn {
+  height: 24px;
+  padding: 0 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 0px !important;
+  color: rgba(255, 255, 255, 0.6);
+  font-family: var(--hud-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 
-.ga-thinking-panel {
-  border-top: 1px solid rgba(212, 169, 106, 0.14);
-  padding: 10px 14px;
+.hud-ctrl-btn:hover {
+  background: rgba(212, 169, 106, 0.2);
+  border-color: var(--hud-gold);
+  color: #fff;
 }
 
-.ga-thinking-inner-scroll {
-  max-height: 150px;
-  overflow-y: auto;
-  font-family: var(--ga-font-serif);
-  font-size: 12.5px;
-  line-height: 1.7;
-  color: rgba(255, 255, 255, 0.72);
-  white-space: pre-wrap;
-  padding-right: 4px;
-}
-
-.ga-thinking-inner-scroll::-webkit-scrollbar {
-  width: 3px;
-}
-.ga-thinking-inner-scroll::-webkit-scrollbar-thumb {
-  background: rgba(212, 169, 106, 0.25);
-  border-radius: 3px;
+.hud-ctrl-btn--close:hover {
+  background: rgba(192, 48, 32, 0.3);
+  border-color: #ff5555;
 }
 
 /* ====================================================================
-   4. Markdown 排版
+   2. 考据数据流 (Stream History)
 ==================================================================== */
-.ga-markdown-body {
-  font-size: 14px;
-  line-height: 1.8;
-  color: rgba(255, 255, 255, 0.88);
+.hud-stream {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  scroll-behavior: smooth;
 }
 
-.ga-markdown-body p {
-  margin: 0 0 10px 0;
+.hud-stream::-webkit-scrollbar {
+  width: 3px;
 }
-.ga-markdown-body p:last-child {
+.hud-stream::-webkit-scrollbar-thumb {
+  background: rgba(212, 169, 106, 0.3);
+  border-radius: 0px;
+}
+
+.hud-record {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.hud-record--user {
+  border-left: 2px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.02);
+  padding: 8px 12px;
+}
+
+.hud-record--assistant {
+  border-left: 2px solid var(--hud-gold-dark);
+  padding-left: 12px;
+}
+
+.hud-record__badge {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-family: var(--hud-font-mono);
+  font-size: 10px;
+}
+
+.hud-record--assistant .hud-record__tag {
+  color: var(--hud-gold);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.hud-record--user .hud-record__tag {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.hud-record__time {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.hud-record__payload {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 13.5px;
+  line-height: 1.8;
+}
+
+/* ====================================================================
+   3. 神经推演矩阵 (Reasoning Matrix)
+==================================================================== */
+.hud-think-box {
+  margin: 6px 0 12px;
+  border: 1px solid rgba(212, 169, 106, 0.25);
+  background: rgba(0, 0, 0, 0.45);
+  border-radius: 0px !important;
+}
+
+.hud-think-summary {
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  font-family: var(--hud-font-mono);
+  font-size: 11px;
+  color: var(--hud-gold);
+  background: rgba(212, 169, 106, 0.06);
+  list-style: none;
+}
+
+.hud-think-summary::-webkit-details-marker {
+  display: none;
+}
+
+.hud-radar-indicator {
+  width: 5px;
+  height: 5px;
+  background: #30d158;
+  border-radius: 0px !important;
+  box-shadow: 0 0 6px rgba(48, 209, 88, 0.8);
+  animation: radar-flicker 1.5s infinite;
+}
+
+@keyframes radar-flicker {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+.hud-think-title {
+  letter-spacing: 0.04em;
+}
+
+.hud-think-chevron {
+  margin-left: auto;
+  font-size: 8px;
+  color: rgba(255, 255, 255, 0.35);
+  transition: transform 0.2s;
+}
+
+.hud-think-box[open] .hud-think-chevron {
+  transform: rotate(180deg);
+  color: var(--hud-gold);
+}
+
+.hud-think-content {
+  padding: 10px 12px;
+  border-top: 1px solid rgba(212, 169, 106, 0.15);
+  font-family: var(--hud-font-serif);
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.68);
+  max-height: 140px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+}
+
+/* ====================================================================
+   4. Markdown 正文
+==================================================================== */
+.hud-prose p {
+  margin: 0 0 8px 0;
+}
+.hud-prose p:last-child {
   margin-bottom: 0;
 }
 
-.ga-markdown-body strong {
+.hud-prose strong {
   color: #fff;
   font-weight: 600;
-  text-shadow: 0 0 12px rgba(246, 206, 160, 0.2);
+  border-bottom: 1px solid rgba(212, 169, 106, 0.4);
+  padding-bottom: 1px;
 }
 
-.ga-markdown-body ul,
-.ga-markdown-body ol {
-  margin: 8px 0;
+.hud-prose ul, .hud-prose ol {
+  margin: 6px 0;
   padding-left: 18px;
 }
 
-.ga-markdown-body li {
-  margin-bottom: 5px;
+.hud-prose li {
+  margin-bottom: 4px;
   line-height: 1.65;
 }
 
-.ga-markdown-body li::marker {
-  color: var(--ga-gold-primary);
+.hud-prose li::marker {
+  color: var(--hud-gold-dark);
 }
 
-/* 打字机光标 */
-.ga-typing-cursor {
+/* 激光光标 */
+.hud-laser-cursor {
   display: inline-block;
-  width: 2px;
+  width: 7px;
   height: 14px;
-  background: var(--ga-gold-accent);
+  background: var(--hud-gold);
   margin-left: 3px;
-  vertical-align: text-bottom;
-  animation: ga-cursor-blink 0.9s infinite;
+  vertical-align: middle;
+  animation: laser-blink 0.8s infinite;
 }
 
-@keyframes ga-cursor-blink {
+@keyframes laser-blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
 }
 
 /* ====================================================================
-   5. 矿物高定色卡 (Color Card Pro)
+   5. 矿物色谱标本盒 (Specimen Card)
 ==================================================================== */
-.ga-color-card-pro {
+.hud-specimen-card {
   display: flex;
   align-items: center;
-  gap: 14px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
-  border: 1px solid rgba(212, 169, 106, 0.25);
-  border-radius: 14px;
-  padding: 12px 14px;
-  margin: 12px 0;
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--hud-border);
+  border-radius: 0px !important;
+  padding: 8px 12px;
+  margin: 10px 0;
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  transition: all 0.15s ease;
 }
 
-.ga-color-card-pro:hover {
-  transform: translateY(-2px);
-  border-color: rgba(212, 169, 106, 0.55);
-  background: linear-gradient(135deg, rgba(212, 169, 106, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+.hud-specimen-card:hover {
+  background: rgba(212, 169, 106, 0.12);
+  border-color: var(--hud-gold);
+  box-shadow: inset 0 0 12px rgba(212, 169, 106, 0.15);
 }
 
-.ga-color-swatch-glow {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  border: 1.5px solid rgba(255, 255, 255, 0.2);
+.hud-specimen-chip {
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 0px !important;
   flex-shrink: 0;
 }
 
-.ga-color-details {
+.hud-specimen-meta {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
-.ga-color-main-row {
+.hud-specimen-h {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 8px;
 }
 
-.ga-color-title {
-  font-family: var(--ga-font-serif);
-  font-size: 15px;
+.hud-specimen-name {
+  font-family: var(--hud-font-serif);
+  font-size: 14px;
   font-weight: 600;
   color: #fff;
-  letter-spacing: 0.02em;
 }
 
-.ga-color-era-chip {
+.hud-specimen-code {
+  font-family: var(--hud-font-mono);
   font-size: 10px;
-  padding: 1px 7px;
-  border-radius: 10px;
-  background: rgba(212, 169, 106, 0.18);
-  color: var(--ga-gold-accent);
-  border: 0.5px solid rgba(212, 169, 106, 0.35);
+  color: var(--hud-gold);
 }
 
-.ga-color-sub-row {
+.hud-specimen-sub {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-}
-
-.ga-color-material-tag {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.55);
 }
 
-.ga-color-hex-btn {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
-  padding: 2px 8px;
-  font-size: 11px;
-  color: var(--ga-gold-accent);
-  font-family: monospace;
-  transition: all 0.15s;
+.hud-specimen-chem {
+  color: rgba(255, 255, 255, 0.45);
 }
 
-.ga-color-card-pro:hover .ga-color-hex-btn {
-  background: rgba(212, 169, 106, 0.2);
-  border-color: rgba(212, 169, 106, 0.4);
+.hud-specimen-hex {
+  color: var(--hud-gold);
+  font-family: var(--hud-font-mono);
+  font-size: 10px;
 }
 
 /* ====================================================================
-   6. 学术文献引用 (Citation Pill)
+   6. 考据卷宗标引 (Cite Tag)
 ==================================================================== */
-.ga-citation-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
+.hud-cite-tag {
+  display: inline-block;
+  font-family: var(--hud-font-mono);
   font-size: 11px;
-  font-weight: 500;
-  padding: 1px 7px;
-  margin: 0 3px;
-  border-radius: 6px;
-  color: var(--ga-gold-accent);
+  color: var(--hud-gold);
   background: rgba(212, 169, 106, 0.12);
-  border: 1px solid rgba(212, 169, 106, 0.28);
+  border: 1px solid rgba(212, 169, 106, 0.35);
+  border-radius: 0px !important;
+  padding: 0 4px;
+  margin: 0 2px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  vertical-align: baseline;
   position: relative;
 }
 
-.ga-citation-pill:hover {
-  background: rgba(212, 169, 106, 0.3);
-  border-color: var(--ga-gold-primary);
-  color: #fff;
-  transform: translateY(-1px);
+.hud-cite-tag:hover {
+  background: var(--hud-gold-dark);
+  color: #000;
 }
 
-.ga-citation-pill::after {
+.hud-cite-tag::after {
   content: attr(data-tooltip);
-  white-space: pre-wrap;
   position: absolute;
-  bottom: calc(100% + 8px);
+  bottom: calc(100% + 6px);
   left: 50%;
-  transform: translateX(-50%) translateY(4px);
-  background: rgba(20, 20, 24, 0.96);
-  backdrop-filter: blur(16px);
-  color: rgba(255, 255, 255, 0.9);
+  transform: translateX(-50%);
+  background: #0d0e12;
+  color: #fff;
+  font-family: var(--hud-font-serif);
   font-size: 11px;
-  line-height: 1.5;
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(212, 169, 106, 0.3);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  line-height: 1.45;
+  padding: 6px 10px;
+  border: 1px solid var(--hud-gold);
+  border-radius: 0px;
   width: max-content;
   max-width: 240px;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.2s, transform 0.2s;
+  transition: opacity 0.15s;
   z-index: 100;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8);
 }
 
-.ga-citation-pill:hover::after {
+.hud-cite-tag:hover::after {
   opacity: 1;
-  transform: translateX(-50%) translateY(0);
 }
 
-.ga-citation-plain {
-  color: var(--ga-gold-primary);
+.hud-cite-plain {
+  color: var(--hud-gold-dark);
+  font-family: var(--hud-font-mono);
   font-size: 11px;
-  margin: 0 2px;
 }
 
-/* 消息底部动作条 */
-.ga-msg-footer {
-  margin-top: 8px;
+.hud-msg-actions {
+  margin-top: 6px;
   display: flex;
-  justify-content: flex-start;
 }
 
-.ga-copy-msg-btn {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.35);
+.hud-action-btn {
   background: transparent;
   border: none;
-  padding: 3px 6px;
-  border-radius: 6px;
-  transition: all 0.15s ease;
+  color: rgba(255, 255, 255, 0.3);
+  font-family: var(--hud-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
   cursor: pointer;
+  padding: 2px 0;
 }
 
-.ga-copy-msg-btn:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.75);
+.hud-action-btn:hover {
+  color: var(--hud-gold);
 }
 
-/* ====================================================================
-   7. 智能推荐提问区 (Suggestions)
-==================================================================== */
-.ga-suggestions-wrap {
-  margin-top: 12px;
-  padding: 12px 14px;
-  background: rgba(212, 169, 106, 0.05);
-  border: 1px dashed rgba(212, 169, 106, 0.25);
-  border-radius: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.ga-suggestions-title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11.5px;
-  color: var(--ga-gold-accent);
-  font-weight: 500;
-}
-
-.ga-suggestions-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.ga-suggestion-chip {
-  text-align: left;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  padding: 8px 12px;
-  font-size: 12.5px;
-  color: rgba(255, 255, 255, 0.85);
-  line-height: 1.4;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.ga-suggestion-chip:hover {
-  background: rgba(212, 169, 106, 0.15);
-  border-color: rgba(212, 169, 106, 0.4);
-  color: #fff;
-  transform: translateX(3px);
-}
-
-/* ====================================================================
-   8. 底部输入区 (Input Island - 绝不遮挡)
-==================================================================== */
-.ga-chat-input-island {
-  padding: 14px 20px 16px;
-  background: linear-gradient(180deg, rgba(18, 18, 22, 0.4) 0%, rgba(18, 18, 22, 0.98) 35%);
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+.hud-stream-spacer {
+  height: 16px;
   flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
 }
 
-.ga-input-wrapper {
+/* ====================================================================
+   7. 终端输入控制台 (Console)
+==================================================================== */
+.hud-console {
+  padding: 10px 14px 14px;
+  background: rgba(8, 10, 14, 0.96);
+  border-top: 1px solid var(--hud-border);
+  flex-shrink: 0;
+}
+
+.hud-input-frame {
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(212, 169, 106, 0.22);
-  border-radius: 16px;
-  padding: 4px 6px 4px 16px;
-  transition: all 0.25s ease;
-  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 0px !important;
+  padding: 2px 4px 2px 10px;
+  transition: all 0.15s ease;
 }
 
-.ga-input-wrapper:focus-within {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(212, 169, 106, 0.55);
-  box-shadow:
-    inset 0 2px 6px rgba(0, 0, 0, 0.3),
-    0 0 16px rgba(212, 169, 106, 0.15);
+.hud-input-frame:focus-within {
+  border-color: var(--hud-gold);
+  box-shadow: 0 0 12px rgba(212, 169, 106, 0.25), inset 0 0 6px rgba(212, 169, 106, 0.2);
 }
 
-.ga-input-wrapper input {
+.hud-input-prompt {
+  font-family: var(--hud-font-mono);
+  font-size: 13px;
+  color: var(--hud-gold-dark);
+  margin-right: 6px;
+  user-select: none;
+}
+
+.hud-input-frame input {
   flex: 1;
   background: transparent;
   border: none;
   color: #fff;
-  font-size: 13.5px;
+  font-size: 13px;
   outline: none;
-  padding: 9px 0;
+  padding: 8px 0;
   font-family: inherit;
 }
 
-.ga-input-wrapper input::placeholder {
-  color: rgba(255, 255, 255, 0.28);
-  font-size: 13px;
-}
-
-.ga-btn-send {
-  width: 34px;
-  height: 34px;
-  border-radius: 11px;
-  border: none;
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
-
-.ga-btn-send.is-active {
-  background: linear-gradient(135deg, var(--ga-gold-primary), #e6b87d);
-  color: #1a150e;
-  box-shadow: 0 2px 10px rgba(212, 169, 106, 0.4);
-}
-
-.ga-btn-send.is-active:hover {
-  transform: scale(1.05);
-}
-
-.ga-btn-stop {
-  width: 34px;
-  height: 34px;
-  border-radius: 11px;
-  border: 1px solid rgba(255, 80, 80, 0.4);
-  background: rgba(255, 80, 80, 0.15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.ga-stop-square {
-  width: 10px;
-  height: 10px;
-  background: #ff6b6b;
-  border-radius: 2px;
-}
-
-.ga-input-footnote {
-  font-size: 10px;
+.hud-input-frame input::placeholder {
   color: rgba(255, 255, 255, 0.25);
-  text-align: center;
-  letter-spacing: 0.02em;
+  font-size: 12px;
+  font-family: var(--hud-font-mono);
+}
+
+.hud-send-btn {
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 0px !important;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.35);
+  font-family: var(--hud-font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.hud-send-btn.is-active {
+  background: var(--hud-gold-dark);
+  border-color: var(--hud-gold);
+  color: #0b0c10;
+  box-shadow: 0 0 10px rgba(212, 169, 106, 0.4);
+}
+
+.hud-send-btn.is-active:hover {
+  background: var(--hud-gold);
+}
+
+.hud-send-btn--stop {
+  background: rgba(192, 48, 32, 0.25);
+  border-color: #ff5555;
+  color: #ff8888;
 }
 
 /* ====================================================================
-   9. 移动端全屏响应式 (<=768px)
+   8. 移动端响应式 (<=768px)
 ==================================================================== */
 @media (max-width: 768px) {
   .global-agent {
@@ -772,7 +599,7 @@
     top: 0;
   }
 
-  .ga-chat-panel {
+  .museum-hud {
     position: fixed;
     top: 0;
     left: 0;
@@ -781,11 +608,10 @@
     width: 100vw;
     height: 100dvh;
     max-height: 100dvh;
-    border-radius: 0;
     border: none;
   }
 
-  .ga-chat-input-island {
-    padding-bottom: calc(14px + env(safe-area-inset-bottom));
+  .hud-console {
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
   }
 }

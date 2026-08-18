@@ -106,7 +106,7 @@ function getCameraPose(progress: number) {
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768
   const stops = isMobile ? mobileCameraStops : cameraStops
   const p = THREE.MathUtils.clamp(progress, 0, 1) * (stops.length - 1)
-  const i = Math.min(cameraStops.length - 2, Math.floor(p))
+  const i = Math.min(stops.length - 2, Math.floor(p))
   const t = p - i
   // smoothstep 缓动
   const s = t * t * (3 - 2 * t)

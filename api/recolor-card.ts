@@ -31,8 +31,14 @@ function fallbackCard(body: RecolorCardRequest): RecolorCardResponse {
 
 async function generateText(input: string) {
   if (!client) return null
-  const response = await client.responses.create({ model, input })
-  return response.output_text
+  const response = await client.chat.completions.create({
+    model,
+    messages: [
+      { role: 'user', content: input }
+    ],
+    temperature: 0.3,
+  })
+  return response.choices[0]?.message?.content || null
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -68,11 +74,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 3. palette 给 4 个十六进制颜色，低饱和，适合岩壁、朱砂、暗金、丹枫或矿物色。
 4. interpretation 70 到 110 字。
 5. 必须说明这是数字复彩推演，不代表历史原貌。
-6. 输出 JSON，格式为：
+6. 严格输出合法的 JSON 格式，不要添加额外文本：
 {"title":"...","keywords":["..."],"palette":["#..."],"interpretation":"..."}
 `)
 
-    const parsed = JSON.parse(text || '{}') as Omit<RecolorCardResponse, 'source'>
+    let cleanText = (text || '{}').trim()
+    if (cleanText.startsWith('```')) {
+      const lines = cleanText.split('\n')
+      if (lines[0].startsWith('```')) lines.shift()
+      if (lines.length && lines[lines.length - 1].trim() === '```') lines.pop()
+      cleanText = lines.join('\n').trim()
+    }
+
+    const parsed = JSON.parse(cleanText) as Partial<RecolorCardResponse>
     res.json({
       title: parsed.title || fallbackCard(body).title,
       keywords: parsed.keywords || fallbackCard(body).keywords,
@@ -81,7 +95,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       source: 'openai',
     } satisfies RecolorCardResponse)
   } catch (error) {
-    console.error(error)
+    console.error('API /api/recolor-card 异常:', error)
     res.json(fallbackCard(body))
   }
 }
