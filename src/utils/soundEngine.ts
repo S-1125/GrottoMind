@@ -10,15 +10,15 @@ class SoundEngine {
   private masterGain: GainNode | null = null
   private sfxGain: GainNode | null = null
 
-  // 状态
-  private isMuted: boolean = false
+  // 状态（默认静音，由用户自主开启）
+  private isMuted: boolean = true
   private sfxEnabled: boolean = true
 
   // 防爆音与节流
   private lastChimeTime: number = 0
   private lastTickTime: number = 0
 
-  private storageKey = 'grottomind_sound_v3'
+  private storageKey = 'grottomind_sound_v4'
 
   constructor() {
     this.loadSettings()
@@ -29,7 +29,7 @@ class SoundEngine {
       const raw = localStorage.getItem(this.storageKey)
       if (raw) {
         const parsed = JSON.parse(raw)
-        this.isMuted = parsed.isMuted ?? false
+        this.isMuted = parsed.isMuted ?? true
         this.sfxEnabled = parsed.sfxEnabled ?? true
       }
     } catch { /* 忽略 */ }
