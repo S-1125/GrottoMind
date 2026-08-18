@@ -28,6 +28,28 @@
 .global-agent.is-open,
 .museum-hud {
   pointer-events: auto;
+  cursor: default !important;
+}
+
+/* 强制恢复系统原生指针 */
+.museum-hud,
+.museum-hud * {
+  cursor: default !important;
+}
+
+.museum-hud button,
+.museum-hud .hud-ctrl-btn,
+.museum-hud .hud-send-btn,
+.museum-hud .hud-specimen-card,
+.museum-hud .hud-cite-tag,
+.museum-hud .hud-think-summary,
+.museum-hud a {
+  cursor: pointer !important;
+}
+
+.museum-hud input,
+.museum-hud textarea {
+  cursor: text !important;
 }
 
 /* ====================================================================
