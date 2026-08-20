@@ -111,15 +111,16 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start; /* 关键：从 center 改为 flex-start，配合子元素 margin: auto 0，防止长文本顶部溢出被裁剪 */
   position: relative;
   z-index: 1;
   width: 100%;
   /* 关键：允许内容超长时滚动 */
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 40px 0 120px; /* 为底部输入栏飞起空间 */
+  padding: 40px 0 160px; /* 顶部留足呼吸空间，底部为悬浮输入栏预留空间 */
   scroll-behavior: smooth;
+  scrollbar-width: none;
 }
 .gh-main::-webkit-scrollbar { display: none; }
 
@@ -130,9 +131,10 @@
   align-items: center;
   width: 100%;
   /* 不再用绝对定位，改用正常文档流 */
-  transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), max-height 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), max-height 1.2s cubic-bezier(0.16, 1, 0.3, 1), margin 1.2s cubic-bezier(0.16, 1, 0.3, 1);
   max-height: 600px;
   overflow: hidden;
+  margin: auto 0; /* 短文本自动居中 */
 }
 
 .is-chatting .gh-hero-section {
@@ -140,6 +142,8 @@
   pointer-events: none;
   transform: translateY(-20px);
   max-height: 0;
+  margin: 0;
+  padding: 0;
 }
 
 /* 大标题 (Typography) */
@@ -204,6 +208,7 @@
   pointer-events: none;
   transform: translateY(12px);
   transition: opacity 1.0s cubic-bezier(0.16, 1, 0.3, 1) 0.2s, transform 1.0s cubic-bezier(0.16, 1, 0.3, 1) 0.2s;
+  margin: auto 0; /* 关键：短文本垂直居中，长文本自顶向下展开并允许向上滚到顶 */
 }
 
 .is-chatting .gh-cinematic-area {
