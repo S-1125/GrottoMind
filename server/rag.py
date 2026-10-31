@@ -70,8 +70,16 @@ def search(query: str, top_k: int = 4) -> List[Dict[str, Any]]:
     if not query or not query.strip():
         return []
 
-    # 提取查询词中的核心字词（长度>=2）
-    keywords = [w for w in re.split(r'[\s,，。！？、]+', query.strip()) if len(w) >= 2]
+    # 提取查询词中的核心字词（长度>=2）并辅以 N-Gram 滑动切词支持自然语言长句
+    raw_keywords = [w for w in re.split(r'[\s,，。！？、\?？]+', query.strip()) if len(w) >= 2]
+    keywords = list(raw_keywords)
+    for kw in raw_keywords:
+        if len(kw) > 4:
+            for n in [4, 3, 2]:
+                for i in range(len(kw) - n + 1):
+                    sub = kw[i:i+n]
+                    if sub not in keywords:
+                        keywords.append(sub)
     if not keywords:
         keywords = [query.strip()]
 
